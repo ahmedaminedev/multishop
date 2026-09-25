@@ -1,0 +1,12 @@
+{
+  "name": "MultiShop Suite",
+  "description": "Plateforme e-commerce multi-boutique (PharmaNature, IronFuel Nutrition, Cosmetics Shop, Electro Shop) avec API unique et Backoffice centralisé.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ],
+  "capabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
