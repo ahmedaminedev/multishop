@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#ccff00" />
+    <title>IronFuel - Elite Nutrition & Performance</title>
+    <meta name="description" content="IronFuel : Votre partenaire performance. Vente en ligne de Whey Protéine, Créatine, Pre-workout. Forgé pour l'élite." />
+    
+    <!-- Google Fonts: Oswald (Force) & Inter (Technique) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=Oswald:wght@400;700;900&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Oswald', 'sans-serif'],
+                    },
+                    colors: {
+                        brand: {
+                            black: '#050505',
+                            dark: '#0f0f0f',
+                            gray: '#1a1a1a',
+                            neon: '#ccff00',
+                            neonHover: '#b3e600',
+                            alert: '#ef4444'
+                        }
+                    },
+                    animation: {
+                        'marquee': 'marquee 30s linear infinite',
+                        'pulse-fast': 'pulse 1s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'glow': 'glow 2s ease-in-out infinite alternate',
+                    },
+                    keyframes: {
+                        marquee: {
+                            '0%': { transform: 'translateX(0%)' },
+                            '100%': { transform: 'translateX(-100%)' },
+                        },
+                        glow: {
+                            '0%': { boxShadow: '0 0 5px rgba(204, 255, 0, 0.2)' },
+                            '100%': { boxShadow: '0 0 20px rgba(204, 255, 0, 0.6)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Base Styling */
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            background-color: #f8fafc; /* Light by default */
+            color: #1a1a1a;
+        }
+        
+        .dark body {
+            background-color: #050505;
+            color: #ffffff;
+        }
+        
+        h1, h2, h3, h4, h5, h6 {
+            font-family: 'Oswald', sans-serif;
+            text-transform: uppercase;
+            letter-spacing: -0.02em;
+            font-weight: 900;
+            font-style: italic;
+        }
+
+        /* Tactical Noise Overlay (Visible in Dark Mode) */
+        .noise-overlay {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            pointer-events: none;
+            z-index: 9999;
+            opacity: 0.02;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+        }
+
+        /* Industrial Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f0f0f; }
+        ::-webkit-scrollbar-thumb { background: #ccff00; border-radius: 0px; }
+        
+        /* Skewed Elements Utility */
+        .slant { transform: skewX(-12deg); }
+        .slant-reverse { transform: skewX(12deg); }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom": "https://esm.sh/react-dom@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+    "vite": "https://esm.sh/vite@^7.3.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+    "socket.io-client": "https://esm.sh/socket.io-client@^4.8.1",
+    "react-helmet-async": "https://esm.sh/react-helmet-async@^2.0.5",
+    "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@^5.90.12",
+    "ogl": "https://esm.sh/ogl@^1.0.11"
+  }
+}
+</script>
+</head>
+  <body>
+    <div class="noise-overlay"></div>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

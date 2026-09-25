@@ -1,0 +1,10 @@
+{
+  "name": "IronFuel Nutrition",
+  "description": "Plateforme e-commerce Elite de nutrition sportive en Tunisie. Performance brute et authenticité garantie.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ],
+  "version": "2.0.0",
+  "author": "Elite Web Engineer"
+}
