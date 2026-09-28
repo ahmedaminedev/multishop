@@ -1,165 +1,214 @@
-import React, { useState } from 'react';
-import { Logo } from '../Logo';
-import { ChartPieIcon, ShoppingBagIcon, TagIcon, CubeIcon, UsersIcon, InboxIcon, HomeIcon, ArrowLongLeftIcon, SparklesIcon, StorefrontIcon } from '../IconComponents';
-import type { AdminPageName } from './AdminPage';
-import { CustomAlert } from '../CustomAlert';
-import { ThemeToggle } from '../ThemeToggle';
+import React, { useState, useMemo } from 'react';
+import type { Order, Product, ContactMessage } from '../../types';
+import { 
+    ArrowUpRightIcon, 
+    ArrowDownRightIcon, 
+    UsersIcon, 
+    ShoppingBagIcon, 
+    InboxIcon, 
+    ClockIcon, 
+    CheckCircleIcon, 
+    CreditCardIcon, 
+    ChartPieIcon, 
+    TagIcon,
+    InformationCircleIcon,
+    SparklesIcon,
+    EyeIcon
+} from '../IconComponents';
+import { 
+    AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
+    BarChart, Bar, PieChart, Pie, Cell, Legend, LineChart, Line,
+    Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis,
+    Treemap, ComposedChart
+} from 'recharts';
 
-interface AdminSidebarProps {
-    activePage: AdminPageName;
-    setActivePage: (page: AdminPageName) => void;
-    onNavigateHome: () => void;
-    onLogout: () => void;
+interface DashboardHomePageProps {
+    orders: Order[];
+    products: Product[];
+    messages: ContactMessage[];
 }
 
-const ChatBubbleLeftRightIcon: React.FC<{ className?: string }> = ({ className }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M20.25 8.511c.884.284 1.5 1.128 1.5 2.097v4.286c0 1.136-.847 2.1-1.98 2.193-.34.027-.68.052-1.02.072v3.091l-3-3c-1.354 0-2.694-.055-4.02-.163a2.115 2.115 0 01-.825-.242m9.345-8.334a2.126 2.126 0 00-.476-2.281m-5.518 5.518a2.126 2.126 0 00-2.282-.476 2.125 2.125 0 00-1.53 2.105v4.286c0 1.136.847 2.1 1.98 2.193.34.027.68.052 1.02.072M6.825 19.475l-3 3V19.38c-.34-.02-.68-.045-1.02-.072a2.125 2.125 0 01-1.98-2.193V9.38c0-1.136.847-2.1 1.98-2.193 1.354-.109 2.694-.163 4.02-.163 1.98 0 3.9.115 5.685.345" />
-    </svg>
-);
+const BI_COLORS = {
+    revenue: '#ccff00',    // Neon
+    orders: '#008b5e',     // Emerald
+    customers: '#f59e0b',  // Orange
+    success: '#10b981',    // Green
+    danger: '#ef4444',     // Red
+    neutral: '#94a3b8',    // Gray
+    palette: ['#ccff00', '#008b5e', '#3b82f6', '#f59e0b', '#8b5cf6', '#0ea5e9', '#ec4899', '#14b8a6']
+};
 
-const NavItem: React.FC<{
-    icon: React.ReactNode;
-    label: string;
-    isActive: boolean;
-    onClick: () => void;
-}> = ({ icon, label, isActive, onClick }) => (
-    <li>
-        <a
-            href="#"
-            onClick={(e) => { e.preventDefault(); onClick(); }}
-            className={`
-                group relative flex items-center px-4 py-3 my-1 transition-all duration-300 overflow-hidden
-                ${isActive 
-                    ? 'text-white dark:text-black bg-black dark:bg-brand-neon skew-x-[-12deg] translate-x-2 border-r-4 border-gray-400 dark:border-white shadow-md' 
-                    : 'text-gray-600 dark:text-gray-500 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-white/5'
-                }
-            `}
-        >
-            <span className={`relative z-10 w-5 h-5 transition-transform duration-300 ${isActive ? 'skew-x-[12deg]' : 'group-hover:scale-110'}`}>
-                {icon}
-            </span>
-            <span className={`relative z-10 ml-4 font-bold uppercase tracking-wider text-[10px] ${isActive ? 'skew-x-[12deg]' : ''}`}>
-                {label}
-            </span>
-            {!isActive && (
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-gray-200/50 dark:via-white/5 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-500"></div>
-            )}
-        </a>
-    </li>
-);
-
-const ArrowLeftOnRectangleIcon = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m3 0l3-3m0 0l-3-3m3 3H9" />
-    </svg>
-);
-
-const TagIconSolid = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-        <path fillRule="evenodd" d="M5.25 2.25a3 3 0 00-3 3v4.318a3 3 0 00.879 2.121l9.58 9.581c.92.92 2.39 1.186 3.548.428a18.849 18.849 0 005.441-5.44c.766-1.16.346-2.632-.575-3.553l-9.58-9.581a3 3 0 00-2.122-.879H5.25zM6.375 7.5a1.125 1.125 0 100-2.25 1.125 1.125 0 000 2.25z" clipRule="evenodd" />
-    </svg>
-);
-
-const StarIconSolid = ({ className }: { className?: string }) => (
-    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" className={className}>
-      <path fillRule="evenodd" d="M10.788 3.21c.448-1.077 1.976-1.077 2.424 0l2.082 5.007 5.404.433c1.164.093 1.636 1.545.749 2.305l-4.117 3.527 1.257 5.273c.271 1.136-.964 2.033-1.96 1.425L12 18.354 7.373 21.18c-.996.608-2.231-.29-1.96-1.425l1.257-5.273-4.117-3.527c-.887-.76-.415-2.212.749-2.305l5.404-.433 2.082-5.006z" clipRule="evenodd" />
-    </svg>
-);
-
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActivePage, onNavigateHome, onLogout }) => {
-    const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
-
-    const handleLogoutClick = () => {
-        setIsLogoutAlertOpen(true);
-    };
-
-    const confirmLogout = () => {
-        setIsLogoutAlertOpen(false);
-        onLogout();
-    };
-
-    const navItems: { id: AdminPageName, label: string, icon: React.ReactNode }[] = [
-        { id: 'dashboard', label: 'Command Center', icon: <ChartPieIcon /> },
-        { id: 'chat', label: 'Live Ops', icon: <ChatBubbleLeftRightIcon /> },
-        { id: 'home', label: 'Front Office', icon: <HomeIcon /> },
-        { id: 'offers', label: 'Offres & Deals', icon: <TagIconSolid /> },
-        { id: 'products', label: 'Armurerie', icon: <ShoppingBagIcon /> }, 
-        { id: 'categories', label: 'Catégories', icon: <TagIcon /> },
-        { id: 'brands', label: 'Marques', icon: <StarIconSolid className="w-6 h-6"/> },
-        { id: 'packs', label: 'Packs Elite', icon: <CubeIcon /> },
-        { id: 'orders', label: 'Logistique', icon: <UsersIcon /> },
-        { id: 'messages', label: 'Transmissions', icon: <InboxIcon /> },
-        { id: 'promotions', label: 'Codes Promo', icon: <SparklesIcon /> },
-        { id: 'stores', label: 'Bases / Magasins', icon: <StorefrontIcon /> },
-    ];
-
+const SmartInsight: React.FC<{ text: string; isActive: boolean }> = ({ text, isActive }) => {
+    if (!isActive) return null;
     return (
-        <aside className="w-64 bg-white dark:bg-[#050505] border-r border-gray-300 dark:border-gray-800 flex flex-col flex-shrink-0 h-full z-50 relative overflow-hidden transition-colors duration-300">
-            <div className="h-24 flex items-center justify-center border-b border-gray-300 dark:border-gray-800 bg-white dark:bg-[#050505] relative z-10 transition-colors">
-                <Logo />
-            </div>
-            
-            <div className="px-4 py-6 relative z-10 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-600 dark:bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
-                    <p className="text-[10px] font-black text-gray-700 dark:text-gray-400 uppercase tracking-[0.25em]">Système Actif</p>
+        <div className="group relative ml-2 inline-flex">
+            <button className="text-lime-400 hover:text-lime-300 transition-colors animate-pulse">
+                <InformationCircleIcon className="w-5 h-5" />
+            </button>
+            <div className="absolute bottom-full mb-3 right-0 w-72 max-w-[calc(100vw-2rem)] p-5 bg-zinc-950 text-white text-[11px] leading-relaxed rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-left border border-zinc-800 ring-4 ring-lime-400/10">
+                <div className="flex items-center gap-2 mb-2 text-lime-400 font-black uppercase tracking-wider text-[9px]">
+                    <SparklesIcon className="w-3 h-3" />
+                    Conseil Stratégique IronFuel
                 </div>
-                <div className="scale-75 origin-right">
-                    <ThemeToggle />
-                </div>
+                {text}
+                <div className="absolute bottom-[-6px] right-2 w-3 h-3 bg-zinc-950 transform rotate-45 border-r border-b border-zinc-800"></div>
             </div>
-
-            {/* --- SCROLLABLE AREA --- */}
-            <nav className="flex-1 px-2 overflow-y-auto custom-scrollbar relative z-10 pb-10">
-                <ul className="space-y-2">
-                    {navItems.map(item => (
-                        <NavItem
-                            key={item.id}
-                            icon={item.icon}
-                            label={item.label}
-                            isActive={activePage === item.id}
-                            onClick={() => setActivePage(item.id)}
-                        />
-                    ))}
-                </ul>
-            </nav>
-
-            <div className="p-4 border-t border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-[#080808] relative z-10 space-y-3 transition-colors flex-shrink-0">
-                 <a
-                    href="#"
-                    onClick={(e) => { e.preventDefault(); handleLogoutClick(); }}
-                    className="flex items-center justify-center p-3 text-red-600 border border-red-200 dark:border-red-900/30 hover:bg-red-600 hover:text-white transition-all font-bold text-xs uppercase tracking-widest skew-x-[-10deg]"
-                >
-                    <ArrowLeftOnRectangleIcon className="w-4 h-4 mr-2 skew-x-[10deg]" />
-                    <span className="skew-x-[10deg]">Déconnexion</span>
-                </a>
-                 <a
-                    href="#"
-                    onClick={(e) => { e.preventDefault(); onNavigateHome(); }}
-                    className="flex items-center justify-center p-3 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-800 hover:bg-black dark:hover:border-brand-neon hover:text-white dark:hover:text-brand-neon dark:hover:bg-transparent transition-all font-bold text-xs uppercase tracking-widest skew-x-[-10deg]"
-                >
-                    <ArrowLongLeftIcon className="w-4 h-4 mr-2 skew-x-[10deg]" />
-                    <span className="skew-x-[10deg]">Retour Site</span>
-                </a>
-            </div>
-
-            <CustomAlert 
-                isOpen={isLogoutAlertOpen}
-                onClose={() => setIsLogoutAlertOpen(false)}
-                title="Déconnexion"
-                message="Voulez-vous vraiment quitter le centre de commande ?"
-                type="warning"
-                showCancelButton={true}
-                confirmText="Oui, déconnecter"
-                onConfirm={confirmLogout}
-            />
-
-            <style>{`
-                .custom-scrollbar::-webkit-scrollbar { width: 4px; }
-                .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
-                .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccff00; border-radius: 10px; }
-            `}</style>
-        </aside>
+        </div>
     );
 };
+
+const KPICard: React.FC<{
+    title: string; value: string; subValue?: string; icon: React.ReactNode; 
+    trend?: 'up' | 'down' | 'neutral'; trendValue?: string; color: string; 
+    insight?: string; isAnalysisMode?: boolean;
+}> = ({ title, value, subValue, icon, trend, trendValue, color, insight, isAnalysisMode }) => (
+    <div className={`bg-zinc-900/90 p-6 rounded-2xl shadow-sm border transition-all duration-500 flex flex-col justify-between h-full ${isAnalysisMode ? 'ring-2 ring-lime-400/30 border-lime-400/40 scale-[1.02]' : 'border-zinc-800'}`}>
+        <div className="flex justify-between items-start mb-4">
+            <div className="w-12 h-12 rounded-xl flex items-center justify-center bg-zinc-800/80 border border-zinc-700/50" style={{ color }}>
+                {React.cloneElement(icon as React.ReactElement<any>, { className: `w-6 h-6` })}
+            </div>
+            <div className="flex items-center">
+                {trend && (
+                    <div className={`flex items-center gap-1 text-[10px] font-black px-2 py-0.5 rounded-full ${trend === 'up' ? 'bg-lime-950 text-lime-400 border border-lime-800/50' : trend === 'down' ? 'bg-red-950 text-red-400 border border-red-800/50' : 'bg-zinc-800 text-zinc-400'}`}>
+                        {trend === 'up' ? <ArrowUpRightIcon className="w-3 h-3"/> : <ArrowDownRightIcon className="w-3 h-3"/>}
+                        {trendValue}
+                    </div>
+                )}
+                <SmartInsight text={insight || ""} isActive={!!isAnalysisMode} />
+            </div>
+        </div>
+        <div>
+            <h3 className="text-[10px] font-black text-zinc-400 uppercase tracking-[0.2em]">{title}</h3>
+            <p className="text-3xl font-black text-white mt-1 tracking-tight font-oswald">{value}</p>
+            {subValue && <p className="text-[10px] text-zinc-400 mt-2 font-bold uppercase tracking-widest">{subValue}</p>}
+        </div>
+    </div>
+);
+
+const ChartCard: React.FC<{ 
+    title: string; children: React.ReactNode; height?: number; 
+    insight?: string; isAnalysisMode?: boolean; 
+}> = ({ title, children, height = 300, insight, isAnalysisMode }) => (
+    <div className={`bg-zinc-900/90 p-8 rounded-3xl shadow-sm border transition-all duration-500 flex flex-col ${isAnalysisMode ? 'ring-2 ring-lime-400/30 border-lime-400/40 shadow-xl' : 'border-zinc-800'}`}>
+        <div className="flex justify-between items-start mb-8 border-l-4 border-lime-400 pl-4">
+            <h3 className="font-black text-white text-xs uppercase tracking-[0.2em]">{title}</h3>
+            <SmartInsight text={insight || ""} isActive={!!isAnalysisMode} />
+        </div>
+        <div style={{ height: height, width: '100%' }}>
+            <ResponsiveContainer width="100%" height="100%">
+                {children as React.ReactElement}
+            </ResponsiveContainer>
+        </div>
+    </div>
+);
+
+export const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ orders, products, messages }) => {
+    const [activeTab, setActiveTab] = useState('overview');
+    const [isAnalysisMode, setIsAnalysisMode] = useState(false);
+
+    const data = useMemo(() => {
+        const last30Days = [];
+        for (let i = 29; i >= 0; i--) {
+            const d = new Date(); d.setDate(d.getDate() - i);
+            const key = d.toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+            last30Days.push({ date: key, revenue: 0, ordersCount: 0, aov: 0 });
+        }
+        orders.forEach(o => {
+            if (o.status !== 'Annulée') {
+                const key = new Date(o.date).toLocaleDateString('fr-FR', { day: '2-digit', month: '2-digit' });
+                const entry = last30Days.find(e => e.date === key);
+                if (entry) { entry.revenue += o.total; entry.ordersCount += 1; }
+            }
+        });
+        last30Days.forEach(e => e.aov = e.ordersCount > 0 ? e.revenue / e.ordersCount : 0);
+
+        const categoryMap: Record<string, {count: number, value: number, sales: number}> = {};
+        const productPerformance: Record<number, number> = {};
+        orders.filter(o => o.status !== 'Annulée').forEach(o => {
+            o.items.forEach(item => { productPerformance[item.productId] = (productPerformance[item.productId] || 0) + item.quantity; });
+        });
+
+        products.forEach(p => {
+            if (!categoryMap[p.category]) categoryMap[p.category] = {count: 0, value: 0, sales: 0};
+            categoryMap[p.category].count++;
+            categoryMap[p.category].value += p.price * p.quantity;
+            categoryMap[p.category].sales += (productPerformance[p.id] || 0);
+        });
+
+        return {
+            timeline: last30Days,
+            categories: Object.entries(categoryMap).map(([name, s]) => ({ name, value: s.count, valuation: s.value, sales: s.sales })),
+            topProducts: products.map(p => ({ name: p.name, sold: productPerformance[p.id] || 0 })).sort((a,b) => b.sold - a.sold).slice(0, 10),
+            totals: {
+                revenue: orders.filter(o => o.status !== 'Annulée').reduce((s, o) => s + o.total, 0),
+                delivered: orders.filter(o => o.status === 'Livrée').reduce((s, o) => s + o.total, 0),
+                pending: orders.filter(o => o.status === 'En attente' || o.status === 'Expédiée').reduce((s, o) => s + o.total, 0),
+                cancelled: orders.filter(o => o.status === 'Annulée').reduce((s, o) => s + o.total, 0),
+                aov: orders.length > 0 ? orders.reduce((s,o) => s+o.total, 0) / orders.length : 0
+            }
+        };
+    }, [orders, products]);
+
+    return (
+        <div className="space-y-8 pb-20 font-sans">
+            <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 border-b border-zinc-800 pb-8">
+                <div>
+                    <h1 className="text-3xl font-black text-white uppercase tracking-wider font-oswald">
+                        Centre de <span className="text-lime-400">Commandement</span>
+                    </h1>
+                    <p className="text-zinc-400 font-medium text-xs mt-1">Surveillance opérationnelle et analytique IronFuel</p>
+                </div>
+                
+                <div className="flex gap-4 items-center">
+                    <button 
+                        onClick={() => setIsAnalysisMode(!isAnalysisMode)}
+                        className={`px-4 py-2 rounded-xl text-xs font-black uppercase tracking-wider transition-all duration-300 border ${
+                            isAnalysisMode 
+                                ? 'bg-lime-400 text-black border-lime-400 shadow-lg shadow-lime-400/20' 
+                                : 'bg-zinc-800 text-zinc-300 border-zinc-700 hover:text-white'
+                        }`}
+                    >
+                        {isAnalysisMode ? '✨ Mode Analyse Actif' : 'Mode Expert'}
+                    </button>
+                    <div className="bg-zinc-800/80 text-zinc-300 px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest flex items-center gap-2 border border-zinc-700">
+                        <ClockIcon className="w-4 h-4 text-lime-400 animate-pulse"/> Temps Réel
+                    </div>
+                </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                <KPICard title="Chiffre d'Affaires" value={`${data.totals.revenue.toFixed(0)} DT`} subValue="Total des ventes" icon={<CreditCardIcon/>} trend="up" trendValue="+14%" color={BI_COLORS.revenue} isAnalysisMode={isAnalysisMode} insight="Chiffre d'affaires brut réalisé sur les commandes actives." />
+                <KPICard title="Commandes" value={orders.length.toString()} subValue="Volume total" icon={<ShoppingBagIcon/>} trend="up" trendValue="+8%" color={BI_COLORS.orders} isAnalysisMode={isAnalysisMode} insight="Nombre total d'ordres d'expédition enregistrés." />
+                <KPICard title="Panier Moyen" value={`${data.totals.aov.toFixed(0)} DT`} subValue="Dépense / Athlète" icon={<ChartPieIcon/>} trend="neutral" trendValue="Stable" color={BI_COLORS.customers} isAnalysisMode={isAnalysisMode} insight="Montant moyen commandé par athlète." />
+                <KPICard title="Messages Coach" value={messages.length.toString()} subValue="Demandes support" icon={<InboxIcon/>} trend="down" trendValue="-3" color={BI_COLORS.neutral} isAnalysisMode={isAnalysisMode} insight="Demandes et messages adressés au quartier général." />
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2">
+                    <ChartCard title="Progression Journalière (Ventes)" isAnalysisMode={isAnalysisMode} insight="Courbe d'évolution du chiffre d'affaires quotidien.">
+                        <ComposedChart data={data.timeline}>
+                            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#27272a" />
+                            <XAxis dataKey="date" axisLine={false} tickLine={false} tick={{fill: '#71717a', fontSize: 10}} />
+                            <YAxis axisLine={false} tickLine={false} tick={{fill: '#71717a', fontSize: 10}} />
+                            <Tooltip contentStyle={{backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', color: '#fff'}} />
+                            <Bar dataKey="revenue" fill={BI_COLORS.revenue} radius={[4, 4, 0, 0]} barSize={20} name="Ventes (DT)" />
+                        </ComposedChart>
+                    </ChartCard>
+                </div>
+                <ChartCard title="Répartition par Gamme" isAnalysisMode={isAnalysisMode} insight="Proportion de l'inventaire par catégorie d'entraînement.">
+                    <PieChart>
+                        <Pie data={data.categories} innerRadius={60} outerRadius={90} paddingAngle={5} dataKey="value">
+                            {data.categories.map((_, index) => (
+                                <Cell key={index} fill={BI_COLORS.palette[index % BI_COLORS.palette.length]} />
+                            ))}
+                        </Pie>
+                        <Tooltip contentStyle={{backgroundColor: '#18181b', borderColor: '#27272a', borderRadius: '12px', color: '#fff'}} />
+                        <Legend verticalAlign="bottom" iconType="circle" wrapperStyle={{fontSize: '10px'}} />
+                    </PieChart>
+                </ChartCard>
+            </div>
+        </div>
+    );
+};
+
+export default DashboardHomePage;

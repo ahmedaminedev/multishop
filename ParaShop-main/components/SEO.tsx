@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
@@ -60,6 +60,18 @@ export const SEO: React.FC<SEOProps> = ({
           "query-input": "required name=search_term_string"
         }
     };
+
+    useEffect(() => {
+        if (fullTitle) document.title = fullTitle;
+        if (description) {
+            const meta = document.querySelector('meta[name="description"]');
+            if (meta) meta.setAttribute('content', description);
+        }
+    }, [fullTitle, description]);
+
+    if (!Helmet || typeof Helmet !== 'function') {
+        return null;
+    }
 
     return (
         <Helmet>

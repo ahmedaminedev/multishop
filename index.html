@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/ParaShop-main/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#008b5e" />
+    
+    <title>MultiShop Network</title>
+    <meta name="description" content="Multi-store e-commerce platform including PharmaNature, IronFuel Nutrition, Cosmetics Shop, and Electro Shop." />
+    <meta property="og:title" content="MultiShop Network" />
+    <meta property="og:description" content="Multi-store e-commerce platform including PharmaNature, IronFuel Nutrition, Cosmetics Shop, and Electro Shop." />
+    <meta property="og:type" content="website" />
+    
+    <!-- Google Fonts for all 4 stores: Inter, Oswald, Playfair Display, Lato -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Lato:wght@300;400;700&family=Oswald:wght@400;700;900&family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+      tailwind.config = {
+        darkMode: 'class',
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ['Inter', 'Lato', 'sans-serif'],
+              serif: ['Playfair Display', 'Oswald', 'serif'],
+              oswald: ['Oswald', 'sans-serif'],
+              playfair: ['Playfair Display', 'serif'],
+              lato: ['Lato', 'sans-serif']
+            },
+            colors: {
+              brand: {
+                primary: '#008b5e',
+                primaryHover: '#00704c',
+                secondary: '#84cc16',
+                accent: '#f59e0b',
+                light: '#f0fdf4',
+                dark: '#061a12',
+                black: '#050505',
+                gray: '#1a1a1a',
+                neon: '#ccff00',
+                neonHover: '#b3e600',
+                alert: '#ef4444',
+                slate: '#1e293b',
+                bg: '#fcfdfa'
+              },
+              rose: {
+                50: '#fff1f2',
+                100: '#ffe4e6',
+                200: '#fecdd3',
+                300: '#fda4af',
+                400: '#fb7185',
+                500: '#f43f5e',
+                600: '#e11d48',
+                700: '#be123c',
+                800: '#9f1239',
+                900: '#881337',
+              },
+              gold: {
+                100: '#fbf5e6',
+                400: '#d4af37',
+                500: '#c5a028',
+              },
+              neon: {
+                400: '#ccff00',
+                500: '#b3e600'
+              }
+            },
+            boxShadow: {
+              'soft': '0 10px 30px -10px rgba(0, 139, 94, 0.1)',
+              'xl-brand': '0 20px 40px -15px rgba(0, 139, 94, 0.2)',
+            }
+          }
+        }
+      }
+    </script>
+    <style>
+      html, body {
+        width: 100%;
+        overflow-x: hidden;
+        scroll-behavior: smooth;
+      }
+      .no-scrollbar::-webkit-scrollbar {
+        display: none;
+      }
+      .no-scrollbar {
+        -ms-overflow-style: none;
+        scrollbar-width: none;
+      }
+      ::-webkit-scrollbar {
+        width: 6px;
+      }
+      ::-webkit-scrollbar-thumb {
+        background: #008b5e;
+        border-radius: 4px;
+      }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

@@ -28,7 +28,7 @@ export const DataDeletionPage: React.FC<DataDeletionPageProps> = ({ onNavigateHo
                     <h4>Option 1 : Via l'Espace Mon Compte</h4>
                     <ol>
                         <li>Connectez-vous à votre compte Electro Shop.</li>
-                        <li>Accédez à la section <strong>Mon Profil</strong> > <strong>Sécurité</strong>.</li>
+                        <li>Accédez à la section <strong>Mon Profil</strong> &gt; <strong>Sécurité</strong>.</li>
                         <li>Cliquez sur le bouton <strong>"Supprimer mon compte"</strong> en bas de page.</li>
                         <li>Confirmez votre choix. Vos données seront supprimées de nos systèmes actifs immédiatement.</li>
                     </ol>

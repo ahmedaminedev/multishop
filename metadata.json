@@ -1,0 +1,8 @@
+{
+  "name": "MultiShop Network",
+  "description": "Multi-store e-commerce platform including PharmaNature, IronFuel Nutrition, Cosmetics Shop, and Electro Shop.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone"
+  ]
+}

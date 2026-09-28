@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Helmet } from 'react-helmet-async';
 
 interface SEOProps {
@@ -53,6 +53,18 @@ export const SEO: React.FC<SEOProps> = ({
         "name": siteTitle,
         "url": window.location.origin
     };
+
+    useEffect(() => {
+        if (fullTitle) document.title = fullTitle;
+        if (description) {
+            const meta = document.querySelector('meta[name="description"]');
+            if (meta) meta.setAttribute('content', description);
+        }
+    }, [fullTitle, description]);
+
+    if (!Helmet || typeof Helmet !== 'function') {
+        return null;
+    }
 
     return (
         <Helmet>

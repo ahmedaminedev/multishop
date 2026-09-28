@@ -389,14 +389,16 @@ export const AdEditModal: React.FC<AdEditModalProps> = ({ isOpen, onClose, onSav
 }
 
 // Simple fade-in animation
-const style = document.createElement('style');
-style.innerHTML = `
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+if (typeof document !== 'undefined') {
+  const style = document.createElement('style');
+  style.innerHTML = `
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+  .animate-fadeIn {
+    animation: fadeIn 0.5s ease-in-out;
+  }
+  `;
+  document.head.appendChild(style);
 }
-.animate-fadeIn {
-  animation: fadeIn 0.5s ease-in-out;
-}
-`;
-document.head.appendChild(style);
