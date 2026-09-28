@@ -6,21 +6,28 @@ interface HeroSectionProps {
     slides: HeroSlide[];
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ slides }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ slides = [] }) => {
     const [currentSlide, setCurrentSlide] = useState(0);
 
     const nextSlide = () => {
+        if (!slides || slides.length === 0) return;
         setCurrentSlide(prev => (prev === slides.length - 1 ? 0 : prev + 1));
     };
 
     const prevSlide = () => {
+        if (!slides || slides.length === 0) return;
         setCurrentSlide(prev => (prev === 0 ? slides.length - 1 : prev - 1));
     };
     
     useEffect(() => {
+        if (!slides || slides.length <= 1) return;
         const slideInterval = setInterval(nextSlide, 5000);
         return () => clearInterval(slideInterval);
     }, [slides]);
+
+    if (!slides || slides.length === 0) {
+        return null;
+    }
 
 
     return (

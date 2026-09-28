@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { MultiShopClientAuth } from './MultiShopClientAuth';
 import { FilialeId } from '../models/ProductFiliale';
 
@@ -26,7 +26,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   // If user is already logged in, show user account profile popup
   if (currentUser) {
     return (
-      <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 relative border border-slate-100">
           <button
             onClick={onClose}
@@ -58,7 +58,19 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
             <p className="text-xs text-slate-500">
               Votre session est synchronisée et active sur l'ensemble du réseau (PharmaNature, IronFuel, Cosmetics Shop, Electro Shop).
             </p>
-            <div className="pt-2 flex justify-center gap-3">
+            <div className="pt-2 flex flex-wrap justify-center gap-2.5">
+              {(currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    onClose();
+                    window.location.search = '?mode=backoffice';
+                  }}
+                  className="px-4 py-2 text-xs font-bold rounded-xl bg-purple-600 hover:bg-purple-700 text-white cursor-pointer shadow-xs"
+                >
+                  Accéder au Backoffice Général
+                </button>
+              )}
               <button
                 type="button"
                 onClick={onClose}
@@ -85,7 +97,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
 
   // Exact Client Authentication Screen
   return (
-    <div className="fixed inset-0 z-[200] overflow-y-auto">
+    <div className="fixed inset-0 z-[99999] overflow-y-auto bg-slate-900/60 backdrop-blur-xs">
       <MultiShopClientAuth
         initialMode="login"
         onClose={onClose}

@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { FilialeId } from './src/models/ProductFiliale';
 import { MultiShopGlobalNav } from './src/components/MultiShopGlobalNav';
 import { UnifiedAuthModal } from './src/components/UnifiedAuthModal';
+import { MultiShopClientAuth } from './src/components/MultiShopClientAuth';
 import { GlobalMultiShopBackoffice } from './src/components/admin/GlobalMultiShopBackoffice';
 
 // Lazy load each shop application
@@ -40,12 +41,12 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [isClientAuthRoute, setIsClientAuthRoute] = useState<boolean>(() => {
-    return window.location.hash === '#/login' || window.location.hash === '#/register';
+    return window.location.hash.startsWith('#/login') || window.location.hash.startsWith('#/register');
   });
 
   useEffect(() => {
     const handleHash = () => {
-      setIsClientAuthRoute(window.location.hash === '#/login' || window.location.hash === '#/register');
+      setIsClientAuthRoute(window.location.hash.startsWith('#/login') || window.location.hash.startsWith('#/register'));
     };
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
@@ -204,35 +205,60 @@ export const App: React.FC = () => {
       ) : (
         /* 2. FRONTOFFICE MODE (Public storefronts) */
         <div className="flex-1 flex flex-col">
-          {/* Universal MultiShop Mini Top Navigation Bar: Shown only when not on dedicated Client Auth page */}
-          {!isClientAuthRoute && !isAuthModalOpen && (
-            <MultiShopGlobalNav
+          {isClientAuthRoute ? (
+            <MultiShopClientAuth
+              isOpen={true}
+              initialMode={window.location.hash.startsWith('#/register') ? 'register' : 'login'}
+              onClose={() => {
+                window.location.hash = '#/';
+              }}
+              onNavigateHome={() => {
+                window.location.hash = '#/';
+              }}
+              currentUser={currentUser}
+              onLoginSuccess={(user, token) => {
+                handleLoginSuccess(user, token);
+                window.location.hash = '#/';
+              }}
+              onLogout={handleLogout}
               currentShop={currentShop}
               onSwitchShop={handleSwitchShop}
-              onGoToBackoffice={handleGoToBackoffice}
-              currentUser={currentUser}
-              onOpenAuthModal={() => setIsAuthModalOpen(true)}
             />
-          )}
+          ) : (
+            <>
+              {/* Universal MultiShop Mini Top Navigation Bar */}
+              {!isAuthModalOpen && (
+                <MultiShopGlobalNav
+                  currentShop={currentShop}
+                  onSwitchShop={handleSwitchShop}
+                  onGoToBackoffice={handleGoToBackoffice}
+                  currentUser={currentUser}
+                  onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                  onGoToLogin={() => { window.location.hash = '#/login'; }}
+                  onGoToRegister={() => { window.location.hash = '#/register'; }}
+                />
+              )}
 
-          {/* Active Storefront */}
-          <main className="flex-1 w-full relative">
-            <Suspense
-              fallback={
-                <div className="flex flex-col items-center justify-center min-h-[70vh] bg-slate-50 dark:bg-slate-900 gap-4">
-                  <div className="w-12 h-12 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
-                  <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-                    Chargement de la boutique...
-                  </p>
-                </div>
-              }
-            >
-              {currentShop === 'para' && <ParaShopApp key="para-app" />}
-              {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
-              {currentShop === 'cosmetic' && <CosmeticShopApp key="cosmetic-app" />}
-              {currentShop === 'electro' && <ElectroShopApp key="electro-app" />}
-            </Suspense>
-          </main>
+              {/* Active Storefront */}
+              <main className="flex-1 w-full relative">
+                <Suspense
+                  fallback={
+                    <div className="flex flex-col items-center justify-center min-h-[70vh] bg-slate-50 dark:bg-slate-900 gap-4">
+                      <div className="w-12 h-12 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
+                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                        Chargement de la boutique...
+                      </p>
+                    </div>
+                  }
+                >
+                  {currentShop === 'para' && <ParaShopApp key="para-app" />}
+                  {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
+                  {currentShop === 'cosmetic' && <CosmeticShopApp key="cosmetic-app" />}
+                  {currentShop === 'electro' && <ElectroShopApp key="electro-app" />}
+                </Suspense>
+              </main>
+            </>
+          )}
         </div>
       )}
 

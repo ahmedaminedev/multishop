@@ -143,7 +143,7 @@ const AppContent: React.FC = () => {
             else if (path === 'favorites') { setCurrentPage('favorites'); window.scrollTo(0, 0); }
             else if (path === 'profile') setCurrentPage('profile');
             else if (path === 'order-history') setCurrentPage('order-history');
-            else if (path === 'login') user ? window.location.hash = '#/' : setCurrentPage('login');
+            else if (path === 'login' || path === 'register') user ? window.location.hash = '#/' : setCurrentPage('login');
             else if (path === 'privacy-policy') setCurrentPage('privacy-policy');
             else if (path === 'data-deletion') setCurrentPage('data-deletion');
             else if (path === 'checkout') { setCurrentPage('checkout'); window.scrollTo(0, 0); }
@@ -325,7 +325,7 @@ const AppContent: React.FC = () => {
             } else { setTimeout(navigateToHome, 0); return <PageLoader />; }
         }
 
-        if (currentPage === 'login') {
+        if (currentPage === 'login' || currentPage === 'register') {
             return (
                 <Suspense fallback={<PageLoader />}>
                     <LoginPage onNavigateHome={navigateToHome} onLoginSuccess={handleLoginSuccess} />

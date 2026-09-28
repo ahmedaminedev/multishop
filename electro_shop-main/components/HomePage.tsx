@@ -71,9 +71,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </aside>
                 
                 <main className="flex-1 min-w-0 relative z-10">
-                    <HeroSection slides={advertisements.heroSlides} />
+                    <HeroSection slides={advertisements?.heroSlides || []} />
                     <TrustBadges />
-                    <DestockageCarousel ads={advertisements.destockage} />
+                    <DestockageCarousel ads={advertisements?.destockage || []} />
                     
                     {newArrivalProducts.length > 0 && (
                         <ProductCarousel 
@@ -84,16 +84,16 @@ export const HomePage: React.FC<HomePageProps> = ({
                         />
                     )}
                     
-                    <AudioPromoBanner ads={advertisements.audioPromo} />
+                    <AudioPromoBanner ads={advertisements?.audioPromo || []} />
                     
                     <PromoBanners 
-                        banners={advertisements.promoBanners}
+                        banners={advertisements?.promoBanners || []}
                         allProducts={products}
                         allPacks={packs}
                         onPreview={onPreview}
                     />
                     
-                    <SmallPromoBanners ads={advertisements.smallPromoBanners} />
+                    <SmallPromoBanners ads={advertisements?.smallPromoBanners || []} />
                     
                     {summerSelectionProducts.length > 0 && (
                         <ProductCarousel 

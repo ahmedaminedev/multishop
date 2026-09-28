@@ -187,7 +187,7 @@ const AppContent: React.FC = () => {
                 setCurrentPage('profile');
             } else if (path === 'order-history') {
                 setCurrentPage('order-history');
-            } else if (path === 'login') {
+            } else if (path === 'login' || path === 'register') {
                 if (user) {
                     window.location.hash = '#/';
                 } else {
@@ -468,7 +468,7 @@ const AppContent: React.FC = () => {
             );
         }
 
-        if (currentPage === 'login') {
+        if (currentPage === 'login' || currentPage === 'register') {
             return (
                 <Suspense fallback={<PageLoader />}>
                     <LoginPage onNavigateHome={navigateToHome} onLoginSuccess={handleLoginSuccess} />

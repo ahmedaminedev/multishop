@@ -6,16 +6,16 @@ interface DestockageCarouselProps {
     ads: DestockageAd[];
 }
 
-export const DestockageCarousel: React.FC<DestockageCarouselProps> = ({ ads }) => {
+export const DestockageCarousel: React.FC<DestockageCarouselProps> = ({ ads = [] }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
 
     useEffect(() => {
-        if (ads.length <= 1) return;
+        if (!ads || ads.length <= 1) return;
 
         const currentAdDuration = (ads[currentIndex]?.duration || 10) * 1000;
         
         const timer = setTimeout(() => {
-            setCurrentIndex((prevIndex) => (prevIndex + 1) % ads.length);
+            setCurrentIndex((prevIndex) => (prevIndex + 1) % (ads?.length || 1));
         }, currentAdDuration);
 
         return () => clearTimeout(timer);

@@ -21,6 +21,8 @@ import type { User, Product, Category, Pack, Order, CartItem, CustomerInfo } fro
 
 const emptyAdvertisements: any = {
     heroSlides: [],
+    destockage: [],
+    audioPromo: [],
     promoBanners: [],
     smallPromoBanners: [],
     featuredCategories: [],
@@ -109,7 +111,7 @@ const AppContent: React.FC = () => {
                     setCurrentPage('reset-password');
                 }
             }
-            else if (hash.includes('success=registered') || hash.includes('error=')) {
+            else if (hash.includes('login') || hash.includes('register') || hash.includes('success=registered') || hash.includes('error=')) {
                 setCurrentPage('login');
             }
             else if (params.get('payment') === 'success') {

@@ -55,7 +55,7 @@ export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
 interface MultiShopGlobalNavProps {
   currentShop: FilialeId;
   onSwitchShop: (shopId: FilialeId) => void;
-  onGoToBackoffice: () => void;
+  onGoToBackoffice?: () => void;
   currentUser: any;
   onOpenAuthModal: () => void;
   onGoToLogin?: () => void;
@@ -162,19 +162,21 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
             })}
           </div>
 
-          {/* Right: Backoffice Button & Single Sign-On Account */}
+          {/* Right: SSO Account & Admin Access (only if connected as admin) */}
           <div className="flex items-center gap-2.5 ml-auto sm:ml-0">
-            {/* Backoffice HQ Button */}
-            <button
-              type="button"
-              onClick={onGoToBackoffice}
-              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer hover:shadow"
-              title="Accéder au Tableau de Bord Consolidé Groupe MultiShop"
-            >
-              <LayoutDashboard className="w-3.5 h-3.5" />
-              <span className="hidden md:inline">Backoffice Général</span>
-              <span className="md:hidden">Backoffice</span>
-            </button>
+            {/* Administration button ONLY visible if user is logged in as ADMIN */}
+            {currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && onGoToBackoffice && (
+              <button
+                type="button"
+                onClick={onGoToBackoffice}
+                className="bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer hover:shadow"
+                title="Accéder au Backoffice Administrateur"
+              >
+                <LayoutDashboard className="w-3.5 h-3.5" />
+                <span className="hidden md:inline">Administration</span>
+                <span className="md:hidden">Admin</span>
+              </button>
+            )}
 
             {/* SSO Account Profile */}
             {currentUser ? (
