@@ -1,0 +1,10 @@
+
+{
+  "name": "PharmaNature - Parapharmacie Moderne",
+  "description": "Plateforme e-commerce spécialisée en santé, micronutrition et soins naturels certifiés.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}

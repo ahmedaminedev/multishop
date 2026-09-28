@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="theme-color" content="#008b5e" />
+    
+    <!-- Primary SEO Meta Tags -->
+    <title>PharmaNature | Parapharmacie Naturelle & Phytothérapie d'Excellence</title>
+    <meta name="title" content="PharmaNature | Parapharmacie Naturelle & Phytothérapie d'Excellence" />
+    <meta name="description" content="Découvrez PharmaNature, votre parapharmacie digitale spécialisée en soins naturels, micronutrition et rituels bio. Conseils d'experts pharmaciens et livraison express partout en Tunisie." />
+    <meta name="keywords" content="parapharmacie, produits naturels, bio, vitamines, phytothérapie, soins visage, Tunisie, santé, bien-être, cosmétique bio, compléments alimentaires" />
+    <meta name="robots" content="index, follow" />
+    <meta name="author" content="PharmaNature Laboratory" />
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://pharmanature.tn/" />
+    <meta property="og:title" content="PharmaNature - L'Expertise de la Santé Naturelle" />
+    <meta property="og:description" content="Commandez vos cures et soins bio en ligne. Expertise pharmaceutique certifiée et livraison sous 48h." />
+    <meta property="og:image" content="/favicon.svg" />
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content="https://pharmanature.tn/" />
+    <meta property="twitter:title" content="PharmaNature - L'Expertise de la Santé Naturelle" />
+    <meta property="twitter:description" content="Découvrez nos rituels de soin et micronutrition bio." />
+    <meta property="twitter:image" content="/favicon.svg" />
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        serif: ['Playfair Display', 'serif'],
+                    },
+                    colors: {
+                        brand: {
+                            primary: '#008b5e', // Vert exact du nouveau logo
+                            primaryHover: '#00704c',
+                            secondary: '#84cc16', // Lime accent
+                            accent: '#f59e0b', // Amber pour les promos
+                            light: '#f0fdf4',
+                            dark: '#061a12', // Vert très sombre pour le luxe
+                            slate: '#1e293b',
+                            bg: '#fcfdfa'
+                        }
+                    },
+                    boxShadow: {
+                        'soft': '0 10px 30px -10px rgba(0, 139, 94, 0.1)',
+                        'xl-brand': '0 20px 40px -15px rgba(0, 139, 94, 0.2)',
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        html, body {
+            width: 100%;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+            background-color: #fcfdfa;
+            color: #1e293b;
+        }
+        
+        .dark body {
+            background-color: #061a12;
+            color: #f1f5f9;
+        }
+
+        .medical-grid {
+            background-image: radial-gradient(#e2e8f0 0.5px, transparent 0.5px);
+            background-size: 40px 40px;
+        }
+
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-thumb { background: #008b5e; border-radius: 20px; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .animate-fadeIn { animation: fadeIn 0.8s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        
+        .text-balance { text-wrap: balance; }
+    </style>
+    <script type="importmap">
+    {
+      "imports": {
+        "react/": "https://esm.sh/react@^19.2.3/",
+        "react": "https://esm.sh/react@^19.2.3",
+        "react-dom": "https://esm.sh/react-dom@^19.2.3",
+        "react-dom/": "https://esm.sh/react-dom@^19.2.3/",
+        "vite": "https://esm.sh/vite@^7.3.0",
+        "recharts": "https://esm.sh/recharts@^3.6.0",
+        "@vitejs/plugin-react": "https://esm.sh/@vitejs/plugin-react@^5.1.2",
+        "socket.io-client": "https://esm.sh/socket.io-client@^4.8.1",
+        "react-helmet-async": "https://esm.sh/react-helmet-async@^2.0.5",
+        "@tanstack/react-query": "https://esm.sh/@tanstack/react-query@^5.90.12",
+        "ogl": "https://esm.sh/ogl@^1.0.11"
+      }
+    }
+    </script>
+  </head>
+  <body class="medical-grid">
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

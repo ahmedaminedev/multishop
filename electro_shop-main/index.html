@@ -1,0 +1,138 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Electro Shop - Votre Achat en Ligne</title>
+    <meta name="description" content="Découvrez une large gamme de produits électroménagers, TV, audio, et plus encore. Profitez de nos promotions et d'un service client exceptionnel. Achat en ligne simple et sécurisé." />
+    <meta name="keywords" content="électroménager, TV, audio, pack encastrable, lave-vaisselle, climatiseur, ecommerce, tunisie" />
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+        }
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js" integrity="sha512-GsLlZN/3F2ErC5ifS5QtgpiJtWd43JWSuIgh7mbzZ8zBps+dvLusV+eNQATqgA/HdeKFVgA5v3S/cIrLF7QnIg==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+    <style>
+        /* Custom scrollbar for webkit browsers */
+        .no-scrollbar::-webkit-scrollbar {
+            display: none;
+        }
+        .no-scrollbar {
+            -ms-overflow-style: none; /* IE and Edge */
+            scrollbar-width: none; /* Firefox */
+        }
+        /* Creative Carousel Animations */
+        .destockage-slide {
+            transition: opacity 1s ease-in-out, visibility 1s;
+        }
+        .destockage-slide:not(.slide-active) {
+            opacity: 0;
+            visibility: hidden;
+        }
+        .destockage-slide.slide-active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .animated-item {
+            transition: all 0.8s cubic-bezier(0.25, 0.8, 0.25, 1);
+            opacity: 0;
+        }
+
+        .destockage-slide:not(.slide-active) .animated-item {
+            opacity: 0;
+        }
+
+        .destockage-slide .animated-text { transform: translateX(-40px); }
+        .destockage-slide .animated-image { transform: scale(0.8); }
+        .destockage-slide .animated-chef { transform: translateX(40px); }
+
+        .slide-active .animated-item {
+            opacity: 1;
+            transform: none;
+        }
+        .slide-active .animated-text { transition-delay: 200ms; }
+        .slide-active .animated-image-1 { transition-delay: 400ms; }
+        .slide-active .animated-image-2 { transition-delay: 500ms; }
+        .slide-active .animated-image-3 { transition-delay: 600ms; }
+        .slide-active .animated-chef { transition-delay: 300ms; }
+
+        /* --- Audio Promo Carousel Animation --- */
+        .audio-promo-slide {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            transition: opacity 1s ease-in-out;
+            visibility: hidden;
+        }
+        .audio-promo-slide.active {
+            opacity: 1;
+            visibility: visible;
+        }
+        .audio-promo-slide .ap-animated-item {
+            transition: all 0.9s cubic-bezier(0.23, 1, 0.32, 1);
+            opacity: 0;
+        }
+        .audio-promo-slide:not(.active) .ap-animated-item {
+            opacity: 0;
+        }
+        .audio-promo-slide .ap-title { transform: translateY(-30px); }
+        .audio-promo-slide .ap-subtitle1 { transform: translateY(-30px); }
+        .audio-promo-slide .ap-subtitle2 { transform: translateY(-30px); }
+        .audio-promo-slide .ap-image { transform: translateX(50px) scale(0.9); }
+
+        .audio-promo-slide.active .ap-animated-item {
+            opacity: 1;
+            transform: none;
+        }
+        .audio-promo-slide.active .ap-title { transition-delay: 200ms; }
+        .audio-promo-slide.active .ap-subtitle1 { transition-delay: 350ms; }
+        .audio-promo-slide.active .ap-subtitle2 { transition-delay: 500ms; }
+        .audio-promo-slide.active .ap-image { transition-delay: 400ms; }
+
+        /* Print styles for Invoice */
+        @media print {
+            body * {
+                visibility: hidden;
+            }
+            #invoice-printable-area, #invoice-printable-area * {
+                visibility: visible;
+            }
+            #invoice-printable-area {
+                position: absolute;
+                left: 0;
+                top: 0;
+                width: 100%;
+                margin: 0;
+                padding: 0;
+                border: none;
+                /* Ensure dark mode styles are overridden for print */
+                color: black !important;
+                background-color: white !important;
+            }
+            .print-hide {
+                display: none !important;
+            }
+        }
+    </style>
+  <script type="importmap">
+{
+  "imports": {
+    "react-dom/": "https://aistudiocdn.com/react-dom@^19.2.0/",
+    "react/": "https://aistudiocdn.com/react@^19.2.0/",
+    "react": "https://aistudiocdn.com/react@^19.2.0",
+    "vite": "https://aistudiocdn.com/vite@^7.2.4",
+    "@vitejs/plugin-react": "https://aistudiocdn.com/@vitejs/plugin-react@^5.1.1",
+    "socket.io-client": "https://aistudiocdn.com/socket.io-client@^4.8.1"
+  }
+}
+</script>
+</head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/index.tsx"></script>
+  </body>
+</html>

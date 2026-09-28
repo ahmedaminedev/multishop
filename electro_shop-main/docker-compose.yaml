@@ -1,0 +1,58 @@
+
+version: '3.8'
+
+services:
+  # --- Base de données ---
+  mongo:
+    image: mongo:latest
+    container_name: electro-mongo
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+    networks:
+      electro-net:
+        aliases:
+          - mongo-service
+
+  # --- Backend API ---
+  backend:
+    build: ./backend
+    container_name: electro-backend
+    restart: always
+    ports:
+      - "8081:8080"
+    environment:
+      - PORT=8080
+      - MONGO_URI=mongodb://mongo-service:27017/electroshop
+      - JWT_SECRET=secret_dev_key
+      # L'URL du frontend vue par le navigateur (pour les redirections OAuth/Paiement)
+      - FRONTEND_URL=http://localhost:3000
+    depends_on:
+      - mongo
+    networks:
+      electro-net:
+        aliases:
+          - backend-service
+
+  # --- Frontend React ---
+  frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: electro-frontend
+    restart: always
+    ports:
+      - "3000:80"
+    depends_on:
+      - backend
+    networks:
+      - electro-net
+
+volumes:
+  mongo_data:
+
+networks:
+  electro-net:
+    driver: bridge
