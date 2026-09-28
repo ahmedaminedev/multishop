@@ -1,62 +1,54 @@
 import React from 'react';
+import { Phone, Mail, Store, LayoutDashboard, ChevronRight, User, ShieldCheck } from 'lucide-react';
 import { FilialeId } from '../models/ProductFiliale';
+import { MultiShopLogo } from './admin/MultiShopLogo';
 
 export interface MultiShopStoreConfig {
   id: FilialeId;
   name: string;
-  shortName: string;
+  tabLabel: string;
   tagline: string;
   badge: string;
-  accentColor: string;
-  bgColor: string;
-  textColor: string;
   icon: string;
+  enumType: string;
 }
 
 export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
   {
     id: 'para',
     name: 'PharmaNature',
-    shortName: 'Parapharmacie',
-    tagline: 'Santé, Bio & Micronutrition',
-    badge: 'Santé Naturelle',
-    accentColor: '#008b5e',
-    bgColor: 'bg-emerald-700',
-    textColor: 'text-emerald-100',
-    icon: '🌿'
+    tabLabel: 'Para Shop',
+    tagline: 'Santé, Phytothérapie & Soins Bio',
+    badge: 'Santé & Bio',
+    icon: '🌿',
+    enumType: 'produit_myshops_para'
   },
   {
     id: 'nutrition',
     name: 'IronFuel Nutrition',
-    shortName: 'Nutrition Sport',
-    tagline: 'Performance & Musculation Elite',
-    badge: 'Elite Performance',
-    accentColor: '#ccff00',
-    bgColor: 'bg-zinc-900',
-    textColor: 'text-lime-400',
-    icon: '⚡'
+    tabLabel: 'Nutrition Shop',
+    tagline: 'Performance Sportive Elite',
+    badge: 'Pro Performance',
+    icon: '⚡',
+    enumType: 'produit_myshops_nutrition'
   },
   {
     id: 'cosmetic',
     name: 'Cosmetics Shop',
-    shortName: 'Cosmétiques',
+    tabLabel: 'Cosmetics Shop',
     tagline: 'Soins, Beauté & Parfumerie Luxe',
-    badge: 'Luxe & Élégance',
-    accentColor: '#e11d48',
-    bgColor: 'bg-rose-700',
-    textColor: 'text-rose-100',
-    icon: '💄'
+    badge: 'Luxe & Beauté',
+    icon: '💄',
+    enumType: 'produit_myshops_cosmetique'
   },
   {
     id: 'electro',
     name: 'Electro Shop',
-    shortName: 'Électroménager',
-    tagline: 'High-Tech, Maison & Cuisine',
-    badge: 'Technologie',
-    accentColor: '#2563eb',
-    bgColor: 'bg-blue-700',
-    textColor: 'text-blue-100',
-    icon: '🔌'
+    tabLabel: 'Electro Shop',
+    tagline: 'High-Tech & Électroménager',
+    badge: 'High-Tech',
+    icon: '🔌',
+    enumType: 'produit_myshops_electro'
   }
 ];
 
@@ -78,82 +70,139 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
   const currentStore = MULTISHOP_STORES.find(s => s.id === currentShop) || MULTISHOP_STORES[0];
 
   return (
-    <nav className="bg-slate-950 text-slate-200 border-b border-slate-800 text-xs py-1.5 px-3 sm:px-6 sticky top-0 z-[120] shadow-md select-none">
-      <div className="max-w-7xl mx-auto flex items-center justify-between gap-2 flex-wrap">
-        
-        {/* Left: Group Brand */}
-        <div className="flex items-center gap-2">
-          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-gradient-to-r from-indigo-900 to-purple-900 border border-indigo-700/50">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-extrabold uppercase tracking-wider text-[11px] text-white">
-              MultiShop <span className="text-indigo-300 font-normal">Groupe</span>
+    <div className="sticky top-0 z-[120] font-sans shadow-xs select-none">
+      
+      {/* 1. Top Informational Bar (Matching Backoffice clean aesthetic + Expert Advice contact) */}
+      <div className="bg-slate-900 text-slate-300 text-[11px] py-1.5 px-4 sm:px-6 border-b border-slate-800">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-4 flex-wrap">
+          
+          {/* Contact Expert mention exactly as requested */}
+          <div className="flex items-center gap-4 text-[11px] flex-wrap">
+            <a
+              href="tel:+21655263522"
+              className="flex items-center gap-1.5 font-bold text-white hover:text-blue-400 transition-colors"
+            >
+              <Phone className="w-3 h-3 text-blue-400" />
+              <span>CONSEIL EXPERT : +216 55 263 522</span>
+            </a>
+
+            <span className="hidden sm:inline text-slate-600">|</span>
+
+            <a
+              href="mailto:contact@multishop.tn"
+              className="hidden sm:flex items-center gap-1.5 text-slate-300 hover:text-white transition-colors"
+            >
+              <Mail className="w-3 h-3 text-slate-400" />
+              <span>contact@multishop.tn</span>
+            </a>
+
+            <span className="hidden md:inline text-slate-600">|</span>
+
+            <span className="hidden md:inline text-slate-400">
+              Réseau officiel de 4 filiales en Tunisie
             </span>
           </div>
-          <span className="text-[11px] text-slate-400 hidden xl:inline">
-            Plateforme e-commerce multi-filiales
-          </span>
+
+          {/* Right Group Perks */}
+          <div className="flex items-center gap-3 text-[11px] ml-auto">
+            <div className="flex items-center gap-1.5 text-emerald-400 font-semibold">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span className="hidden sm:inline">Paiement sécurisé & livraison express</span>
+            </div>
+          </div>
+
         </div>
-
-        {/* Center: Switcher between subsidiaries */}
-        <div className="flex items-center gap-1 sm:gap-1.5 overflow-x-auto py-0.5 no-scrollbar">
-          <span className="text-[11px] font-semibold text-slate-400 hidden md:inline mr-1">
-            Boutiques :
-          </span>
-          {MULTISHOP_STORES.map((shop) => {
-            const isCurrent = shop.id === currentShop;
-            return (
-              <button
-                key={shop.id}
-                onClick={() => onSwitchShop(shop.id)}
-                type="button"
-                className={`flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold transition-all duration-150 cursor-pointer ${
-                  isCurrent
-                    ? `${shop.bgColor} ${shop.textColor} shadow-md ring-1 ring-white/30 scale-105`
-                    : 'bg-slate-900/90 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800'
-                }`}
-                title={`Aller sur ${shop.name} - ${shop.tagline}`}
-              >
-                <span>{shop.icon}</span>
-                <span className="whitespace-nowrap">{shop.shortName}</span>
-                {isCurrent && (
-                  <span className="text-[9px] px-1 py-0.2 rounded-full bg-white/20 text-white font-extrabold hidden sm:inline">
-                    Actuel
-                  </span>
-                )}
-              </button>
-            );
-          })}
-        </div>
-
-        {/* Right: SSO User & Backoffice CTA */}
-        <div className="flex items-center gap-2 ml-auto">
-          {/* Backoffice Button */}
-          <button
-            onClick={onGoToBackoffice}
-            type="button"
-            className="flex items-center gap-1 px-2.5 py-1 rounded-md text-[11px] font-extrabold uppercase tracking-wide bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-slate-950 shadow-sm transition-all transform hover:scale-105 cursor-pointer"
-            title="Accéder au panneau d'administration général du groupe et des filiales"
-          >
-            <span>⚙️</span>
-            <span>Backoffice Général</span>
-          </button>
-
-          {/* User Button (SSO) */}
-          <button
-            onClick={onOpenAuthModal}
-            type="button"
-            className="flex items-center gap-1.5 px-2 py-1 rounded-md bg-slate-900 hover:bg-slate-800 border border-slate-700 text-[11px] text-slate-200 transition-colors cursor-pointer"
-          >
-            <span className="w-5 h-5 rounded-full bg-indigo-600 text-white flex items-center justify-center font-bold text-[10px]">
-              {currentUser?.firstName?.[0] || '👤'}
-            </span>
-            <span className="hidden sm:inline font-medium">
-              {currentUser ? currentUser.firstName : 'Connexion'}
-            </span>
-          </button>
-        </div>
-
       </div>
-    </nav>
+
+      {/* 2. Main Navigation Bar (Clean White, Dashboard Design Language) */}
+      <nav className="bg-white/95 backdrop-blur-md border-b border-slate-100 py-2.5 px-4 sm:px-6">
+        <div className="max-w-7xl mx-auto flex items-center justify-between gap-3 flex-wrap">
+          
+          {/* Left: Brand Identity & Active Shop Label */}
+          <div className="flex items-center gap-3">
+            <MultiShopLogo />
+
+            <div className="hidden sm:flex items-center gap-1.5 pl-3 border-l border-slate-200">
+              <span className="bg-blue-50 text-blue-700 font-extrabold text-[10px] px-2.5 py-0.5 rounded-full uppercase tracking-wider border border-blue-100">
+                GROUPE
+              </span>
+              <span className="text-xs font-semibold text-slate-600">
+                Boutique active : <strong className="text-slate-900">{currentStore.name}</strong>
+              </span>
+            </div>
+          </div>
+
+          {/* Center: Tabs to switch between the 4 shops (styled identically to Backoffice TopHeader tabs) */}
+          <div className="flex items-center gap-1 sm:gap-1.5 bg-slate-50 p-1 rounded-xl border border-slate-100 overflow-x-auto no-scrollbar">
+            {MULTISHOP_STORES.map((shop) => {
+              const isCurrent = shop.id === currentShop;
+              return (
+                <button
+                  key={shop.id}
+                  type="button"
+                  onClick={() => onSwitchShop(shop.id)}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    isCurrent
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+                  }`}
+                  title={`${shop.name} : ${shop.tagline}`}
+                >
+                  <span className="text-sm">{shop.icon}</span>
+                  <span>{shop.tabLabel}</span>
+                  {isCurrent && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-white ml-0.5"></span>
+                  )}
+                </button>
+              );
+            })}
+          </div>
+
+          {/* Right: Backoffice Button & Single Sign-On Account */}
+          <div className="flex items-center gap-2.5 ml-auto sm:ml-0">
+            {/* Backoffice HQ Button */}
+            <button
+              type="button"
+              onClick={onGoToBackoffice}
+              className="bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs px-3.5 py-1.5 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer hover:shadow"
+              title="Accéder au Tableau de Bord Consolidé Groupe MultiShop"
+            >
+              <LayoutDashboard className="w-3.5 h-3.5" />
+              <span className="hidden md:inline">Backoffice Général</span>
+              <span className="md:hidden">Backoffice</span>
+            </button>
+
+            {/* SSO Account Profile */}
+            {currentUser ? (
+              <button
+                type="button"
+                onClick={onOpenAuthModal}
+                className="flex items-center gap-2 p-1 pl-1.5 rounded-full hover:bg-slate-100 transition-colors border border-slate-200/80 cursor-pointer"
+                title={`Connecté: ${currentUser.email} (${currentUser.role === 'ADMIN' ? 'Administrateur' : 'Client'})`}
+              >
+                <div className="w-7 h-7 rounded-full bg-blue-600 text-white font-black text-xs flex items-center justify-center shadow-xs uppercase">
+                  {currentUser.firstName?.[0] || currentUser.email?.[0] || 'U'}
+                </div>
+                <span className="text-xs font-semibold text-slate-800 hidden lg:inline pr-1 max-w-[100px] truncate">
+                  {currentUser.firstName ? `${currentUser.firstName} ${currentUser.lastName || ''}`.trim() : (currentUser.email?.split('@')[0] || 'Utilisateur')}
+                </span>
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={onOpenAuthModal}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
+              >
+                <User className="w-3.5 h-3.5" />
+                <span className="hidden sm:inline">Connexion SSO</span>
+                <span className="sm:hidden">Connexion</span>
+              </button>
+            )}
+          </div>
+
+        </div>
+      </nav>
+
+    </div>
   );
 };

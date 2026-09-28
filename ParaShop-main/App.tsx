@@ -194,7 +194,7 @@ const AppContent: React.FC = () => {
                 if (adsData) setAdvertisements(adsData); 
 
                 const token = localStorage.getItem('token');
-                if (token) {
+                if (token && token !== 'null' && token !== 'undefined') {
                     try {
                         const userData = await api.getMe();
                         if (userData) setUser(userData);
@@ -202,10 +202,22 @@ const AppContent: React.FC = () => {
                         localStorage.removeItem('token');
                         setUser(null);
                     }
+                } else {
+                    setUser(null);
                 }
             } catch (error) { console.error("Data load error", error); }
         };
         loadData();
+
+        const handleAuthChange = (e: any) => {
+            if (e.detail?.user !== undefined) {
+                setUser(e.detail.user);
+            } else {
+                loadData();
+            }
+        };
+        window.addEventListener('auth-changed', handleAuthChange);
+        return () => { window.removeEventListener('auth-changed', handleAuthChange); };
     }, []);
 
     useEffect(() => {
@@ -250,6 +262,7 @@ const AppContent: React.FC = () => {
         try {
             const userData = await api.getMe();
             setUser(userData);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: userData, token: localStorage.getItem('token') } }));
             navigateToHome();
             addToast(`Bienvenue ${userData.firstName} !`, "success");
         } catch (e) { console.error("Login fetch error", e); }
@@ -257,7 +270,9 @@ const AppContent: React.FC = () => {
 
     const handleLogout = async () => {
         try { await api.logout(); } catch(e) {}
-        setUser(null); localStorage.removeItem('token');
+        setUser(null); 
+        localStorage.removeItem('token');
+        window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
         navigateToLogin(); 
         addToast("Session close.", "info");
     };

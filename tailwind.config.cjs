@@ -5,10 +5,14 @@ module.exports = {
     "./index.tsx",
     "./App.tsx",
     "./src/**/*.{js,ts,jsx,tsx}",
-    "./ParaShop-main/**/*.{js,ts,jsx,tsx}",
-    "./NutritionShop-main/**/*.{js,ts,jsx,tsx}",
-    "./cosmeticshop-main/**/*.{js,ts,jsx,tsx}",
-    "./electro_shop-main/**/*.{js,ts,jsx,tsx}",
+    "./ParaShop-main/components/**/*.{js,ts,jsx,tsx}",
+    "./ParaShop-main/*.{js,ts,jsx,tsx}",
+    "./NutritionShop-main/components/**/*.{js,ts,jsx,tsx}",
+    "./NutritionShop-main/*.{js,ts,jsx,tsx}",
+    "./cosmeticshop-main/components/**/*.{js,ts,jsx,tsx}",
+    "./cosmeticshop-main/*.{js,ts,jsx,tsx}",
+    "./electro_shop-main/components/**/*.{js,ts,jsx,tsx}",
+    "./electro_shop-main/*.{js,ts,jsx,tsx}",
   ],
   theme: {
     extend: {

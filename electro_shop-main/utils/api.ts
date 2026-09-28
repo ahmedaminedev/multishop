@@ -1,6 +1,4 @@
 
-import { allProducts, packs, categories, initialStores, mockPromotions, initialAdvertisements, blogPosts, contactMessages, sampleOrders } from '../constants';
-
 // Use relative URL to leverage Vite proxy in development
 const BACKEND_URL = ''; 
 
@@ -126,64 +124,53 @@ const apiRequest = async (endpoint: string, method: string = 'GET', body?: any, 
     }
 };
 
-// Helper to wrap API calls with mock fallback
-const withMockFallback = async <T>(apiCall: () => Promise<T>, mockData: T): Promise<T> => {
-    try {
-        return await apiCall();
-    } catch (error) {
-        // console.warn('Backend unavailable or error, returning fallback data if available.', error);
-        return mockData;
-    }
-};
-
 export const api = {
     // Auth
     login: (credentials: any) => apiRequest('/auth/login', 'POST', credentials),
     register: (userData: any) => apiRequest('/auth/register', 'POST', userData),
-    getMe: () => apiRequest('/auth/me'), // Direct API call, no mock fallback
+    getMe: () => apiRequest('/auth/me'),
     logout: () => {
-        // On appelle le endpoint logout pour nettoyer les cookies, puis on vide le localstorage
         return apiRequest('/auth/logout').finally(() => {
             localStorage.removeItem('token');
         });
     },
 
-    // Products
-    getProducts: () => withMockFallback(() => apiRequest('/products'), allProducts),
+    // Products (from database API)
+    getProducts: () => apiRequest('/products'),
     createProduct: (product: any) => apiRequest('/products', 'POST', product),
     updateProduct: (id: number | string, product: any) => apiRequest(`/products/${id}`, 'PUT', product),
     deleteProduct: (id: number | string) => apiRequest(`/products/${id}`, 'DELETE'),
 
-    // Packs
-    getPacks: () => withMockFallback(() => apiRequest('/packs'), packs),
+    // Packs (from database API)
+    getPacks: () => apiRequest('/packs'),
 
-    // Categories
-    getCategories: () => withMockFallback(() => apiRequest('/categories'), categories),
+    // Categories (from database API)
+    getCategories: () => apiRequest('/categories'),
 
-    // Stores
-    getStores: () => withMockFallback(() => apiRequest('/stores'), initialStores),
+    // Stores (from database API)
+    getStores: () => apiRequest('/stores'),
 
-    // Promotions
-    getPromotions: () => withMockFallback(() => apiRequest('/promotions'), mockPromotions),
+    // Promotions (from database API)
+    getPromotions: () => apiRequest('/promotions'),
 
-    // Advertisements
-    getAdvertisements: () => withMockFallback(() => apiRequest('/advertisements'), initialAdvertisements),
+    // Advertisements (from database API)
+    getAdvertisements: () => apiRequest('/advertisements'),
 
-    // Orders
+    // Orders (from database API)
     createOrder: (order: any) => apiRequest('/orders', 'POST', order),
-    getMyOrders: () => withMockFallback(() => apiRequest('/orders/myorders'), sampleOrders),
-    getAllOrders: () => withMockFallback(() => apiRequest('/orders'), sampleOrders),
+    getMyOrders: () => apiRequest('/orders/myorders'),
+    getAllOrders: () => apiRequest('/orders'),
 
     // Payment
     initiatePayment: (data: { orderId: string; amount: number; customerInfo: any }) => apiRequest('/payment/create', 'POST', data),
 
-    // Blog
-    getBlogPosts: () => withMockFallback(() => apiRequest('/blog'), blogPosts),
-    getBlogPostBySlug: (slug: string) => withMockFallback(() => apiRequest(`/blog/${slug}`), blogPosts.find(p => p.slug === slug)),
+    // Blog (from database API)
+    getBlogPosts: () => apiRequest('/blog'),
+    getBlogPostBySlug: (slug: string) => apiRequest(`/blog/${slug}`),
 
     // Contact
     sendMessage: (data: { name: string; email: string; subject: string; message: string }) => apiRequest('/contact', 'POST', data),
-    getMessages: () => withMockFallback(() => apiRequest('/contact'), contactMessages),
+    getMessages: () => apiRequest('/contact'),
 
     // Chat
     getChatHistory: (userId: string) => apiRequest(`/chat/${userId}`),

@@ -40,20 +40,44 @@ export const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Initialize and load current user
+  // Initialize and load current user dynamically from backend API
+  const fetchUser = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      const headers: Record<string, string> = {};
+      if (token && token !== 'null' && token !== 'undefined') {
+        headers['Authorization'] = `Bearer ${token}`;
+      }
+      const res = await fetch('/api/auth/me', { headers, credentials: 'include' });
+      if (res.ok) {
+        const user = await res.json();
+        setCurrentUser(user);
+      } else {
+        setCurrentUser(null);
+      }
+    } catch (err) {
+      console.error('Failed to load user:', err);
+      setCurrentUser(null);
+    }
+  };
+
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const res = await fetch('/api/auth/me');
-        if (res.ok) {
-          const user = await res.json();
-          setCurrentUser(user);
-        }
-      } catch (err) {
-        console.error('Failed to load user:', err);
+    fetchUser();
+
+    const handleAuthChange = (e: any) => {
+      if (e.detail?.user !== undefined) {
+        setCurrentUser(e.detail.user);
+      } else {
+        fetchUser();
       }
     };
-    fetchUser();
+
+    window.addEventListener('auth-changed', handleAuthChange);
+    window.addEventListener('storage', fetchUser);
+    return () => {
+      window.removeEventListener('auth-changed', handleAuthChange);
+      window.removeEventListener('storage', fetchUser);
+    };
   }, []);
 
   // Sync shop cookie and title
@@ -105,16 +129,23 @@ export const App: React.FC = () => {
   };
 
   const handleLoginSuccess = (user: any, token: string) => {
+    localStorage.setItem('token', token);
     setCurrentUser(user);
-    // If admin logged in, provide seamless experience
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user, token } }));
   };
 
   const handleLogout = async () => {
+    const token = localStorage.getItem('token');
     try {
-      await fetch('/api/auth/logout');
+      await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
+        credentials: 'include'
+      });
     } catch {}
     localStorage.removeItem('token');
     setCurrentUser(null);
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
   };
 
   return (

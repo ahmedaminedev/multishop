@@ -288,7 +288,7 @@ const AppContent: React.FC = () => {
                 if (adsData) setAdvertisements(adsData); 
 
                 const token = localStorage.getItem('token');
-                if (token) {
+                if (token && token !== 'null' && token !== 'undefined') {
                     try {
                         const userData = await api.getMe();
                         if (userData) {
@@ -299,12 +299,24 @@ const AppContent: React.FC = () => {
                         localStorage.removeItem('token');
                         setUser(null);
                     }
+                } else {
+                    setUser(null);
                 }
             } catch (error) {
                 console.error("Error loading initial data:", error);
             }
         };
         loadData();
+
+        const handleAuthChange = (e: any) => {
+            if (e.detail?.user !== undefined) {
+                setUser(e.detail.user);
+            } else {
+                loadData();
+            }
+        };
+        window.addEventListener('auth-changed', handleAuthChange);
+        return () => { window.removeEventListener('auth-changed', handleAuthChange); };
     }, []);
 
     // Authenticated User Data Loading
@@ -362,6 +374,7 @@ const AppContent: React.FC = () => {
         try {
             const userData = await api.getMe();
             setUser(userData);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: userData, token: localStorage.getItem('token') } }));
             // Redirection après login réussi (soit home, soit retour panier si on venait de là, mais ici simple home)
             // Si on venait de 'valider mon sac' (checkout), on pourrait rediriger vers checkout.
             // Pour simplifier, on redirige vers Home, l'utilisateur recliquera sur le panier.
@@ -379,6 +392,7 @@ const AppContent: React.FC = () => {
         
         setUser(null);
         localStorage.removeItem('token');
+        window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
         navigateToLogin(); 
         addToast("Vous avez été déconnecté avec succès.", "info");
     };

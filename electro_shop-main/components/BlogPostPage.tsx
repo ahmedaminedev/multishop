@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import type { BlogPost } from '../types';
 import { Breadcrumb } from './Breadcrumb';
 import { CalendarIcon, UserIcon, TagIcon, ChevronRightIcon } from './IconComponents';
-import { blogPosts } from '../constants';
+import { api } from '../utils/api';
 
 interface BlogPostPageProps {
     slug: string;
@@ -11,14 +11,44 @@ interface BlogPostPageProps {
 }
 
 export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, onNavigateHome, onNavigateToBlog }) => {
-    const post = useMemo(() => blogPosts.find(p => p.slug === slug), [slug]);
-    const recentPosts = useMemo(() => blogPosts.filter(p => p.slug !== slug).slice(0, 3), [slug]);
+    const [post, setPost] = useState<BlogPost | null>(null);
+    const [recentPosts, setRecentPosts] = useState<BlogPost[]>([]);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
-        if (post) {
-            document.title = `${post.title} - Electro Shop Blog`;
-        }
-    }, [post]);
+        let isMounted = true;
+        setLoading(true);
+        Promise.all([
+            api.getBlogPostBySlug(slug).catch(() => null),
+            api.getBlogPosts().catch(() => [])
+        ]).then(([foundPost, allPosts]) => {
+            if (!isMounted) return;
+            if (foundPost) {
+                setPost(foundPost);
+                document.title = `${foundPost.title} - Electro Shop Blog`;
+            } else if (Array.isArray(allPosts)) {
+                const fallback = allPosts.find((p: any) => p.slug === slug);
+                if (fallback) {
+                    setPost(fallback);
+                    document.title = `${fallback.title} - Electro Shop Blog`;
+                }
+            }
+            if (Array.isArray(allPosts)) {
+                setRecentPosts(allPosts.filter((p: any) => p.slug !== slug).slice(0, 3));
+            }
+            setLoading(false);
+        });
+
+        return () => { isMounted = false; };
+    }, [slug]);
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[50vh]">
+                <div className="w-10 h-10 border-4 border-red-200 border-t-red-600 rounded-full animate-spin"></div>
+            </div>
+        );
+    }
 
     if (!post) {
         return (

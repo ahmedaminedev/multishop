@@ -4,37 +4,53 @@ import path from 'path';
 import { handleApiRequest, initStores } from './serverApi.js';
 import { Server as SocketIOServer } from 'socket.io';
 
-function mockApiPlugin() {
+function multishopProductionPlugin() {
   return {
-    name: 'multishop-api-plugin',
+    name: 'multishop-production-plugin',
     async configureServer(server) {
       await initStores();
 
-      // Attach Socket.IO to dev server http instance
+      // Attach Socket.IO to dev server http instance with buffer protection
       if (server.httpServer) {
         const io = new SocketIOServer(server.httpServer, {
-          cors: { origin: '*', methods: ['GET', 'POST'] }
+          cors: { origin: '*', methods: ['GET', 'POST'] },
+          pingTimeout: 30000,
+          pingInterval: 25000,
+          maxHttpBufferSize: 1e6
         });
 
         io.on('connection', (socket) => {
-          socket.on('join_room', (userId) => socket.join(userId));
+          socket.on('join_room', (userId) => {
+            if (typeof userId === 'string' && userId.length < 100) {
+              socket.join(userId);
+            }
+          });
           socket.on('admin_join', () => socket.join('admin_room'));
           socket.on('check_admin_status', () => socket.emit('admin_status', { online: true }));
           socket.on('send_message', (data) => {
+            if (!data || typeof data !== 'object') return;
             const newMessage = {
-              sender: data.sender,
-              content: data.content,
+              sender: String(data.sender || 'Client').slice(0, 50),
+              content: String(data.content || '').slice(0, 1000),
               timestamp: new Date(),
               read: false
             };
-            io.to(data.userId).emit('receive_message', newMessage);
-            io.to('admin_room').emit('refresh_chats', { userId: data.userId, lastMessage: newMessage });
+            if (data.userId) {
+              io.to(data.userId).emit('receive_message', newMessage);
+              io.to('admin_room').emit('refresh_chats', { userId: data.userId, lastMessage: newMessage });
+            }
           });
         });
       }
 
-      // Mount API middleware
+      // High-performance security & API middleware
       server.middlewares.use((req, res, next) => {
+        // Enforce security headers on all responses
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+
         if (req.url && req.url.startsWith('/api')) {
           handleApiRequest(req, res, next);
         } else {
@@ -46,7 +62,7 @@ function mockApiPlugin() {
 }
 
 export default defineConfig({
-  plugins: [react(), mockApiPlugin()],
+  plugins: [react(), multishopProductionPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './')

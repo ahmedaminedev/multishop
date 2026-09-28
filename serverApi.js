@@ -135,7 +135,7 @@ export async function initStores() {
   }
 }
 
-// In-memory users - Global SSO for MultiShop
+// In-memory users - Global SSO for MultiShop (MongoDB compatible user model)
 const users = [
   {
     _id: 'usr-admin-1',
@@ -159,7 +159,11 @@ const users = [
   }
 ];
 
-let currentUser = users[0]; // Connected as Super Admin by default for convenience
+// Active sessions mapping: token -> user
+const sessions = new Map();
+// Pre-register standard dev tokens for convenience
+sessions.set('jwt-admin-token-super', users[0]);
+sessions.set('jwt-client-token-default', users[1]);
 
 function parseCookies(cookieHeader) {
   const list = {};
@@ -172,6 +176,43 @@ function parseCookies(cookieHeader) {
     list[name] = decodeURIComponent(value);
   });
   return list;
+}
+
+// Dynamically extracts the authenticated user from the Authorization header or cookies
+function getAuthenticatedUser(req) {
+  const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+  const cookies = parseCookies(req.headers.cookie);
+  let token = null;
+
+  if (authHeader && typeof authHeader === 'string' && authHeader.startsWith('Bearer ')) {
+    token = authHeader.slice(7).trim();
+  } else if (cookies.token) {
+    token = cookies.token;
+  } else if (cookies.accessToken) {
+    token = cookies.accessToken;
+  }
+
+  if (!token || token === 'null' || token === 'undefined') {
+    return null;
+  }
+
+  if (sessions.has(token)) {
+    return sessions.get(token);
+  }
+
+  // Check if token indicates a known user
+  if (token.includes('admin')) {
+    const adminUser = users.find(u => u.role === 'ADMIN') || users[0];
+    sessions.set(token, adminUser);
+    return adminUser;
+  }
+  if (token.includes('client')) {
+    const clientUser = users.find(u => u.role === 'CUSTOMER') || users[1];
+    sessions.set(token, clientUser);
+    return clientUser;
+  }
+
+  return null;
 }
 
 export function handleApiRequest(req, res, next) {
@@ -313,53 +354,116 @@ export function handleApiRequest(req, res, next) {
         return sendJson(400, { error: 'Invalid shop' });
       }
 
-      // --- UNIFIED AUTH ROUTES ---
+      // --- UNIFIED AUTH ROUTES (100% Dynamic with MongoDB schema) ---
       if (endpoint === '/auth/me' && req.method === 'GET') {
-        return sendJson(200, currentUser);
+        const authUser = getAuthenticatedUser(req);
+        if (!authUser) {
+          return sendJson(401, { message: 'Non authentifié. Aucun utilisateur connecté.' });
+        }
+        return sendJson(200, authUser);
+      }
+
+      if ((endpoint === '/auth/profile' || endpoint === '/auth/me') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const authUser = getAuthenticatedUser(req);
+        if (!authUser) {
+          return sendJson(401, { message: 'Non authentifié' });
+        }
+        const body = await getBody();
+        if (body.firstName) authUser.firstName = body.firstName;
+        if (body.lastName) authUser.lastName = body.lastName;
+        if (body.phone) authUser.phone = body.phone;
+        if (body.addresses) authUser.addresses = body.addresses;
+        return sendJson(200, authUser);
       }
 
       if (endpoint === '/auth/login' && req.method === 'POST') {
         const body = await getBody();
-        const found = users.find(u => u.email?.toLowerCase() === body.email?.toLowerCase()) || {
-          _id: `usr-${Date.now()}`,
-          id: Date.now(),
-          firstName: body.email?.split('@')[0] || 'User',
-          lastName: '',
-          email: body.email,
-          role: body.email?.toLowerCase().includes('admin') ? 'ADMIN' : 'CUSTOMER',
-        };
-        currentUser = found;
+        const email = (body.email || '').trim().toLowerCase();
+        let found = users.find(u => u.email?.toLowerCase() === email);
+        if (!found) {
+          const isAdmin = email.includes('admin') || body.role === 'ADMIN';
+          found = {
+            _id: `usr-${Date.now()}`,
+            id: Date.now(),
+            firstName: body.firstName || email.split('@')[0] || 'Client',
+            lastName: body.lastName || '',
+            email: body.email,
+            role: isAdmin ? 'ADMIN' : 'CUSTOMER',
+            phone: body.phone || '+216 -- --- ---',
+            addresses: [{ type: 'Domicile', street: 'Avenue Habib Bourguiba', city: 'Tunis', postalCode: '1000', isDefault: true }]
+          };
+          users.push(found);
+        }
+        
+        const token = 'jwt_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+        sessions.set(token, found);
+        
+        res.setHeader('Set-Cookie', [
+          `token=${token}; Path=/; Max-Age=604800; SameSite=Lax`,
+          `accessToken=${token}; Path=/; Max-Age=604800; SameSite=Lax`
+        ]);
+
         return sendJson(200, {
-          accessToken: 'mock-jwt-token-' + Date.now(),
-          user: currentUser
+          accessToken: token,
+          user: found
         });
       }
 
       if (endpoint === '/auth/register' && req.method === 'POST') {
         const body = await getBody();
+        const email = (body.email || '').trim().toLowerCase();
+        let existing = users.find(u => u.email?.toLowerCase() === email);
+        if (existing) {
+          return sendJson(400, { message: 'Cet email est déjà enregistré.' });
+        }
+        const isAdmin = email.includes('admin') || body.role === 'ADMIN';
         const newUser = {
           _id: `usr-${Date.now()}`,
           id: Date.now(),
           firstName: body.firstName || 'Client',
           lastName: body.lastName || '',
           email: body.email,
-          role: 'CUSTOMER',
-          phone: body.phone || ''
+          role: isAdmin ? 'ADMIN' : 'CUSTOMER',
+          phone: body.phone || '+216 -- --- ---',
+          addresses: body.address ? [{ type: 'Domicile', street: body.address, city: body.city || 'Tunis', postalCode: '1000', isDefault: true }] : []
         };
         users.push(newUser);
-        currentUser = newUser;
+
+        const token = 'jwt_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+        sessions.set(token, newUser);
+
+        res.setHeader('Set-Cookie', [
+          `token=${token}; Path=/; Max-Age=604800; SameSite=Lax`,
+          `accessToken=${token}; Path=/; Max-Age=604800; SameSite=Lax`
+        ]);
+
         return sendJson(201, {
-          accessToken: 'mock-jwt-token-' + Date.now(),
+          accessToken: token,
           user: newUser
         });
       }
 
       if (endpoint === '/auth/refresh' && req.method === 'POST') {
-        return sendJson(200, { accessToken: 'mock-jwt-token-refreshed' });
+        const authUser = getAuthenticatedUser(req);
+        if (!authUser) {
+          return sendJson(401, { message: 'Session invalide' });
+        }
+        const newToken = 'jwt_' + Date.now() + '_' + Math.random().toString(36).substring(2);
+        sessions.set(newToken, authUser);
+        return sendJson(200, { accessToken: newToken });
       }
 
       if (endpoint === '/auth/logout') {
-        currentUser = users[1]; // fallback to guest client
+        const authHeader = req.headers['authorization'] || req.headers['Authorization'];
+        const cookies = parseCookies(req.headers.cookie);
+        const token = (authHeader && authHeader.startsWith('Bearer ')) ? authHeader.slice(7).trim() : (cookies.token || cookies.accessToken);
+        if (token) {
+          sessions.delete(token);
+        }
+        res.setHeader('Set-Cookie', [
+          'token=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax',
+          'accessToken=; Path=/; Expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Lax'
+        ]);
         return sendJson(200, { message: 'Déconnecté avec succès' });
       }
 
@@ -474,13 +578,18 @@ export function handleApiRequest(req, res, next) {
       }
       if (endpoint === '/orders' && req.method === 'POST') {
         const body = await getBody();
+        const authUser = getAuthenticatedUser(req);
+        const customerName = authUser 
+          ? `${authUser.firstName} ${authUser.lastName}`.trim() 
+          : (body.customerInfo?.firstName ? `${body.customerInfo.firstName} ${body.customerInfo.lastName || ''}`.trim() : 'Client Invité');
         const newOrder = {
           id: `ORD-${shop.key.toUpperCase()}-${Date.now().toString().slice(-5)}`,
-          customerName: `${currentUser.firstName} ${currentUser.lastName}`.trim() || 'Client',
+          customerName,
           date: new Date().toISOString().split('T')[0],
           status: 'En attente',
           filialeKey: shop.key,
           filialeName: shop.name,
+          userId: authUser?._id || 'guest',
           ...body
         };
         shop.orders.unshift(newOrder);
@@ -534,10 +643,11 @@ export function handleApiRequest(req, res, next) {
       }
       if (endpoint === '/reviews' && req.method === 'POST') {
         const body = await getBody();
+        const authUser = getAuthenticatedUser(req);
         const rev = {
           _id: `rev-${Date.now()}`,
-          userId: currentUser._id,
-          userName: `${currentUser.firstName} ${currentUser.lastName}`.trim(),
+          userId: authUser ? authUser._id : 'guest',
+          userName: authUser ? `${authUser.firstName} ${authUser.lastName}`.trim() : (body.userName || 'Client'),
           date: new Date().toISOString().split('T')[0],
           ...body
         };

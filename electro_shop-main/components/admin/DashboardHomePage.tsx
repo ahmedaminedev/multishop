@@ -10,14 +10,18 @@ interface DashboardHomePageProps {
     messages: ContactMessage[];
 }
 
-export const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ orders, products, messages }) => {
-    const totalRevenue = orders
-        .filter(o => o.status === 'Livrée')
-        .reduce((sum, o) => sum + o.total, 0);
+export const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ orders = [], products = [], messages = [] }) => {
+    const safeOrders = Array.isArray(orders) ? orders : [];
+    const safeProducts = Array.isArray(products) ? products : [];
+    const safeMessages = Array.isArray(messages) ? messages : [];
 
-    const newOrders = orders.filter(o => o.status === 'En attente').length;
+    const totalRevenue = safeOrders
+        .filter(o => o && o.status === 'Livrée')
+        .reduce((sum, o) => sum + (o.total || 0), 0);
+
+    const newOrders = safeOrders.filter(o => o && o.status === 'En attente').length;
     
-    const unreadMessages = messages.filter(m => !m.read).length;
+    const unreadMessages = safeMessages.filter(m => m && !m.read).length;
 
     return (
         <div>
@@ -40,7 +44,7 @@ export const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ orders, pr
                 />
                  <StatCard 
                     title="Total Produits"
-                    value={products.length.toString()}
+                    value={safeProducts.length.toString()}
                     change=""
                     icon={<UsersIcon className="w-6 h-6"/>}
                 />

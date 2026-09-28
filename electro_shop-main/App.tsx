@@ -18,7 +18,16 @@ import { ProductPreviewModal } from './components/ProductPreviewModal';
 // Utils & Data
 import { api } from './utils/api';
 import type { User, Product, Category, Pack, Order, CartItem, CustomerInfo } from './types';
-import { initialAdvertisements } from './constants';
+
+const emptyAdvertisements: any = {
+    heroSlides: [],
+    promoBanners: [],
+    smallPromoBanners: [],
+    featuredCategories: [],
+    newArrivals: { title: "", productIds: [] },
+    dealsOfTheDay: { title: "", endTime: "", productIds: [] },
+    brandSpotlights: []
+};
 
 // --- LAZY LOADING DES PAGES ---
 // Cela permet de ne charger le code JavaScript d'une page que lorsque l'utilisateur la visite
@@ -69,7 +78,7 @@ const AppContent: React.FC = () => {
     const [stores, setStores] = useState<any[]>([]);
     const [orders, setOrders] = useState<Order[]>([]);
     const [promotionsData, setPromotionsData] = useState<any[]>([]);
-    const [advertisements, setAdvertisements] = useState(initialAdvertisements);
+    const [advertisements, setAdvertisements] = useState(emptyAdvertisements);
     
     // UI State
     const [isNavCollapsed, setIsNavCollapsed] = useState(false);
@@ -147,14 +156,14 @@ const AppContent: React.FC = () => {
                     api.getAdvertisements()
                 ]);
                 
-                setProducts(productsData);
-                setPacks(packsData);
-                setCategories(categoriesData);
-                setStores(storesData);
-                setAdvertisements({...initialAdvertisements, ...adsData}); 
+                setProducts(productsData || []);
+                setPacks(packsData || []);
+                setCategories(categoriesData || []);
+                setStores(storesData || []);
+                if (adsData) setAdvertisements(adsData); 
 
                 const token = localStorage.getItem('token');
-                if (token) {
+                if (token && token !== 'null' && token !== 'undefined') {
                     try {
                         const userData = await api.getMe();
                         if (userData) setUser(userData);
@@ -162,12 +171,24 @@ const AppContent: React.FC = () => {
                         localStorage.removeItem('token');
                         setUser(null);
                     }
+                } else {
+                    setUser(null);
                 }
             } catch (error) {
                 console.error("Error loading initial data:", error);
             }
         };
         loadData();
+
+        const handleAuthChange = (e: any) => {
+            if (e.detail?.user !== undefined) {
+                setUser(e.detail.user);
+            } else {
+                loadData();
+            }
+        };
+        window.addEventListener('auth-changed', handleAuthChange);
+        return () => { window.removeEventListener('auth-changed', handleAuthChange); };
     }, []);
 
     useEffect(() => {
@@ -204,6 +225,7 @@ const AppContent: React.FC = () => {
         try {
             const userData = await api.getMe();
             setUser(userData);
+            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: userData, token: localStorage.getItem('token') } }));
             setCurrentPage('home');
             addToast(`Bienvenue ${userData.firstName} !`, "success");
         } catch (e) {
@@ -215,6 +237,7 @@ const AppContent: React.FC = () => {
         await api.logout();
         setUser(null);
         localStorage.removeItem('token');
+        window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
         setCurrentPage('login'); 
         addToast("Vous avez été déconnecté avec succès.", "info");
     };

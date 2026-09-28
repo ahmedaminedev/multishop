@@ -94,7 +94,7 @@ const SecuritySection: React.FC = () => (
              <InputField label="Confirmer le nouveau mot de passe" id="confirmPassword" type="password" />
         </div>
         <div className="flex justify-start mt-12">
-            <button className="bg-brand-primary text-white font-black py-4 px-12 rounded-2xl hover:bg-brand-primaryHover transition-all shadow-xl shadow-brand-primary/20 uppercase tracking-widest text-xs">Actualiser les accès</button>
+            <button className="bg-brand-primary text-white font-black py-4 px-12 rounded-2xl hover:bg-brand-primaryHover transition-all shadow-xl shadow-brand-primary/20 uppercase tracking-widest text-xs">Enregistrer le mot de passe</button>
         </div>
     </div>
 );

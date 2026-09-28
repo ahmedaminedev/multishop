@@ -1,8 +1,8 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import type { BlogPost } from '../types';
 import { Breadcrumb } from './Breadcrumb';
 import { CalendarIcon, UserIcon, TagIcon, SearchIcon } from './IconComponents';
-import { blogPosts } from '../constants';
+import { api } from '../utils/api';
 
 interface BlogPageProps {
     onNavigateHome: () => void;
@@ -120,19 +120,24 @@ const FeaturedPostCard: React.FC<{ post: BlogPost; onSelectPost: (slug: string) 
 };
 
 export const BlogPage: React.FC<BlogPageProps> = ({ onNavigateHome, onSelectPost }) => {
+    const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+
     useEffect(() => {
         document.title = `Blog - Electro Shop`;
+        api.getBlogPosts().then(posts => {
+            if (Array.isArray(posts)) setBlogPosts(posts);
+        }).catch(console.error);
     }, []);
     
     const [featuredPost, ...otherPosts] = useMemo(() => {
         const sortedPosts = [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
         const featured = sortedPosts.find(p => p.featured) || sortedPosts[0];
-        const others = sortedPosts.filter(p => p.id !== featured.id);
+        const others = sortedPosts.filter(p => p && featured && p.id !== featured.id);
         return [featured, ...others];
-    }, []);
+    }, [blogPosts]);
 
-    const categories = useMemo(() => [...new Set(blogPosts.map(p => p.category))], []);
-    const recentPosts = useMemo(() => [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4), []);
+    const categories = useMemo(() => [...new Set(blogPosts.map(p => p.category).filter(Boolean))], [blogPosts]);
+    const recentPosts = useMemo(() => [...blogPosts].sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime()).slice(0, 4), [blogPosts]);
 
 
     return (
