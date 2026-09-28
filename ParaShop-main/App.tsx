@@ -325,6 +325,14 @@ const AppContent: React.FC = () => {
             } else { setTimeout(navigateToHome, 0); return <PageLoader />; }
         }
 
+        if (currentPage === 'login') {
+            return (
+                <Suspense fallback={<PageLoader />}>
+                    <LoginPage onNavigateHome={navigateToHome} onLoginSuccess={handleLoginSuccess} />
+                </Suspense>
+            );
+        }
+
         return (
             <div className="flex flex-col min-h-screen w-full transition-colors duration-300 bg-brand-bg dark:bg-brand-dark text-gray-800 dark:text-gray-100 font-sans">
                 <TopBar user={user} onNavigateToAdmin={navigateToAdmin} onNavigateToStores={navigateToStores} />

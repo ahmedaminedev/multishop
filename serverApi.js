@@ -228,6 +228,18 @@ export function handleApiRequest(req, res, next) {
   const shopKey = req.headers['x-shop-id'] || parsedUrl.query.shop || cookies.shop || activeShop || 'para';
   const shop = storesData[shopKey] || storesData.para || storesData.nutrition || storesData.cosmetic || storesData.electro;
 
+  // Set permissive CORS headers for iframe & preview environments
+  const origin = req.headers.origin || '*';
+  res.setHeader('Access-Control-Allow-Origin', origin);
+  res.setHeader('Access-Control-Allow-Credentials', 'true');
+  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, PATCH, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Shop-Id, x-shop-id, Accept');
+
+  if (req.method === 'OPTIONS') {
+    res.statusCode = 204;
+    return res.end();
+  }
+
   const sendJson = (statusCode, data) => {
     res.statusCode = statusCode;
     res.setHeader('Content-Type', 'application/json');
@@ -249,8 +261,13 @@ export function handleApiRequest(req, res, next) {
 
   (async () => {
     try {
-      // --- GLOBAL MULTISHOP ENDPOINTS ---
+      // --- GLOBAL MULTISHOP ENDPOINTS (ADMIN PROTECTED) ---
       if (endpoint === '/global/stats' && req.method === 'GET') {
+        const authUser = getAuthenticatedUser(req);
+        if (!authUser || (authUser.role !== 'ADMIN' && authUser.role !== 'SUPER_ADMIN')) {
+          return sendJson(403, { error: 'Forbidden', message: 'Accès interdit. Droits administrateur requis pour consulter les statistiques financières.' });
+        }
+
         const stats = {
           totalRevenue: 0,
           totalOrders: 0,
@@ -319,6 +336,11 @@ export function handleApiRequest(req, res, next) {
       }
 
       if (endpoint === '/global/orders' && req.method === 'GET') {
+        const authUser = getAuthenticatedUser(req);
+        if (!authUser || (authUser.role !== 'ADMIN' && authUser.role !== 'SUPER_ADMIN')) {
+          return sendJson(403, { error: 'Forbidden', message: 'Accès interdit. Droits administrateur requis pour consulter les commandes du groupe.' });
+        }
+
         let allOrders = [];
         for (const [k, s] of Object.entries(storesData)) {
           if (s && s.orders) {

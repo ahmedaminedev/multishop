@@ -58,6 +58,8 @@ interface MultiShopGlobalNavProps {
   onGoToBackoffice: () => void;
   currentUser: any;
   onOpenAuthModal: () => void;
+  onGoToLogin?: () => void;
+  onGoToRegister?: () => void;
 }
 
 export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
@@ -65,7 +67,9 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
   onSwitchShop,
   onGoToBackoffice,
   currentUser,
-  onOpenAuthModal
+  onOpenAuthModal,
+  onGoToLogin,
+  onGoToRegister
 }) => {
   const currentStore = MULTISHOP_STORES.find(s => s.id === currentShop) || MULTISHOP_STORES[0];
 
@@ -188,15 +192,32 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                 </span>
               </button>
             ) : (
-              <button
-                type="button"
-                onClick={onOpenAuthModal}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
-              >
-                <User className="w-3.5 h-3.5" />
-                <span className="hidden sm:inline">Connexion SSO</span>
-                <span className="sm:hidden">Connexion</span>
-              </button>
+              <div className="flex items-center gap-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onGoToLogin) onGoToLogin();
+                    else onOpenAuthModal();
+                  }}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-900 text-white hover:bg-slate-800 text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  title="Se connecter à votre compte client MultiShop"
+                >
+                  <User className="w-3.5 h-3.5" />
+                  <span className="hidden sm:inline">Connexion</span>
+                  <span className="sm:hidden">Connexion</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    if (onGoToRegister) onGoToRegister();
+                    else onOpenAuthModal();
+                  }}
+                  className="hidden md:flex items-center gap-1 px-3 py-1.5 rounded-xl bg-gradient-to-r from-blue-600 to-purple-600 hover:opacity-95 text-white text-xs font-bold transition-all shadow-xs cursor-pointer"
+                  title="Créer un compte client MultiShop"
+                >
+                  <span>S'inscrire</span>
+                </button>
+              </div>
             )}
           </div>
 

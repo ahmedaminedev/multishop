@@ -39,24 +39,65 @@ export const App: React.FC = () => {
   // Single Unified User State (SSO across all 4 shops & backoffice)
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [isClientAuthRoute, setIsClientAuthRoute] = useState<boolean>(() => {
+    return window.location.hash === '#/login' || window.location.hash === '#/register';
+  });
+
+  useEffect(() => {
+    const handleHash = () => {
+      setIsClientAuthRoute(window.location.hash === '#/login' || window.location.hash === '#/register');
+    };
+    window.addEventListener('hashchange', handleHash);
+    return () => window.removeEventListener('hashchange', handleHash);
+  }, []);
 
   // Initialize and load current user dynamically from backend API
   const fetchUser = async () => {
     try {
       const token = localStorage.getItem('token');
-      const headers: Record<string, string> = {};
-      if (token && token !== 'null' && token !== 'undefined') {
-        headers['Authorization'] = `Bearer ${token}`;
+      // If there is no token, check if we have a locally cached user
+      if (!token || token === 'null' || token === 'undefined') {
+        const cachedUserStr = localStorage.getItem('user');
+        if (cachedUserStr) {
+          try {
+            setCurrentUser(JSON.parse(cachedUserStr));
+          } catch {
+            setCurrentUser(null);
+          }
+        } else {
+          setCurrentUser(null);
+        }
+        return;
       }
+
+      const headers: Record<string, string> = {
+        'Accept': 'application/json',
+        'Authorization': `Bearer ${token}`
+      };
+
       const res = await fetch('/api/auth/me', { headers, credentials: 'include' });
       if (res.ok) {
         const user = await res.json();
         setCurrentUser(user);
+        localStorage.setItem('user', JSON.stringify(user));
       } else {
         setCurrentUser(null);
+        localStorage.removeItem('user');
+        if (res.status === 401) {
+          localStorage.removeItem('token');
+        }
       }
-    } catch (err) {
-      console.error('Failed to load user:', err);
+    } catch {
+      // Graceful offline/network recovery without throwing console.error
+      try {
+        const cached = localStorage.getItem('user');
+        if (cached) {
+          setCurrentUser(JSON.parse(cached));
+          return;
+        }
+      } catch {
+        // ignore JSON parse error
+      }
       setCurrentUser(null);
     }
   };
@@ -158,18 +199,21 @@ export const App: React.FC = () => {
           currentUser={currentUser}
           onLogout={handleLogout}
           onOpenAuthModal={() => setIsAuthModalOpen(true)}
+          onLoginSuccess={handleLoginSuccess}
         />
       ) : (
         /* 2. FRONTOFFICE MODE (Public storefronts) */
         <div className="flex-1 flex flex-col">
-          {/* Universal MultiShop Mini Top Navigation Bar */}
-          <MultiShopGlobalNav
-            currentShop={currentShop}
-            onSwitchShop={handleSwitchShop}
-            onGoToBackoffice={handleGoToBackoffice}
-            currentUser={currentUser}
-            onOpenAuthModal={() => setIsAuthModalOpen(true)}
-          />
+          {/* Universal MultiShop Mini Top Navigation Bar: Shown only when not on dedicated Client Auth page */}
+          {!isClientAuthRoute && !isAuthModalOpen && (
+            <MultiShopGlobalNav
+              currentShop={currentShop}
+              onSwitchShop={handleSwitchShop}
+              onGoToBackoffice={handleGoToBackoffice}
+              currentUser={currentUser}
+              onOpenAuthModal={() => setIsAuthModalOpen(true)}
+            />
+          )}
 
           {/* Active Storefront */}
           <main className="flex-1 w-full relative">
@@ -199,6 +243,8 @@ export const App: React.FC = () => {
         currentUser={currentUser}
         onLoginSuccess={handleLoginSuccess}
         onLogout={handleLogout}
+        currentShop={currentShop}
+        onSwitchShop={handleSwitchShop}
       />
 
     </div>

@@ -6,6 +6,7 @@ import { ConsolidatedDashboardView } from './ConsolidatedDashboardView';
 import { GlobalOrdersView } from './GlobalOrdersView';
 import { GlobalProductsView } from './GlobalProductsView';
 import { GlobalOtherViews } from './GlobalOtherViews';
+import { MultiShopBackofficeLogin } from './MultiShopBackofficeLogin';
 
 // Context providers for sub-backoffices
 import { ThemeProvider as ParaThemeProvider } from '../../../ParaShop-main/components/ThemeContext';
@@ -76,16 +77,30 @@ interface GlobalBackofficeProps {
   currentUser: any;
   onLogout: () => void;
   onOpenAuthModal: () => void;
+  onLoginSuccess?: (user: any, token: string) => void;
 }
 
 export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   onGoToStorefront,
   currentUser,
   onLogout,
-  onOpenAuthModal
+  onOpenAuthModal,
+  onLoginSuccess
 }) => {
   const [activeTab, setActiveTab] = useState<BackofficeTab>('hq');
   const [currentMenu, setCurrentMenu] = useState<SidebarMenuItem>('dashboard');
+  const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+
+  // Login View state: active if not admin, or on hash #/login, or toggled
+  const [showLoginView, setShowLoginView] = useState<boolean>(() => {
+    return !currentUser || currentUser?.role !== 'ADMIN' || window.location.hash === '#/login';
+  });
+
+  useEffect(() => {
+    if (!currentUser || currentUser?.role !== 'ADMIN') {
+      setShowLoginView(true);
+    }
+  }, [currentUser]);
 
   const [stats, setStats] = useState<any>(null);
   const [allProducts, setAllProducts] = useState<any[]>([]);
@@ -192,10 +207,25 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     }
   };
 
+  // If login view is active, render the exact MultiShop Backoffice login screen
+  if (showLoginView) {
+    return (
+      <MultiShopBackofficeLogin
+        onLoginSuccess={(user, token) => {
+          setShowLoginView(false);
+          if (onLoginSuccess) {
+            onLoginSuccess(user, token);
+          }
+        }}
+        onGoToStorefront={() => onGoToStorefront('para')}
+      />
+    );
+  }
+
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex font-sans">
       
-      {/* 1. Exact Left Sidebar (Matching Screenshot) */}
+      {/* 1. Exact Left Sidebar (Responsive Drawer on Mobile, Sticky on Desktop) */}
       <SidebarNav
         currentMenu={currentMenu}
         onSelectMenu={(menu) => {
@@ -203,6 +233,8 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
           setActiveTab('hq'); // When selecting from sidebar, ensure we are in HQ view
         }}
         ordersBadge={allOrders.length}
+        isMobileOpen={isMobileSidebarOpen}
+        onCloseMobile={() => setIsMobileSidebarOpen(false)}
       />
 
       {/* 2. Main Right Section */}
@@ -214,12 +246,17 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
           onSelectTab={(tab) => setActiveTab(tab)}
           onGoToStorefront={onGoToStorefront}
           currentUser={currentUser}
-          onLogout={onLogout}
+          onLogout={() => {
+            onLogout();
+            setShowLoginView(true);
+          }}
           onOpenAuthModal={onOpenAuthModal}
+          onShowLogin={() => setShowLoginView(true)}
+          onToggleMobileSidebar={() => setIsMobileSidebarOpen(prev => !prev)}
         />
 
         {/* Content Area */}
-        <main className="flex-1 p-6 sm:p-8 overflow-y-auto">
+        <main className="flex-1 p-3.5 sm:p-6 lg:p-8 overflow-y-auto">
           
           {/* TAB 1: GROUP HQ CONSOLIDATED VIEWS */}
           {activeTab === 'hq' && (

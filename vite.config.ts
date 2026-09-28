@@ -45,9 +45,8 @@ function multishopProductionPlugin() {
 
       // High-performance security & API middleware
       server.middlewares.use((req, res, next) => {
-        // Enforce security headers on all responses
+        // Enforce safe headers compatible with iframe embedding
         res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('X-Frame-Options', 'SAMEORIGIN');
         res.setHeader('X-XSS-Protection', '1; mode=block');
         res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 

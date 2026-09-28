@@ -8,7 +8,8 @@ import {
   Mail,
   Users,
   BarChart3,
-  Settings
+  Settings,
+  X
 } from 'lucide-react';
 import { MultiShopLogo } from './MultiShopLogo';
 
@@ -28,13 +29,17 @@ interface SidebarNavProps {
   onSelectMenu: (menu: SidebarMenuItem) => void;
   ordersBadge?: number;
   messagesBadge?: number;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const SidebarNav: React.FC<SidebarNavProps> = ({
   currentMenu,
   onSelectMenu,
   ordersBadge = 0,
-  messagesBadge = 0
+  messagesBadge = 0,
+  isMobileOpen = false,
+  onCloseMobile
 }) => {
   const menuItems = [
     { id: 'dashboard' as SidebarMenuItem, label: 'Tableau de bord', icon: LayoutDashboard },
@@ -48,13 +53,26 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     { id: 'settings' as SidebarMenuItem, label: 'Paramètres', icon: Settings },
   ];
 
-  return (
-    <aside className="w-64 bg-white border-r border-slate-100 flex flex-col justify-between h-screen sticky top-0 z-40 select-none">
-      {/* Top Section with Logo & Navigation */}
+  const handleItemClick = (id: SidebarMenuItem) => {
+    onSelectMenu(id);
+    if (onCloseMobile) onCloseMobile();
+  };
+
+  const navContent = (
+    <>
       <div className="p-5 flex flex-col gap-6">
         {/* Brand Logo */}
-        <div className="px-2 py-1">
+        <div className="px-2 py-1 flex items-center justify-between">
           <MultiShopLogo />
+          {onCloseMobile && (
+            <button
+              type="button"
+              onClick={onCloseMobile}
+              className="lg:hidden p-1.5 text-slate-400 hover:text-slate-700 rounded-lg hover:bg-slate-100 cursor-pointer"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          )}
         </div>
 
         {/* Navigation List */}
@@ -66,7 +84,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
               <button
                 key={item.id}
                 type="button"
-                onClick={() => onSelectMenu(item.id)}
+                onClick={() => handleItemClick(item.id)}
                 className={`flex items-center justify-between px-4 py-2.5 rounded-xl text-sm font-medium transition-colors text-left cursor-pointer ${
                   isActive
                     ? 'bg-blue-50 text-blue-600 font-semibold shadow-xs'
@@ -94,6 +112,30 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
       <div className="p-5 border-t border-slate-100">
         <MultiShopLogo showSubtitle size="sm" />
       </div>
-    </aside>
+    </>
+  );
+
+  return (
+    <>
+      {/* 1. Desktop Sidebar */}
+      <aside className="hidden lg:flex w-64 bg-white border-r border-slate-100 flex-col justify-between h-screen sticky top-0 z-40 select-none shrink-0">
+        {navContent}
+      </aside>
+
+      {/* 2. Mobile Responsive Drawer */}
+      {isMobileOpen && (
+        <div className="fixed inset-0 z-50 lg:hidden animate-fadeIn">
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-slate-900/50 backdrop-blur-xs"
+            onClick={onCloseMobile}
+          />
+          {/* Drawer Panel */}
+          <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white z-50 shadow-2xl flex flex-col justify-between overflow-y-auto">
+            {navContent}
+          </aside>
+        </div>
+      )}
+    </>
   );
 };
