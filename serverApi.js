@@ -18,15 +18,17 @@ let activeShop = 'para';
 export const FILIALE_MAP = {
   para: {
     key: 'para',
-    folder: 'ParaShop-main',
-    name: 'PharmaNature',
+    folder: 'templates/para',
+    legacyFolder: 'ParaShop-main',
+    name: 'PharmaShop',
     filialeType: 'produit_myshops_para',
     accentColor: '#008b5e',
     badge: 'Santé & Bio'
   },
   nutrition: {
     key: 'nutrition',
-    folder: 'NutritionShop-main',
+    folder: 'templates/nutrition',
+    legacyFolder: 'NutritionShop-main',
     name: 'IronFuel Nutrition',
     filialeType: 'produit_myshops_nutrition',
     accentColor: '#ccff00',
@@ -34,7 +36,8 @@ export const FILIALE_MAP = {
   },
   cosmetic: {
     key: 'cosmetic',
-    folder: 'cosmeticshop-main',
+    folder: 'templates/cosmetic',
+    legacyFolder: 'cosmeticshop-main',
     name: 'Cosmetics Shop',
     filialeType: 'produit_myshops_cosmetique',
     accentColor: '#e11d48',
@@ -42,7 +45,8 @@ export const FILIALE_MAP = {
   },
   electro: {
     key: 'electro',
-    folder: 'electro_shop-main',
+    folder: 'templates/electro',
+    legacyFolder: 'electro_shop-main',
     name: 'Electro Shop',
     filialeType: 'produit_myshops_electro',
     accentColor: '#2563eb',
@@ -90,7 +94,13 @@ function enrichProductWithFiliale(product, filialeKey) {
 export async function initStores() {
   for (const [key, cfg] of Object.entries(FILIALE_MAP)) {
     try {
-      const p = path.resolve(process.cwd(), cfg.folder, 'backend/src/data/initialData.js');
+      let p = path.resolve(process.cwd(), 'backend/src/data', `initialData_${key}.js`);
+      if (!fs.existsSync(p)) {
+        p = path.resolve(process.cwd(), cfg.legacyFolder || cfg.folder, 'backend/src/data/initialData.js');
+      }
+      if (!fs.existsSync(p)) {
+        p = path.resolve(process.cwd(), cfg.folder, 'data/initialData.js');
+      }
       const data = require(p);
       const rawProducts = Array.isArray(data.allProducts) ? JSON.parse(JSON.stringify(data.allProducts)) : [];
       const products = rawProducts.map(prod => enrichProductWithFiliale(prod, key));

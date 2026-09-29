@@ -33,7 +33,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
   const filialesData = [
     {
       key: 'para' as BackofficeTab,
-      name: 'PharmaNature',
+      name: 'PharmaShop',
       subtitle: 'Santé, Phytothérapie & Bio',
       enumType: 'produit_myshops_para',
       icon: '🌿',
@@ -326,7 +326,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
                     <td className="py-2.5 font-mono font-bold text-slate-800">{order.id}</td>
                     <td className="py-2.5">
                       <span className="font-medium text-slate-700 text-[11px]">
-                        {order.filialeKey === 'para' && '🌿 PharmaNature'}
+                        {order.filialeKey === 'para' && '🌿 PharmaShop'}
                         {order.filialeKey === 'nutrition' && '⚡ IronFuel'}
                         {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
                         {order.filialeKey === 'electro' && '🔌 Electro Shop'}

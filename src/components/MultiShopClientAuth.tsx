@@ -709,7 +709,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
 
       {/* Footer copyright */}
       <footer className="relative z-20 py-2.5 text-center text-[11px] text-slate-400">
-        MultiShop Tunisie © 2026 • Réseau officiel PharmaNature, IronFuel, Cosmetics & Electro
+        MultiShop Tunisie © 2026 • Réseau officiel PharmaShop, IronFuel, Cosmetics & Electro
       </footer>
 
       {/* Forgot Password Modal */}

@@ -56,7 +56,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              Votre session est synchronisée et active sur l'ensemble du réseau (PharmaNature, IronFuel, Cosmetics Shop, Electro Shop).
+              Votre session est synchronisée et active sur l'ensemble du réseau (PharmaShop, IronFuel, Cosmetics Shop, Electro Shop).
             </p>
             <div className="pt-2 flex flex-wrap justify-center gap-2.5">
               {(currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && (

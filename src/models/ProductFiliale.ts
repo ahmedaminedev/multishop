@@ -33,7 +33,7 @@ export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; 
   },
   [FilialeType.PRODUIT_MYSHOPS_PARA]: {
     id: 'para',
-    name: 'PharmaNature',
+    name: 'PharmaShop',
     badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300',
     icon: '🌿'
   }
@@ -207,7 +207,7 @@ export class ProduitPara extends ProduitFiliale {
   typePeauOuBesoin: string;
 
   constructor(data: any) {
-    super(data, FilialeType.PRODUIT_MYSHOPS_PARA, 'PharmaNature');
+    super(data, FilialeType.PRODUIT_MYSHOPS_PARA, 'PharmaShop');
     this.posologie = data.posologie || '2 prises par jour avec un grand verre d\'eau';
     this.compositionBio = data.compositionBio !== undefined ? data.compositionBio : true;
     this.certification = data.certification || 'Certifié Bio ECOCERT & ISO 22000';

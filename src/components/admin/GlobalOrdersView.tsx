@@ -33,7 +33,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({ orders, onUp
             GESTION DES COMMANDES <span className="text-blue-600">CENTRALISÉES</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Visualisez et traitez les commandes clients de PharmaNature, IronFuel, Cosmetics et Electro Shop
+            Visualisez et traitez les commandes clients de PharmaShop, IronFuel, Cosmetics et Electro Shop
           </p>
         </div>
       </div>
@@ -59,7 +59,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({ orders, onUp
           className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
         >
           <option value="all">Toutes les Boutiques</option>
-          <option value="para">🌿 PharmaNature</option>
+          <option value="para">🌿 PharmaShop</option>
           <option value="nutrition">⚡ IronFuel Nutrition</option>
           <option value="cosmetic">💄 Cosmetics Shop</option>
           <option value="electro">🔌 Electro Shop</option>
@@ -108,7 +108,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({ orders, onUp
                     <td className="py-3 px-4 font-mono font-bold text-slate-900">{order.id}</td>
                     <td className="py-3 px-4">
                       <span className="font-semibold text-slate-700">
-                        {order.filialeKey === 'para' && '🌿 PharmaNature'}
+                        {order.filialeKey === 'para' && '🌿 PharmaShop'}
                         {order.filialeKey === 'nutrition' && '⚡ IronFuel'}
                         {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
                         {order.filialeKey === 'electro' && '🔌 Electro Shop'}

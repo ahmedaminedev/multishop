@@ -5,11 +5,11 @@ import { UnifiedAuthModal } from './src/components/UnifiedAuthModal';
 import { MultiShopClientAuth } from './src/components/MultiShopClientAuth';
 import { GlobalMultiShopBackoffice } from './src/components/admin/GlobalMultiShopBackoffice';
 
-// Lazy load each shop application
-const ParaShopApp = React.lazy(() => import('./ParaShop-main/App'));
-const NutritionShopApp = React.lazy(() => import('./NutritionShop-main/App'));
-const CosmeticShopApp = React.lazy(() => import('./cosmeticshop-main/App'));
-const ElectroShopApp = React.lazy(() => import('./electro_shop-main/App'));
+// Lazy load each shop application template
+const ParaShopApp = React.lazy(() => import('./templates/para/App'));
+const NutritionShopApp = React.lazy(() => import('./templates/nutrition/App'));
+const CosmeticShopApp = React.lazy(() => import('./templates/cosmetic/App'));
+const ElectroShopApp = React.lazy(() => import('./templates/electro/App'));
 
 export type AppMode = 'backoffice' | 'frontoffice';
 
@@ -129,7 +129,7 @@ export const App: React.FC = () => {
       document.title = 'MultiShop | Backoffice Général Groupe';
     } else {
       const titles: Record<FilialeId, string> = {
-        para: 'PharmaNature | Parapharmacie & Soins Bio',
+        para: 'PharmaShop | Parapharmacie & Soins Bio',
         nutrition: 'IronFuel Nutrition | Elite Sport & Performance',
         cosmetic: 'Cosmetics Shop | Beauté, Soins & Luxe',
         electro: 'Electro Shop | High-Tech & Électroménager'

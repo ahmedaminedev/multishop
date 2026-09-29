@@ -70,9 +70,9 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({ currentMenu,
 
   if (currentMenu === 'stores') {
     const storesList = [
-      { name: 'MultiShop Flagship Tunis Centre', address: 'Avenue Habib Bourguiba, Tunis', phone: '+216 71 100 200', branches: ['PharmaNature', 'Cosmetics', 'Electro'] },
+      { name: 'MultiShop Flagship Tunis Centre', address: 'Avenue Habib Bourguiba, Tunis', phone: '+216 71 100 200', branches: ['PharmaShop', 'Cosmetics', 'Electro'] },
       { name: 'MultiShop Megastore Sousse', address: 'Boulevard 14 Janvier, Sousse', phone: '+216 73 200 300', branches: ['IronFuel Nutrition', 'Electro'] },
-      { name: 'MultiShop Point de Vente Sfax', address: 'Route de Téniour, Sfax', phone: '+216 74 300 400', branches: ['PharmaNature', 'Cosmetics'] },
+      { name: 'MultiShop Point de Vente Sfax', address: 'Route de Téniour, Sfax', phone: '+216 74 300 400', branches: ['PharmaShop', 'Cosmetics'] },
       { name: 'MultiShop Nabeul Cap Bon', address: 'Avenue Habib Thameur, Nabeul', phone: '+216 72 400 500', branches: ['Toutes Filiales'] }
     ];
 
@@ -184,7 +184,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({ currentMenu,
                 <td className="py-3 px-4 font-bold text-slate-900">Responsable Pharma</td>
                 <td className="py-3 px-4 text-slate-600">pharma@multishop.tn</td>
                 <td className="py-3 px-4"><span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold text-[10px]">Gestionnaire</span></td>
-                <td className="py-3 px-4 text-slate-600">PharmaNature</td>
+                <td className="py-3 px-4 text-slate-600">PharmaShop</td>
                 <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
               </tr>
             </tbody>
@@ -242,7 +242,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({ currentMenu,
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="font-semibold text-slate-700">🌿 PharmaNature (0 DT)</span>
+                  <span className="font-semibold text-slate-700">🌿 PharmaShop (0 DT)</span>
                   <span className="font-bold text-emerald-600">0%</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">

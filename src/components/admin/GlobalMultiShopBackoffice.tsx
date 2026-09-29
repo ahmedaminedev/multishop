@@ -9,35 +9,35 @@ import { GlobalOtherViews } from './GlobalOtherViews';
 import { MultiShopBackofficeLogin } from './MultiShopBackofficeLogin';
 
 // Context providers for sub-backoffices
-import { ThemeProvider as ParaThemeProvider } from '../../../ParaShop-main/components/ThemeContext';
-import { ToastProvider as ParaToastProvider } from '../../../ParaShop-main/components/ToastContext';
-import { CartProvider as ParaCartProvider } from '../../../ParaShop-main/components/CartContext';
-import { FavoritesProvider as ParaFavoritesProvider } from '../../../ParaShop-main/components/FavoritesContext';
-import { CompareProvider as ParaCompareProvider } from '../../../ParaShop-main/components/CompareContext';
+import { ThemeProvider as ParaThemeProvider } from '@/templates/para/components/ThemeContext';
+import { ToastProvider as ParaToastProvider } from '@/templates/para/components/ToastContext';
+import { CartProvider as ParaCartProvider } from '@/templates/para/components/CartContext';
+import { FavoritesProvider as ParaFavoritesProvider } from '@/templates/para/components/FavoritesContext';
+import { CompareProvider as ParaCompareProvider } from '@/templates/para/components/CompareContext';
 
-import { ThemeProvider as NutritionThemeProvider } from '../../../NutritionShop-main/components/ThemeContext';
-import { ToastProvider as NutritionToastProvider } from '../../../NutritionShop-main/components/ToastContext';
-import { CartProvider as NutritionCartProvider } from '../../../NutritionShop-main/components/CartContext';
-import { FavoritesProvider as NutritionFavoritesProvider } from '../../../NutritionShop-main/components/FavoritesContext';
-import { CompareProvider as NutritionCompareProvider } from '../../../NutritionShop-main/components/CompareContext';
+import { ThemeProvider as NutritionThemeProvider } from '@/templates/nutrition/components/ThemeContext';
+import { ToastProvider as NutritionToastProvider } from '@/templates/nutrition/components/ToastContext';
+import { CartProvider as NutritionCartProvider } from '@/templates/nutrition/components/CartContext';
+import { FavoritesProvider as NutritionFavoritesProvider } from '@/templates/nutrition/components/FavoritesContext';
+import { CompareProvider as NutritionCompareProvider } from '@/templates/nutrition/components/CompareContext';
 
-import { ThemeProvider as CosmeticThemeProvider } from '../../../cosmeticshop-main/components/ThemeContext';
-import { ToastProvider as CosmeticToastProvider } from '../../../cosmeticshop-main/components/ToastContext';
-import { CartProvider as CosmeticCartProvider } from '../../../cosmeticshop-main/components/CartContext';
-import { FavoritesProvider as CosmeticFavoritesProvider } from '../../../cosmeticshop-main/components/FavoritesContext';
-import { CompareProvider as CosmeticCompareProvider } from '../../../cosmeticshop-main/components/CompareContext';
+import { ThemeProvider as CosmeticThemeProvider } from '@/templates/cosmetic/components/ThemeContext';
+import { ToastProvider as CosmeticToastProvider } from '@/templates/cosmetic/components/ToastContext';
+import { CartProvider as CosmeticCartProvider } from '@/templates/cosmetic/components/CartContext';
+import { FavoritesProvider as CosmeticFavoritesProvider } from '@/templates/cosmetic/components/FavoritesContext';
+import { CompareProvider as CosmeticCompareProvider } from '@/templates/cosmetic/components/CompareContext';
 
-import { ThemeProvider as ElectroThemeProvider } from '../../../electro_shop-main/components/ThemeContext';
-import { ToastProvider as ElectroToastProvider } from '../../../electro_shop-main/components/ToastContext';
-import { CartProvider as ElectroCartProvider } from '../../../electro_shop-main/components/CartContext';
-import { FavoritesProvider as ElectroFavoritesProvider } from '../../../electro_shop-main/components/FavoritesContext';
-import { CompareProvider as ElectroCompareProvider } from '../../../electro_shop-main/components/CompareContext';
+import { ThemeProvider as ElectroThemeProvider } from '@/templates/electro/components/ThemeContext';
+import { ToastProvider as ElectroToastProvider } from '@/templates/electro/components/ToastContext';
+import { CartProvider as ElectroCartProvider } from '@/templates/electro/components/CartContext';
+import { FavoritesProvider as ElectroFavoritesProvider } from '@/templates/electro/components/FavoritesContext';
+import { CompareProvider as ElectroCompareProvider } from '@/templates/electro/components/CompareContext';
 
 // Lazy loaded sub-backoffices
-const ParaAdminPage = React.lazy(() => import('../../../ParaShop-main/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
-const NutritionAdminPage = React.lazy(() => import('../../../NutritionShop-main/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
-const CosmeticAdminPage = React.lazy(() => import('../../../cosmeticshop-main/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
-const ElectroAdminPage = React.lazy(() => import('../../../electro_shop-main/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const ParaAdminPage = React.lazy(() => import('@/templates/para/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const NutritionAdminPage = React.lazy(() => import('@/templates/nutrition/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const CosmeticAdminPage = React.lazy(() => import('@/templates/cosmetic/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const ElectroAdminPage = React.lazy(() => import('@/templates/electro/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 class SubAdminErrorBoundary extends React.Component<{ filialeName: string; onBackToHq: () => void; children: React.ReactNode }, { hasError: boolean; error: any }> {
   constructor(props: any) {
@@ -295,16 +295,16 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             </>
           )}
 
-          {/* TAB 2: PHARMANATURE SUB-BACKOFFICE */}
+          {/* TAB 2: PHARMASHOP SUB-BACKOFFICE */}
           {activeTab === 'para' && (
-            <SubAdminErrorBoundary filialeName="PharmaNature" onBackToHq={() => setActiveTab('hq')}>
+            <SubAdminErrorBoundary filialeName="PharmaShop" onBackToHq={() => setActiveTab('hq')}>
               <div className="space-y-4">
                 <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between shadow-xs">
                   <div className="flex items-center gap-2">
                     <span className="text-2xl">🌿</span>
                     <div>
                       <h2 className="font-extrabold text-sm text-emerald-900">
-                        Sous-Backoffice Dédié : PharmaNature
+                        Sous-Backoffice Dédié : PharmaShop
                       </h2>
                       <p className="text-xs text-emerald-700">Parapharmacie, Phytothérapie & Soins Bio • produit_myshops_para</p>
                     </div>
@@ -324,7 +324,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                       <ParaCartProvider>
                         <ParaFavoritesProvider>
                           <ParaCompareProvider>
-                            <Suspense fallback={<div className="p-12 text-center text-slate-400">Chargement du backoffice PharmaNature...</div>}>
+                            <Suspense fallback={<div className="p-12 text-center text-slate-400">Chargement du backoffice PharmaShop...</div>}>
                               <ParaAdminPage
                                 onNavigateHome={() => onGoToStorefront('para')}
                                 onLogout={onLogout}

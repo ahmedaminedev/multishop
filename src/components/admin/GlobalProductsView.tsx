@@ -69,7 +69,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({ products
           className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
         >
           <option value="all">Toutes les Filiales (67)</option>
-          <option value="para">🌿 PharmaNature (2)</option>
+          <option value="para">🌿 PharmaShop (2)</option>
           <option value="nutrition">⚡ IronFuel Nutrition (15)</option>
           <option value="cosmetic">💄 Cosmetics Shop (19)</option>
           <option value="electro">🔌 Electro Shop (31)</option>

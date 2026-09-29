@@ -22,18 +22,7 @@
     "*.tsx",
     "*.js",
     "src/**/*",
-    "ParaShop-main/components/**/*",
-    "ParaShop-main/*.tsx",
-    "ParaShop-main/*.ts",
-    "NutritionShop-main/components/**/*",
-    "NutritionShop-main/*.tsx",
-    "NutritionShop-main/*.ts",
-    "cosmeticshop-main/components/**/*",
-    "cosmeticshop-main/*.tsx",
-    "cosmeticshop-main/*.ts",
-    "electro_shop-main/components/**/*",
-    "electro_shop-main/*.tsx",
-    "electro_shop-main/*.ts"
+    "templates/**/*"
   ],
   "exclude": [
     "node_modules",
