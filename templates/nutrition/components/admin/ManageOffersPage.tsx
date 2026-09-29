@@ -15,6 +15,38 @@ interface ManageOffersPageProps {
 
 export type SectionType = 'header' | 'performanceSection' | 'muscleBuilders' | 'dealOfTheDay' | 'allOffersGrid';
 
+const DEFAULT_NUTRITION_OFFERS_CONFIG: OffersPageConfig = {
+    header: {
+        title: "OFFRES & <span class='text-brand-neon'>DEALS</span>",
+        subtitle: "MAXIMISEZ VOS PERFORMANCES AVEC NOS PROMOTIONS EXCLUSIVES SUR LES MEILLEURES MARQUES MONDIALES."
+    },
+    performanceSection: {
+        title: "PERFORMANCE <br/><span class='text-brand-neon'>ULTIME</span>",
+        subtitle: "PACK HARDCORE MUSCLE",
+        buttonText: "ACCÉDER AU PACK",
+        image: "https://images.unsplash.com/photo-1517838277536-f5f99be501cd?q=80&w=1000&auto=format&fit=crop",
+        link: "#"
+    },
+    muscleBuilders: {
+        title: "GAIN DE MASSE <br/><span class='text-brand-neon'>EXTRÊME</span>",
+        subtitle: "Formules caloriques massives enrichies en BCAA et créatine.",
+        buttonText: "DÉCOUVRIR LES GAINERS",
+        image: "https://images.unsplash.com/photo-1583454110551-21f2fa2afe61?q=80&w=1000&auto=format&fit=crop",
+        link: "#"
+    },
+    dealOfTheDay: {
+        productId: 1,
+        titleColor: "#000000",
+        subtitleColor: "#666666"
+    },
+    allOffersGrid: {
+        title: "CATALOGUE EN PROMOTION",
+        useManualSelection: false,
+        manualProductIds: [],
+        limit: 12
+    }
+};
+
 export const ManageOffersPage: React.FC<ManageOffersPageProps> = ({ allProducts }) => {
     const [config, setConfig] = useState<OffersPageConfig | null>(null);
     const [activeSection, setActiveSection] = useState<SectionType>('header');
@@ -23,10 +55,26 @@ export const ManageOffersPage: React.FC<ManageOffersPageProps> = ({ allProducts 
     const { addToast } = useToast();
 
     useEffect(() => {
-        api.getOffersConfig().then(setConfig).catch(err => {
-            console.error(err);
-            addToast("Erreur lors du chargement de la configuration.", "error");
-        });
+        api.getOffersConfig()
+            .then(data => {
+                if (data && data.header && data.header.title) {
+                    setConfig({
+                        ...DEFAULT_NUTRITION_OFFERS_CONFIG,
+                        ...data,
+                        header: { ...DEFAULT_NUTRITION_OFFERS_CONFIG.header, ...(data.header || {}) },
+                        performanceSection: { ...DEFAULT_NUTRITION_OFFERS_CONFIG.performanceSection, ...(data.performanceSection || {}) },
+                        muscleBuilders: { ...DEFAULT_NUTRITION_OFFERS_CONFIG.muscleBuilders, ...(data.muscleBuilders || {}) },
+                        dealOfTheDay: { ...DEFAULT_NUTRITION_OFFERS_CONFIG.dealOfTheDay, ...(data.dealOfTheDay || {}) },
+                        allOffersGrid: { ...DEFAULT_NUTRITION_OFFERS_CONFIG.allOffersGrid, ...(data.allOffersGrid || {}) }
+                    });
+                } else {
+                    setConfig(DEFAULT_NUTRITION_OFFERS_CONFIG);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setConfig(DEFAULT_NUTRITION_OFFERS_CONFIG);
+            });
     }, []);
 
     const handleUpdateConfig = (section: SectionType, data: any) => {

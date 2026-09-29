@@ -15,6 +15,38 @@ interface ManageOffersPageProps {
 
 export type SectionType = 'header' | 'performanceSection' | 'muscleBuilders' | 'dealOfTheDay' | 'allOffersGrid';
 
+const DEFAULT_OFFERS_CONFIG: OffersPageConfig = {
+    header: {
+        title: "Offres <span class='text-brand-primary'>Privilèges</span>",
+        subtitle: "Découvrez notre sélection exclusive de soins et cures aux meilleurs tarifs."
+    },
+    performanceSection: {
+        title: "Soin <span class='text-brand-primary'>Signature</span>",
+        subtitle: "Formules dermatologiques concentrées pour des résultats visibles dès la première semaine.",
+        buttonText: "DÉCOUVRIR LE SOIN",
+        image: "https://images.unsplash.com/photo-1570172619383-2ef40176191a?q=80&w=1200&auto=format&fit=crop",
+        link: "#"
+    },
+    muscleBuilders: {
+        title: "Cure <span class='text-brand-primary'>Vitalité</span>",
+        subtitle: "Boostez votre énergie et renforcez vos défenses naturelles avec nos complexes vitaminés.",
+        buttonText: "VOIR LE PROTOCOLE",
+        image: "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1200&auto=format&fit=crop",
+        link: "#"
+    },
+    dealOfTheDay: {
+        productId: 1,
+        titleColor: "#0f766e",
+        subtitleColor: "#64748b"
+    },
+    allOffersGrid: {
+        title: "Toutes les <span class='text-brand-primary'>Promotions</span>",
+        useManualSelection: false,
+        manualProductIds: [],
+        limit: 12
+    }
+};
+
 export const ManageOffersPage: React.FC<ManageOffersPageProps> = ({ allProducts }) => {
     const [config, setConfig] = useState<OffersPageConfig | null>(null);
     const [activeSection, setActiveSection] = useState<SectionType>('header');
@@ -23,10 +55,26 @@ export const ManageOffersPage: React.FC<ManageOffersPageProps> = ({ allProducts 
     const { addToast } = useToast();
 
     useEffect(() => {
-        api.getOffersConfig().then(setConfig).catch(err => {
-            console.error(err);
-            addToast("Erreur lors du chargement de la configuration.", "error");
-        });
+        api.getOffersConfig()
+            .then(data => {
+                if (data && data.header && data.header.title) {
+                    setConfig({
+                        ...DEFAULT_OFFERS_CONFIG,
+                        ...data,
+                        header: { ...DEFAULT_OFFERS_CONFIG.header, ...(data.header || {}) },
+                        performanceSection: { ...DEFAULT_OFFERS_CONFIG.performanceSection, ...(data.performanceSection || {}) },
+                        muscleBuilders: { ...DEFAULT_OFFERS_CONFIG.muscleBuilders, ...(data.muscleBuilders || {}) },
+                        dealOfTheDay: { ...DEFAULT_OFFERS_CONFIG.dealOfTheDay, ...(data.dealOfTheDay || {}) },
+                        allOffersGrid: { ...DEFAULT_OFFERS_CONFIG.allOffersGrid, ...(data.allOffersGrid || {}) }
+                    });
+                } else {
+                    setConfig(DEFAULT_OFFERS_CONFIG);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setConfig(DEFAULT_OFFERS_CONFIG);
+            });
     }, []);
 
     const handleUpdateConfig = (section: SectionType, data: any) => {

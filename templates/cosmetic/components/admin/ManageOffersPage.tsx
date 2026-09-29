@@ -15,6 +15,38 @@ interface ManageOffersPageProps {
 
 export type SectionType = 'header' | 'glowRoutine' | 'essentials' | 'dealOfTheDay' | 'allOffersGrid';
 
+const DEFAULT_COSMETIC_OFFERS_CONFIG: OffersPageConfig = {
+    header: {
+        title: "Sélection <span class='text-rose-600'>Prestige</span>",
+        subtitle: "Sublimez votre beauté avec nos offres et réductions exclusives."
+    },
+    glowRoutine: {
+        title: "Routine <span class='text-rose-600'>Éclat Glow</span>",
+        subtitle: "L'harmonie parfaite pour illuminer votre teint au quotidien.",
+        buttonText: "DÉCOUVRIR LE RITUEL",
+        image: "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200&auto=format&fit=crop",
+        link: "#"
+    },
+    essentials: {
+        title: "Les <span class='text-rose-600'>Indispensables</span>",
+        subtitle: "Nos best-sellers maquillage et soins réunis pour vous.",
+        buttonText: "VOIR LA SÉLECTION",
+        image: "https://images.unsplash.com/photo-1596462502278-27bfdd403cc2?q=80&w=1200&auto=format&fit=crop",
+        link: "#"
+    },
+    dealOfTheDay: {
+        productId: 1,
+        titleColor: "#e11d48",
+        subtitleColor: "#64748b"
+    },
+    allOffersGrid: {
+        title: "Toutes les Offres",
+        useManualSelection: false,
+        manualProductIds: [],
+        limit: 12
+    }
+};
+
 export const ManageOffersPage: React.FC<ManageOffersPageProps> = ({ allProducts }) => {
     const [config, setConfig] = useState<OffersPageConfig | null>(null);
     const [activeSection, setActiveSection] = useState<SectionType>('header');
@@ -23,10 +55,26 @@ export const ManageOffersPage: React.FC<ManageOffersPageProps> = ({ allProducts 
     const { addToast } = useToast();
 
     useEffect(() => {
-        api.getOffersConfig().then(setConfig).catch(err => {
-            console.error(err);
-            addToast("Erreur lors du chargement de la configuration.", "error");
-        });
+        api.getOffersConfig()
+            .then(data => {
+                if (data && data.header && data.header.title) {
+                    setConfig({
+                        ...DEFAULT_COSMETIC_OFFERS_CONFIG,
+                        ...data,
+                        header: { ...DEFAULT_COSMETIC_OFFERS_CONFIG.header, ...(data.header || {}) },
+                        glowRoutine: { ...DEFAULT_COSMETIC_OFFERS_CONFIG.glowRoutine, ...(data.glowRoutine || {}) },
+                        essentials: { ...DEFAULT_COSMETIC_OFFERS_CONFIG.essentials, ...(data.essentials || {}) },
+                        dealOfTheDay: { ...DEFAULT_COSMETIC_OFFERS_CONFIG.dealOfTheDay, ...(data.dealOfTheDay || {}) },
+                        allOffersGrid: { ...DEFAULT_COSMETIC_OFFERS_CONFIG.allOffersGrid, ...(data.allOffersGrid || {}) }
+                    });
+                } else {
+                    setConfig(DEFAULT_COSMETIC_OFFERS_CONFIG);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                setConfig(DEFAULT_COSMETIC_OFFERS_CONFIG);
+            });
     }, []);
 
     const handleUpdateConfig = (section: SectionType, data: any) => {

@@ -130,6 +130,49 @@ export async function initStores() {
         contactMessages,
         brands,
         offersConfig: {
+          header: {
+            title: `Offres Spéciales <span class="text-brand-primary">${cfg.name}</span>`,
+            subtitle: `Découvrez toutes nos offres privilèges et promotions exclusives chez ${cfg.name}.`
+          },
+          performanceSection: {
+            title: `Sélection <span class="text-brand-primary">Excellence</span>`,
+            subtitle: "Une formule ciblée pour des résultats performants et immédiats.",
+            buttonText: "DÉCOUVRIR L'OFFRE",
+            image: products[0]?.imageUrl || "https://images.unsplash.com/photo-1570172619383-2ef40176191a?q=80&w=1200&auto=format&fit=crop",
+            link: "#"
+          },
+          muscleBuilders: {
+            title: `Cures & <span class="text-brand-primary">Packs Essentiels</span>`,
+            subtitle: "Équilibrez vos besoins au quotidien avec notre sélection best-seller.",
+            buttonText: "VOIR LE PACK",
+            image: products[1]?.imageUrl || "https://images.unsplash.com/photo-1556228720-195a672e8a03?q=80&w=1200&auto=format&fit=crop",
+            link: "#"
+          },
+          glowRoutine: {
+            title: `Routine <span class="text-rose-600">Éclat</span>`,
+            subtitle: "L'harmonie parfaite pour sublimer votre beauté.",
+            buttonText: "DÉCOUVRIR LE RITUEL",
+            image: products[0]?.imageUrl || "https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=1200&auto=format&fit=crop",
+            link: "#"
+          },
+          essentials: {
+            title: `Les <span class="text-rose-600">Indispensables</span>`,
+            subtitle: "Nos coups de cœur plébiscités par nos clients.",
+            buttonText: "VOIR LA SÉLECTION",
+            image: products[1]?.imageUrl || "https://images.unsplash.com/photo-1596462502278-27bfdd403cc2?q=80&w=1200&auto=format&fit=crop",
+            link: "#"
+          },
+          dealOfTheDay: {
+            productId: products[0]?.id || 1,
+            titleColor: "#000000",
+            subtitleColor: "#64748b"
+          },
+          allOffersGrid: {
+            title: "Toutes les Promotions",
+            useManualSelection: false,
+            manualProductIds: [],
+            limit: 12
+          },
           bannerText: `Offre Spéciale ${cfg.name} : Livraison offerte dès 100 DT d'achats !`,
           promoDiscount: 10,
           isActive: true

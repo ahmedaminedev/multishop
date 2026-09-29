@@ -92,7 +92,7 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({ section, data, onChang
                 {section === 'dealOfTheDay' && (
                     <div className="space-y-6 animate-fadeIn">
                         <div className="grid grid-cols-1 gap-4 p-6 bg-slate-50 dark:bg-black/20 rounded-[2rem] border border-slate-100 dark:border-white/5">
-                            <ColorField label="Couleur de mise en valeur" value={data.titleColor} onChange={(e) => handleChange('titleColor', e.target.value)} />
+                            <ColorField label="Couleur de mise en valeur" value={data?.titleColor} onChange={(e) => handleChange('titleColor', e.target.value)} />
                         </div>
                         <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Soin en Vedette</label>
                         {selectedProduct && (
@@ -107,11 +107,18 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({ section, data, onChang
                         </div>
                         <div className="max-h-64 overflow-y-auto border border-slate-100 dark:border-white/5 rounded-2xl bg-white dark:bg-black custom-scrollbar">
                             {filteredProducts.map(p => (
-                                <div key={p.id} onClick={() => handleChange('productId', p.id)} className={`p-3 flex items-center gap-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-brand-primary/10 transition-colors ${data.productId === p.id ? 'bg-emerald-50 dark:bg-brand-primary/20 border-l-4 border-brand-primary' : ''}`}>
+                                <div key={p.id} onClick={() => handleChange('productId', p.id)} className={`p-3 flex items-center gap-4 cursor-pointer hover:bg-slate-50 dark:hover:bg-brand-primary/10 transition-colors ${data?.productId === p.id ? 'bg-emerald-50 dark:bg-brand-primary/20 border-l-4 border-brand-primary' : ''}`}>
                                     <img src={p.imageUrl} className="w-10 h-10 object-contain" /><span className="text-xs font-bold text-slate-600 dark:text-slate-300 truncate uppercase">{p.name}</span>
                                 </div>
                             ))}
                         </div>
+                    </div>
+                )}
+
+                {section === 'allOffersGrid' && (
+                    <div className="space-y-6 animate-fadeIn">
+                        <RichTextEditor label="Titre de la Grille" value={data?.title || ''} onChange={(html) => handleChange('title', html)} />
+                        <InputField label="Nombre max de produits affichés" value={String(data?.limit || 12)} onChange={(e) => handleChange('limit', parseInt(e.target.value) || 12)} />
                     </div>
                 )}
 
