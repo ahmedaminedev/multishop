@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
+    mongoose.set('bufferCommands', false);
     const conn = await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/parashop");
     console.log(`MongoDB Connecté: ${conn.connection.host}`);
   } catch (error) {

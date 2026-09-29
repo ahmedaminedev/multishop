@@ -153,10 +153,13 @@
       }
     </script>
     <style>
-      html, body {
+      html {
         width: 100%;
-        overflow-x: hidden;
         scroll-behavior: smooth;
+      }
+      body {
+        width: 100%;
+        overflow-x: clip;
       }
       .no-scrollbar::-webkit-scrollbar {
         display: none;

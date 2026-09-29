@@ -3,14 +3,29 @@ import React from 'react';
 interface MultiShopLogoProps {
   className?: string;
   showSubtitle?: boolean;
+  size?: 'sm' | 'md' | 'lg' | 'xl';
 }
 
-export const MultiShopLogo: React.FC<MultiShopLogoProps> = ({ className = '', showSubtitle = false }) => {
+export const MultiShopLogo: React.FC<MultiShopLogoProps> = ({ className = '', showSubtitle = false, size = 'md' }) => {
+  const iconSizeClasses = {
+    sm: 'w-7 h-7',
+    md: 'w-9 h-9',
+    lg: 'w-12 h-12 sm:w-14 sm:h-14',
+    xl: 'w-14 h-14 sm:w-16 sm:h-16'
+  }[size];
+
+  const titleSizeClasses = {
+    sm: 'text-lg',
+    md: 'text-xl',
+    lg: 'text-2xl sm:text-3xl md:text-[32px]',
+    xl: 'text-3xl sm:text-4xl'
+  }[size];
+
   return (
-    <div className={`flex items-center gap-3 ${className}`}>
+    <div className={`flex items-center gap-3 sm:gap-3.5 ${className}`}>
       {/* Dynamic Cart Icon with Cyan, Blue, Orange motion stripes */}
-      <div className="relative flex-shrink-0">
-        <svg className="w-9 h-9" viewBox="0 0 54 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <div className="relative flex-shrink-0 drop-shadow-sm">
+        <svg className={iconSizeClasses} viewBox="0 0 54 44" fill="none" xmlns="http://www.w3.org/2000/svg">
           {/* Motion streaks */}
           <path d="M2 11H18" stroke="#00b4d8" strokeWidth="3.5" strokeLinecap="round" />
           <path d="M5 21H16" stroke="#2563eb" strokeWidth="4" strokeLinecap="round" />
@@ -30,13 +45,13 @@ export const MultiShopLogo: React.FC<MultiShopLogoProps> = ({ className = '', sh
       </div>
 
       <div>
-        <div className="flex items-center text-xl font-black tracking-tight leading-none">
-          <span className="text-slate-900 font-extrabold">Multi</span>
+        <div className={`flex items-center font-black tracking-tighter leading-none ${titleSizeClasses}`}>
+          <span className="text-slate-900 dark:text-white font-black">Multi</span>
           <span className="text-blue-600 font-black">Shop</span>
         </div>
         {showSubtitle && (
-          <p className="text-[11px] text-slate-400 font-medium mt-1 leading-none">
-            Votre succès, notre priorité !
+          <p className="text-[12px] text-slate-500 dark:text-slate-400 font-semibold mt-1 leading-none tracking-wide">
+            Groupe E-Commerce N°1 en Tunisie
           </p>
         )}
       </div>

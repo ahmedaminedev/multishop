@@ -2,11 +2,27 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --multishop-globalnav-height: 98px;
+}
+
+@media (min-width: 640px) {
+  :root {
+    --multishop-globalnav-height: 96px;
+  }
+}
+
 body {
   margin: 0;
   padding: 0;
   width: 100%;
-  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+.sub-shop-sticky-header {
+  position: sticky !important;
+  top: var(--multishop-globalnav-height) !important;
+  z-index: 100 !important;
 }
 
 .circular-gallery canvas {

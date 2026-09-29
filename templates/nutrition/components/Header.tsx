@@ -126,12 +126,12 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className={`sticky top-0 z-[60] transition-all duration-500 ease-in-out border-b border-gray-100 dark:border-gray-800 ${headerClass}`}>
+        <header className={`sub-shop-sticky-header transition-all duration-500 ease-in-out border-b border-gray-100 dark:border-gray-800 ${headerClass}`}>
             <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     
-                    {/* Logo Area */}
-                    <div className="flex items-center justify-between w-full md:w-auto shrink-0">
+                    {/* Logo Area avec décalage augmenté pour s'aligner sous MultiShop */}
+                    <div className="flex items-center justify-between w-full md:w-auto shrink-0 pl-1 sm:pl-4 md:pl-7">
                         <a href="#" onClick={(e) => { e.preventDefault(); window.location.reload(); }} className="block transform hover:scale-105 transition-transform duration-300">
                             <Logo />
                         </a>
@@ -147,7 +147,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     </span>
                                 )}
                             </button>
-                            {isLoggedIn ? (
+                            {isLoggedIn && (
                                 <div className="relative">
                                     <button onClick={handleUserIconClick} className="p-2 text-gray-800 dark:text-white hover:text-brand-neon transition-colors">
                                         <UserIcon className="w-6 h-6" />
@@ -176,23 +176,19 @@ export const Header: React.FC<HeaderProps> = ({
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                <button onClick={onNavigateToLogin} className="p-2 text-gray-800 dark:text-white hover:text-brand-neon transition-colors" title="Connexion">
-                                    <UserIcon className="w-6 h-6" />
-                                </button>
                             )}
                         </div>
                     </div>
 
-                    {/* Search Bar - Technical Style */}
-                    <div className="flex-1 w-full md:max-w-2xl md:mx-auto order-last md:order-none" ref={searchRef}>
+                    {/* Search Bar - Technical Style, Perfectly Centered */}
+                    <div className="flex-1 w-full md:max-w-2xl md:mx-6 lg:mx-8 order-last md:order-none" ref={searchRef}>
                         <div className="relative group">
                             <input
                                 type="search"
                                 placeholder="RECHERCHER UN PRODUIT, UNE MARQUE..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-gray-100 dark:bg-brand-dark border-2 border-transparent focus:border-brand-neon rounded-none transform skew-x-[-12deg] py-3 pl-14 pr-6 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none transition-all font-serif text-sm font-bold tracking-wider uppercase"
+                                className="w-full bg-gray-100 dark:bg-brand-dark border-2 border-transparent focus:border-brand-neon rounded-none transform skew-x-[-12deg] py-3 sm:py-3.5 pl-14 pr-6 text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none transition-all font-serif text-sm font-bold tracking-wider uppercase shadow-xs"
                             />
                             {/* Un-skew text inside input */}
                             <div className="absolute top-0 left-0 flex items-center h-full pl-6 pointer-events-none">
@@ -238,7 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
                             </button>
                         )}
 
-                        {isLoggedIn ? (
+                        {isLoggedIn && (
                             <div className="relative">
                                 <button 
                                     onMouseEnter={() => setIsProfileMenuOpen(true)} 
@@ -310,15 +306,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     </div>
                                 )}
                             </div>
-                        ) : (
-                            <button 
-                                onClick={onNavigateToLogin}
-                                className="px-3.5 py-1.5 text-xs font-black uppercase tracking-wider text-black bg-brand-neon hover:bg-white transition-colors skew-x-[-6deg]"
-                            >
-                                <span className="skew-x-[6deg] flex items-center gap-1.5">
-                                    <UserIcon className="w-3.5 h-3.5" /> Connexion
-                                </span>
-                            </button>
                         )}
 
                         <button onClick={openCart} className="relative group p-3 text-gray-600 dark:text-gray-300 hover:text-brand-neon transition-all hover:-translate-y-0.5">

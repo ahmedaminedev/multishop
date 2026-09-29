@@ -157,12 +157,12 @@ export const Header: React.FC<HeaderProps> = ({
     }, [searchQuery, allProducts, allPacks, allCategories]);
 
     return (
-        <header className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm sticky top-0 z-40 transition-all duration-300 ${isScrolled ? 'py-1.5' : 'py-2 md:py-2.5'}`}>
+        <header className={`bg-white/95 dark:bg-gray-800/95 backdrop-blur-sm shadow-sm sub-shop-sticky-header transition-all duration-300 ${isScrolled ? 'py-1.5' : 'py-2 md:py-2.5'}`}>
             <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                     
-                    {/* Top Row on Mobile: Logo + Icons */}
-                    <div className="flex items-center justify-between w-full md:w-auto">
+                    {/* Top Row on Mobile: Logo + Icons avec décalage augmenté pour s'aligner sous MultiShop */}
+                    <div className="flex items-center justify-between w-full md:w-auto pl-1 sm:pl-4 md:pl-7">
                         <div className="flex items-center">
                             <a href="#" onClick={(e) => { e.preventDefault(); window.location.reload(); }}>
                                 <Logo />
@@ -182,7 +182,7 @@ export const Header: React.FC<HeaderProps> = ({
                                 )}
                             </button>
 
-                            {isLoggedIn ? (
+                            {isLoggedIn && (
                                 <div className="relative">
                                     <button onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600">
                                         <UserIcon className="w-6 h-6" />
@@ -200,26 +200,22 @@ export const Header: React.FC<HeaderProps> = ({
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                <button onClick={onNavigateToLogin} className="p-2 text-gray-600 dark:text-gray-300 hover:text-red-600" title="Connexion">
-                                    <UserIcon className="w-6 h-6" />
-                                </button>
                             )}
                         </div>
                     </div>
 
                     {/* Search Bar - Full width on mobile, centered on desktop */}
-                    <div className="flex-1 w-full md:max-w-2xl md:mx-8 order-last md:order-none" ref={searchRef}>
+                    <div className="flex-1 w-full md:max-w-2xl md:mx-6 lg:mx-8 order-last md:order-none" ref={searchRef}>
                         <div className="relative">
                             <input
                                 type="search"
-                                placeholder="Rechercher un produit..."
+                                placeholder="Rechercher un produit, une marque, un modèle..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full border border-gray-300 dark:border-gray-600 rounded-full py-2 pl-10 pr-4 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-sm md:text-base"
+                                className="w-full border border-gray-300 dark:border-gray-600 rounded-full py-2.5 sm:py-3 pl-11 pr-5 bg-white dark:bg-gray-700 text-gray-800 dark:text-gray-200 focus:outline-none focus:ring-2 focus:ring-red-500 transition-all text-xs sm:text-sm shadow-xs"
                             />
-                            <div className="absolute top-0 left-0 flex items-center h-full pl-3">
-                                <SearchIcon className="w-5 h-5 text-gray-400 dark:text-gray-500" />
+                            <div className="absolute top-0 left-0 flex items-center h-full pl-3.5">
+                                <SearchIcon className="w-4 h-4 sm:w-5 sm:h-5 text-gray-400 dark:text-gray-500" />
                             </div>
                              {results && searchQuery.length > 0 && (
                                 <SearchResultsDropdown
@@ -266,7 +262,7 @@ export const Header: React.FC<HeaderProps> = ({
                         )}
 
                         {/* User Menu */}
-                        {isLoggedIn ? (
+                        {isLoggedIn && (
                             <div className="relative">
                                 <button onMouseEnter={() => setIsProfileMenuOpen(true)} onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)} className="flex items-center space-x-2 text-gray-600 dark:text-gray-300 hover:text-red-600 dark:hover:text-red-500">
                                     <UserIcon className="w-6 h-6" />
@@ -285,11 +281,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     </div>
                                 )}
                             </div>
-                        ) : (
-                            <button onClick={onNavigateToLogin} className="flex items-center space-x-2 text-xs font-bold px-3 py-1.5 rounded-full border border-gray-300 dark:border-gray-600 hover:border-red-600 hover:text-red-600 text-gray-700 dark:text-gray-200 transition-colors">
-                                <UserIcon className="w-4 h-4" />
-                                <span>Connexion</span>
-                            </button>
                         )}
 
                         {/* Cart Button */}

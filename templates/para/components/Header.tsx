@@ -62,28 +62,33 @@ export const Header: React.FC<HeaderProps> = ({
         : 'py-2 bg-white dark:bg-brand-dark border-b border-slate-100 dark:border-white/5';
 
     return (
-        <header className={`sticky top-0 z-[60] transition-all duration-300 ${headerClass}`}>
+        <header className={`sub-shop-sticky-header transition-all duration-300 ${headerClass}`}>
             <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between gap-3 lg:gap-6">
+                <div className="flex items-center justify-between gap-4 lg:gap-8">
                     
-                    <a href="#" className="shrink-0">
-                        <Logo />
-                    </a>
+                    {/* Logo de la sous-boutique avec décalage augmenté pour s'aligner sous le logo MultiShop */}
+                    <div className="shrink-0 pl-1 sm:pl-4 md:pl-7">
+                        <a href="#">
+                            <Logo />
+                        </a>
+                    </div>
 
-                    <div className="hidden md:flex flex-1 max-w-md relative">
+                    {/* Barre de recherche élargie et parfaitement centrée entre le logo et les boutons */}
+                    <div className="flex-1 max-w-2xl mx-auto px-2 sm:px-4">
                         <div className="relative w-full group">
                             <input
                                 type="search"
-                                placeholder="Rechercher un soin, une cure..."
+                                placeholder="Rechercher un soin, une cure, un produit bio..."
                                 value={searchQuery}
                                 onChange={(e) => setSearchQuery(e.target.value)}
-                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg py-1.5 pl-9 pr-3 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all text-xs font-medium"
+                                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-full py-2.5 sm:py-3 pl-11 pr-5 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-brand-primary/20 focus:border-brand-primary transition-all text-xs sm:text-sm font-medium shadow-xs"
                             />
-                            <SearchIcon className="absolute left-3 top-1/2 -translate-y-1/2 w-3.5 h-3.5 text-slate-400 group-focus-within:text-brand-primary transition-colors" />
+                            <SearchIcon className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 group-focus-within:text-brand-primary transition-colors" />
                         </div>
                     </div>
 
-                    <div className="flex items-center gap-2 sm:gap-3">
+                    {/* Boutons d'action (Mode sombre, Favoris, Panier) */}
+                    <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                         <ThemeToggle />
                         
                         {/* 3. Bouton Favoris uniquement pour les clients connectés */}
@@ -98,8 +103,8 @@ export const Header: React.FC<HeaderProps> = ({
                             </button>
                         )}
 
-                        {/* 3. Bouton Compte uniquement pour les clients connectés */}
-                        {isLoggedIn ? (
+                        {/* Menu Profil uniquement si connecté (le bouton connexion est déjà disponible dans le navbar général MultiShop) */}
+                        {isLoggedIn && (
                             <div className="relative" ref={menuRef}>
                                 <button 
                                     onClick={() => setIsProfileMenuOpen(!isProfileMenuOpen)}
@@ -131,14 +136,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     </div>
                                 )}
                             </div>
-                        ) : (
-                            <button
-                                onClick={onNavigateToLogin}
-                                className="flex items-center gap-1.5 px-3 py-1 rounded-lg text-xs font-bold bg-slate-100 dark:bg-white/5 hover:bg-brand-primary hover:text-white text-slate-700 dark:text-slate-200 transition-all border border-slate-200/60 dark:border-white/10"
-                            >
-                                <UserIcon className="w-3.5 h-3.5" />
-                                <span>Connexion</span>
-                            </button>
                         )}
 
                         <button onClick={openCart} className="relative group">

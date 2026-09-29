@@ -53,19 +53,19 @@ export const NavBar: React.FC<NavBarProps> = ({
 
                     {/* Desktop Navigation - Centered & Technical */}
                     <div className="hidden md:flex flex-1 justify-center">
-                        <div className="flex items-center space-x-1">
+                        <div className="flex items-center space-x-2">
                             {navLinks.map((link) => (
                                  <a 
                                     key={link.name} 
                                     href="#" 
                                     onClick={(e) => handleLinkClick(e, link.action)}
                                     className={`
-                                        group relative py-2 px-6 skew-x-[-12deg] border-r border-gray-200 dark:border-white/10 last:border-0
+                                        group relative py-2.5 px-7 skew-x-[-12deg] border-r border-gray-200 dark:border-white/10 last:border-0
                                         hover:bg-brand-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-200
-                                        ${link.highlight ? 'text-brand-neon font-black' : 'text-brand-black dark:text-white font-bold'}
+                                        ${link.highlight ? 'text-brand-neon font-black' : 'text-brand-black dark:text-white font-black'}
                                     `}
                                 >
-                                    <span className="block skew-x-[12deg] uppercase text-sm tracking-widest relative z-10">
+                                    <span className="block skew-x-[12deg] uppercase text-base lg:text-[17px] font-black tracking-widest relative z-10">
                                         {link.name}
                                         {/* Underline for Highlight */}
                                         {link.highlight && <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-brand-neon"></span>}

@@ -50,13 +50,13 @@ export const NavBar: React.FC<NavBarProps> = ({
                     </div>
 
                     {/* Centered navigation links for desktop */}
-                    <div className="hidden md:flex items-center space-x-10">
+                    <div className="hidden md:flex items-center space-x-12">
                         {navLinks.map((link) => (
                              <a 
                                 key={link.name} 
                                 href="#" 
                                 onClick={(e) => handleLinkClick(e, link.action)}
-                                className="relative text-base font-semibold text-gray-800 dark:text-gray-200 tracking-wide hover:text-red-600 transition-colors duration-200 after:content-[''] after:absolute after:left-0 after:bottom-[-5px] after:h-[2px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
+                                className="relative text-base lg:text-[17px] font-bold text-gray-800 dark:text-gray-100 tracking-wide hover:text-red-600 transition-colors duration-200 py-1 after:content-[''] after:absolute after:left-0 after:bottom-[-4px] after:h-[2.5px] after:w-0 after:bg-red-600 after:transition-all after:duration-300 hover:after:w-full"
                             >
                                 {link.name}
                             </a>
@@ -65,7 +65,7 @@ export const NavBar: React.FC<NavBarProps> = ({
                     
                     {/* Right side: Promotions link */}
                     <div className="flex-1 flex items-center justify-end">
-                         <a href="#" onClick={(e) => handleLinkClick(e, onNavigateToPromotions)} className="text-sm font-semibold text-red-600 hover:underline">
+                         <a href="#" onClick={(e) => handleLinkClick(e, onNavigateToPromotions)} className="text-sm lg:text-base font-black text-red-600 hover:text-red-700 uppercase tracking-wider px-4 py-1.5 rounded-full border border-red-200 dark:border-red-900/50 hover:bg-red-50 dark:hover:bg-red-950/30 transition-all">
                             PROMOTIONS
                         </a>
                     </div>

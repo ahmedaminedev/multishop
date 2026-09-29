@@ -60,7 +60,7 @@ export const NavBar: React.FC<NavBarProps> = ({
                                     onClick={(e) => handleLinkClick(e, link.action)}
                                     className="group relative py-2"
                                 >
-                                    <span className="font-serif text-sm font-bold text-gray-700 dark:text-gray-300 uppercase tracking-[0.15em] group-hover:text-rose-600 transition-colors duration-300">
+                                    <span className="font-serif text-base lg:text-[17px] font-black text-gray-800 dark:text-gray-200 uppercase tracking-[0.16em] group-hover:text-rose-600 transition-colors duration-300">
                                         {link.name}
                                     </span>
                                     <span className="absolute bottom-0 left-1/2 w-0 h-0.5 bg-rose-600 transition-all duration-300 group-hover:w-full group-hover:left-0 ease-out"></span>
@@ -75,14 +75,14 @@ export const NavBar: React.FC<NavBarProps> = ({
                             href="#" 
                             onClick={(e) => handleLinkClick(e, onNavigateToPromotions)} 
                             className="
-                                relative overflow-hidden px-5 py-2 rounded-full group
-                                border border-rose-200 dark:border-rose-800
+                                relative overflow-hidden px-6 py-2.5 rounded-full group
+                                border border-rose-300 dark:border-rose-700
                                 bg-white dark:bg-gray-900
-                                transition-all duration-300 hover:shadow-md hover:border-rose-400
+                                transition-all duration-300 hover:shadow-md hover:border-rose-500
                             "
                         >
                             <span className="absolute inset-0 w-full h-full bg-gradient-to-r from-rose-50 to-pink-50 dark:from-rose-900/20 dark:to-pink-900/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300"></span>
-                            <span className="relative font-serif text-xs font-bold text-rose-600 dark:text-rose-400 uppercase tracking-widest group-hover:text-rose-700 dark:group-hover:text-rose-300 transition-colors">
+                            <span className="relative font-serif text-sm font-black text-rose-600 dark:text-rose-400 uppercase tracking-widest group-hover:text-rose-700 dark:group-hover:text-rose-300 transition-colors">
                                 Offres
                             </span>
                         </a>

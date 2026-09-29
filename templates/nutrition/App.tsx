@@ -461,7 +461,7 @@ const AppContent: React.FC = () => {
         }
 
         return (
-            <div className="flex flex-col min-h-screen w-full overflow-x-hidden transition-colors duration-300 bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans">
+            <div className="flex flex-col min-h-screen w-full overflow-x-clip transition-colors duration-300 bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans">
                 <Header 
                     user={user}
                     onNavigateToLogin={navigateToLogin} 

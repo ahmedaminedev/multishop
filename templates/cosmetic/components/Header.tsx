@@ -127,12 +127,12 @@ export const Header: React.FC<HeaderProps> = ({
     };
 
     return (
-        <header className={`sticky top-0 z-40 transition-all duration-500 ease-in-out border-b border-gray-100 dark:border-gray-800 ${headerClass}`}>
+        <header className={`sub-shop-sticky-header transition-all duration-500 ease-in-out border-b border-gray-100 dark:border-gray-800 ${headerClass}`}>
             <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
                     
-                    {/* Logo Area */}
-                    <div className="flex items-center justify-between w-full md:w-auto shrink-0">
+                    {/* Logo Area avec décalage augmenté pour s'aligner sous MultiShop */}
+                    <div className="flex items-center justify-between w-full md:w-auto shrink-0 pl-1 sm:pl-4 md:pl-7">
                         <a href="#" onClick={(e) => { e.preventDefault(); window.location.reload(); }} className="block transform hover:scale-105 transition-transform duration-300">
                             <Logo />
                         </a>
@@ -148,7 +148,7 @@ export const Header: React.FC<HeaderProps> = ({
                                     </span>
                                 )}
                             </button>
-                            {isLoggedIn ? (
+                            {isLoggedIn && (
                                 <div className="relative">
                                     <button onClick={handleUserIconClick} className="p-2 text-gray-800 dark:text-white hover:text-rose-600 transition-colors">
                                         <UserIcon className="w-6 h-6" />
@@ -160,10 +160,6 @@ export const Header: React.FC<HeaderProps> = ({
                                         </div>
                                     )}
                                 </div>
-                            ) : (
-                                <button onClick={onNavigateToLogin} className="p-2 text-gray-800 dark:text-white hover:text-rose-600 transition-colors" title="Connexion">
-                                    <UserIcon className="w-6 h-6" />
-                                </button>
                             )}
                         </div>
                     </div>
@@ -221,7 +217,7 @@ export const Header: React.FC<HeaderProps> = ({
                             </button>
                         )}
 
-                        {isLoggedIn ? (
+                        {isLoggedIn && (
                             <div className="relative">
                                 <button 
                                     onMouseEnter={() => setIsProfileMenuOpen(true)} 
@@ -248,14 +244,6 @@ export const Header: React.FC<HeaderProps> = ({
                                     </div>
                                 )}
                             </div>
-                        ) : (
-                            <button 
-                                onClick={onNavigateToLogin}
-                                className="flex items-center gap-1.5 px-4 py-2 rounded-full border border-gray-200 dark:border-gray-700 text-xs font-semibold text-gray-700 dark:text-gray-200 hover:border-rose-400 hover:text-rose-600 transition-colors"
-                            >
-                                <UserIcon className="w-3.5 h-3.5" />
-                                <span>Connexion</span>
-                            </button>
                         )}
 
                         <button onClick={openCart} className="relative group p-3 text-gray-600 dark:text-gray-300 hover:text-rose-600 dark:hover:text-rose-400 transition-all hover:-translate-y-0.5">
