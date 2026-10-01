@@ -1,12 +1,11 @@
 import React, { useState } from 'react';
-import { Store, Bell, ChevronDown, Sparkles, LogOut, Check, Menu } from 'lucide-react';
+import { Store, Bell, ChevronDown, Check, Menu, Globe } from 'lucide-react';
 import { FilialeId } from '../../models/ProductFiliale';
-
-export type BackofficeTab = 'hq' | 'para' | 'nutrition' | 'cosmetic' | 'electro';
+import { ShopContextId } from './SidebarNav';
 
 interface TopHeaderProps {
-  activeTab: BackofficeTab;
-  onSelectTab: (tab: BackofficeTab) => void;
+  activeShop: ShopContextId;
+  onSelectShop: (shop: ShopContextId) => void;
   onGoToStorefront: (shopId?: FilialeId) => void;
   currentUser: any;
   onLogout: () => void;
@@ -16,8 +15,8 @@ interface TopHeaderProps {
 }
 
 export const TopHeader: React.FC<TopHeaderProps> = ({
-  activeTab,
-  onSelectTab,
+  activeShop,
+  onSelectShop,
   onGoToStorefront,
   currentUser,
   onLogout,
@@ -26,20 +25,23 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   onToggleMobileSidebar
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
+  const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
 
-  const tabs: { id: BackofficeTab; label: string; icon: string }[] = [
-    { id: 'hq', label: 'Vue Groupe HQ', icon: '🏢' },
-    { id: 'para', label: 'Para Shop', icon: '🌿' },
-    { id: 'nutrition', label: 'Nutrition Shop', icon: '⚡' },
-    { id: 'cosmetic', label: 'Cosmetics Shop', icon: '💄' },
-    { id: 'electro', label: 'Electro Shop', icon: '🔌' },
+  const shopOptions: { id: ShopContextId; label: string; icon: string; badge: string; color: string }[] = [
+    { id: 'all', label: 'Toutes les boutiques (Consolidé)', icon: '🌐', badge: 'GROUPE HQ', color: 'text-blue-600' },
+    { id: 'para', label: 'PharmaShop (Parapharmacie)', icon: '🌿', badge: 'FILIALE 1', color: 'text-emerald-600' },
+    { id: 'nutrition', label: 'IronFuel (Nutrition Sportive)', icon: '⚡', badge: 'FILIALE 2', color: 'text-amber-600' },
+    { id: 'cosmetic', label: 'Cosmetics Shop (Beauté & Soins)', icon: '💄', badge: 'FILIALE 3', color: 'text-rose-600' },
+    { id: 'electro', label: 'Electro Shop (Tech & Maison)', icon: '🔌', badge: 'FILIALE 4', color: 'text-blue-600' },
   ];
 
+  const currentShop = shopOptions.find(s => s.id === activeShop) || shopOptions[0];
+
   return (
-    <header className="bg-white border-b border-slate-100 px-4 sm:px-6 py-3 flex items-center justify-between gap-3 sm:gap-4 sticky top-0 z-30">
+    <header className="bg-white border-b border-slate-100 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
       
-      {/* Left Badges & Mobile Hamburger */}
-      <div className="flex items-center gap-3">
+      {/* 1. Left Badges & Mobile Hamburger */}
+      <div className="flex items-center gap-2.5 sm:gap-3">
         {onToggleMobileSidebar && (
           <button
             type="button"
@@ -51,61 +53,103 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           </button>
         )}
 
-        <div className="flex flex-col gap-1">
+        <div className="flex flex-col">
           <div className="flex items-center gap-1.5 sm:gap-2 flex-wrap">
-            <span className="bg-blue-100 text-blue-700 font-extrabold text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-0.5 rounded-full uppercase tracking-wider">
-              BACKOFFICE GÉNÉRAL
+            <span className="bg-blue-600 text-white font-extrabold text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider shadow-2xs">
+              MULTISHOP CONSOLE
             </span>
-            <span className="bg-purple-100 text-purple-700 font-extrabold text-[10px] sm:text-[11px] px-2.5 sm:px-3 py-0.5 rounded-full uppercase tracking-wider">
+            <span className="bg-purple-100 text-purple-700 font-extrabold text-[10px] sm:text-[11px] px-2.5 py-0.5 rounded-full uppercase tracking-wider hidden sm:inline">
               SUPER ADMIN
             </span>
           </div>
-          <p className="text-[11px] sm:text-xs text-slate-500 font-normal hidden sm:block">
-            Gestion centralisée et sous-backoffices des 4 filiales
+          <p className="text-[11px] text-slate-400 font-normal hidden md:block">
+            Console d'administration unique & synchronisée
           </p>
-          
-          {/* Buttons Row */}
-          <div className="flex items-center gap-2 mt-0.5">
-            <button
-              type="button"
-              onClick={() => onGoToStorefront(activeTab === 'hq' ? 'para' : (activeTab as FilialeId))}
-              className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full shadow-sm flex items-center gap-1.5 transition-all cursor-pointer hover:shadow whitespace-nowrap"
-            >
-              <Store className="w-3.5 h-3.5" />
-              <span>VOIR LA BOUTIQUE</span>
-            </button>
-          </div>
         </div>
       </div>
 
-      {/* Right Subsidiaries Tabs & User Profile */}
-      <div className="flex items-center gap-2 sm:gap-3">
-        {/* Filiale Tabs (Responsive with horizontal scrolling on mobile/tablet) */}
-        <div className="flex items-center gap-1 bg-slate-50/90 p-1 rounded-xl border border-slate-100 overflow-x-auto no-scrollbar max-w-[200px] sm:max-w-md lg:max-w-none">
-          {tabs.map((tab) => {
-            const isActive = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => onSelectTab(tab.id)}
-                className={`flex items-center gap-1 px-2.5 py-1.5 rounded-lg text-xs font-semibold transition-all cursor-pointer whitespace-nowrap ${
-                  isActive
-                    ? 'bg-blue-600 text-white shadow-sm'
-                    : 'text-slate-600 hover:text-slate-900 hover:bg-white'
-                }`}
-              >
-                <span>{tab.icon}</span>
-                <span className="hidden md:inline">{tab.label}</span>
-              </button>
-            );
-          })}
+      {/* 2. Center: Boutique Active Context Selector */}
+      <div className="relative">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-bold text-slate-400 hidden xl:inline">
+            Boutique active :
+          </span>
+
+          <button
+            type="button"
+            onClick={() => setIsShopDropdownOpen(!isShopDropdownOpen)}
+            className="flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-xl bg-slate-50 hover:bg-slate-100 border border-slate-200/80 text-xs sm:text-sm font-bold text-slate-800 transition-all cursor-pointer shadow-xs hover:border-slate-300"
+          >
+            <span className="text-base sm:text-lg">{currentShop.icon}</span>
+            <span className="max-w-[130px] sm:max-w-[200px] truncate">{currentShop.label}</span>
+            <ChevronDown className={`w-3.5 h-3.5 text-slate-400 transition-transform ${isShopDropdownOpen ? 'rotate-180' : ''}`} />
+          </button>
         </div>
 
-        {/* Notification Bell */}
+        {/* Dropdown Menu */}
+        {isShopDropdownOpen && (
+          <div className="absolute left-1/2 -translate-x-1/2 sm:left-auto sm:right-0 sm:translate-x-0 mt-2 w-72 sm:w-80 bg-white border border-slate-200 rounded-2xl shadow-xl p-2 z-50 animate-fadeIn">
+            <div className="px-3 py-2 border-b border-slate-100 mb-1">
+              <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
+                Changer de Contexte Boutique
+              </p>
+              <p className="text-[11px] text-slate-500">
+                Filtre automatiquement les données sans quitter la console
+              </p>
+            </div>
+
+            <div className="space-y-1">
+              {shopOptions.map((opt) => {
+                const isSelected = activeShop === opt.id;
+                return (
+                  <button
+                    key={opt.id}
+                    type="button"
+                    onClick={() => {
+                      onSelectShop(opt.id);
+                      setIsShopDropdownOpen(false);
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left text-xs font-semibold transition-all cursor-pointer ${
+                      isSelected
+                        ? 'bg-blue-50 text-blue-700 font-bold border border-blue-200/60'
+                        : 'text-slate-700 hover:bg-slate-50 hover:text-slate-900'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <span className="text-xl">{opt.icon}</span>
+                      <div>
+                        <p className="leading-tight">{opt.label}</p>
+                        <span className="text-[9px] font-mono text-slate-400 font-normal uppercase">
+                          {opt.badge}
+                        </span>
+                      </div>
+                    </div>
+                    {isSelected && <Check className="w-4 h-4 text-blue-600" />}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* 3. Right: Storefront View, Notifications & User Profile */}
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Open Storefront */}
         <button
           type="button"
-          className="p-2 text-slate-500 hover:text-slate-700 rounded-full hover:bg-slate-100 transition-colors relative"
+          onClick={() => onGoToStorefront(activeShop === 'all' ? 'para' : (activeShop as FilialeId))}
+          className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer hover:shadow whitespace-nowrap"
+          title="Ouvrir la vitrine publique"
+        >
+          <Store className="w-3.5 h-3.5" />
+          <span className="hidden sm:inline">Boutique</span>
+        </button>
+
+        {/* Notifications */}
+        <button
+          type="button"
+          className="p-2 text-slate-500 hover:text-slate-700 rounded-xl hover:bg-slate-100 transition-colors relative"
           title="Notifications"
         >
           <Bell className="w-4 h-4" />
@@ -118,14 +162,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             <button
               type="button"
               onClick={() => setIsProfileOpen(!isProfileOpen)}
-              className="flex items-center gap-2 p-1 pl-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
+              className="flex items-center gap-1.5 p-1 pl-1.5 rounded-full hover:bg-slate-100 transition-colors cursor-pointer"
             >
               <div className="w-8 h-8 rounded-full bg-blue-600 text-white font-extrabold text-xs flex items-center justify-center shadow-xs uppercase">
                 {currentUser?.firstName?.[0] || currentUser?.email?.[0] || 'U'}
               </div>
-              <span className="text-xs font-semibold text-slate-800 hidden sm:inline max-w-[120px] truncate">
-                {currentUser?.firstName ? `${currentUser.firstName} ${currentUser.lastName || ''}`.trim() : (currentUser?.email?.split('@')[0] || 'Utilisateur')}
-              </span>
               <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
             </button>
           ) : (
@@ -139,7 +180,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
           )}
 
           {isProfileOpen && currentUser && (
-            <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-100 rounded-xl shadow-lg py-2 z-50 animate-fadeIn">
+            <div className="absolute right-0 mt-2 w-52 bg-white border border-slate-100 rounded-2xl shadow-xl py-2 z-50 animate-fadeIn">
               <div className="px-4 py-2 border-b border-slate-100">
                 <p className="text-xs font-bold text-slate-900 truncate">{currentUser.email}</p>
                 <p className="text-[11px] text-blue-600 font-semibold mt-0.5">
@@ -153,7 +194,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     setIsProfileOpen(false);
                     onShowLogin();
                   }}
-                  className="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 flex items-center gap-2 font-medium"
+                  className="w-full text-left px-4 py-2 text-xs text-blue-600 hover:bg-blue-50 flex items-center gap-2 font-medium cursor-pointer"
                 >
                   <span>🔐 Page de Connexion</span>
                 </button>
@@ -162,28 +203,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                 type="button"
                 onClick={() => {
                   setIsProfileOpen(false);
-                  onOpenAuthModal();
-                }}
-                className="w-full text-left px-4 py-2 text-xs text-slate-700 hover:bg-slate-50 flex items-center gap-2"
-              >
-                <span>Détails du compte</span>
-              </button>
-              <button
-                type="button"
-                onClick={() => {
-                  setIsProfileOpen(false);
                   onLogout();
                 }}
-                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2"
+                className="w-full text-left px-4 py-2 text-xs text-red-600 hover:bg-red-50 flex items-center gap-2 font-medium cursor-pointer"
               >
-                <LogOut className="w-3.5 h-3.5" />
                 <span>Déconnexion</span>
               </button>
             </div>
           )}
         </div>
       </div>
-
     </header>
   );
 };

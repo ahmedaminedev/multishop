@@ -38,13 +38,16 @@ interface AdminPageProps {
     setStoresData: React.Dispatch<React.SetStateAction<Store[]>>;
     brandsData: Brand[];
     setBrandsData: React.Dispatch<React.SetStateAction<Brand[]>>;
+    hideSidebar?: boolean;
+    forcedPage?: AdminPageName;
 }
 
 export const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [activePage, setActivePage] = useState<AdminPageName>('dashboard');
+    const effectivePage = props.forcedPage || activePage;
 
     const renderActivePage = () => {
-        switch (activePage) {
+        switch (effectivePage) {
             case 'dashboard':
                 return <DashboardHomePage orders={props.ordersData} products={props.productsData} messages={props.messagesData}/>;
             case 'chat':
@@ -107,14 +110,15 @@ export const AdminPage: React.FC<AdminPageProps> = (props) => {
     };
 
     // Determine if the current page is a visual editor that needs full height/width
-    // Added 'chat' to this list to remove padding
-    const isVisualEditor = activePage === 'home' || activePage === 'offers' || activePage === 'chat';
+    const isVisualEditor = effectivePage === 'home' || effectivePage === 'offers' || effectivePage === 'chat';
 
     return (
-        <div className="flex h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden">
-            <AdminSidebar activePage={activePage} setActivePage={setActivePage} onNavigateHome={props.onNavigateHome} onLogout={props.onLogout} />
+        <div className={`flex ${props.hideSidebar ? 'h-auto min-h-0 bg-transparent' : 'h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden'}`}>
+            {!props.hideSidebar && (
+                <AdminSidebar activePage={activePage} setActivePage={setActivePage} onNavigateHome={props.onNavigateHome} onLogout={props.onLogout} />
+            )}
             
-            <main className={`flex-1 flex flex-col min-w-0 ${isVisualEditor ? 'p-0 overflow-hidden' : 'p-8 overflow-y-auto'}`}>
+            <main className={`relative flex-1 flex flex-col min-w-0 ${props.hideSidebar ? 'p-0 overflow-visible' : (isVisualEditor ? 'p-0 overflow-hidden' : 'p-8 overflow-y-auto')}`}>
                 {renderActivePage()}
             </main>
         </div>

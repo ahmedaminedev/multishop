@@ -4,6 +4,7 @@ import { MultiShopGlobalNav } from './src/components/MultiShopGlobalNav';
 import { UnifiedAuthModal } from './src/components/UnifiedAuthModal';
 import { MultiShopClientAuth } from './src/components/MultiShopClientAuth';
 import { GlobalMultiShopBackoffice } from './src/components/admin/GlobalMultiShopBackoffice';
+import { DedicatedFilialeBackoffice } from './src/components/admin/DedicatedFilialeBackoffice';
 
 // Lazy load each shop application template
 const ParaShopApp = React.lazy(() => import('./templates/para/App'));
@@ -12,6 +13,7 @@ const CosmeticShopApp = React.lazy(() => import('./templates/cosmetic/App'));
 const ElectroShopApp = React.lazy(() => import('./templates/electro/App'));
 
 export type AppMode = 'backoffice' | 'frontoffice';
+export type BackofficeScope = 'hq' | FilialeId;
 
 export const App: React.FC = () => {
   // STARTUP REQUIREMENT: By default on boot, land directly in the General Backoffice!
@@ -22,6 +24,15 @@ export const App: React.FC = () => {
     // Check hash for direct storefront navigation
     if (window.location.hash.startsWith('#/store/')) return 'frontoffice';
     return 'backoffice'; // Default on startup
+  });
+
+  const [backofficeScope, setBackofficeScope] = useState<BackofficeScope>(() => {
+    const hash = window.location.hash;
+    if (hash.startsWith('#/admin/para')) return 'para';
+    if (hash.startsWith('#/admin/nutrition')) return 'nutrition';
+    if (hash.startsWith('#/admin/cosmetic')) return 'cosmetic';
+    if (hash.startsWith('#/admin/electro')) return 'electro';
+    return 'hq';
   });
 
   const [currentShop, setCurrentShop] = useState<FilialeId>(() => {
@@ -46,7 +57,24 @@ export const App: React.FC = () => {
 
   useEffect(() => {
     const handleHash = () => {
-      setIsClientAuthRoute(window.location.hash.startsWith('#/login') || window.location.hash.startsWith('#/register'));
+      const hash = window.location.hash;
+      setIsClientAuthRoute(hash.startsWith('#/login') || hash.startsWith('#/register'));
+      if (hash.startsWith('#/admin/para')) {
+        setAppMode('backoffice');
+        setBackofficeScope('para');
+      } else if (hash.startsWith('#/admin/nutrition')) {
+        setAppMode('backoffice');
+        setBackofficeScope('nutrition');
+      } else if (hash.startsWith('#/admin/cosmetic')) {
+        setAppMode('backoffice');
+        setBackofficeScope('cosmetic');
+      } else if (hash.startsWith('#/admin/electro')) {
+        setAppMode('backoffice');
+        setBackofficeScope('electro');
+      } else if (hash === '#/admin' || hash === '#/admin/hq') {
+        setAppMode('backoffice');
+        setBackofficeScope('hq');
+      }
     };
     window.addEventListener('hashchange', handleHash);
     return () => window.removeEventListener('hashchange', handleHash);
@@ -126,7 +154,17 @@ export const App: React.FC = () => {
   useEffect(() => {
     document.cookie = `shop=${currentShop}; path=/; max-age=31536000; SameSite=Lax`;
     if (appMode === 'backoffice') {
-      document.title = 'MultiShop | Backoffice Général Groupe';
+      if (backofficeScope === 'hq') {
+        document.title = 'MultiShop | Backoffice Général Groupe';
+      } else {
+        const titles: Record<FilialeId, string> = {
+          para: 'PharmaShop | Administration Dédiée',
+          nutrition: 'IronFuel Nutrition | Administration Dédiée',
+          cosmetic: 'Cosmetics Shop | Administration Dédiée',
+          electro: 'Electro Shop | Administration Dédiée'
+        };
+        document.title = titles[backofficeScope] || 'MultiShop Backoffice';
+      }
     } else {
       const titles: Record<FilialeId, string> = {
         para: 'PharmaShop | Parapharmacie & Soins Bio',
@@ -136,7 +174,7 @@ export const App: React.FC = () => {
       };
       document.title = titles[currentShop] || 'MultiShop Network';
     }
-  }, [currentShop, appMode]);
+  }, [currentShop, appMode, backofficeScope]);
 
   const handleSwitchShop = async (newShopId: FilialeId) => {
     setCurrentShop(newShopId);
@@ -157,17 +195,25 @@ export const App: React.FC = () => {
     window.location.hash = '#/';
   };
 
-  const handleGoToStorefront = (shopId?: FilialeId) => {
-    if (shopId) {
-      handleSwitchShop(shopId);
+  const VALID_FILIALES: FilialeId[] = ['para', 'nutrition', 'cosmetic', 'electro'];
+
+  const handleGoToStorefront = (shopId?: any) => {
+    if (typeof shopId === 'string' && VALID_FILIALES.includes(shopId as FilialeId)) {
+      handleSwitchShop(shopId as FilialeId);
     }
     setAppMode('frontoffice');
     window.location.hash = '#/';
   };
 
-  const handleGoToBackoffice = () => {
+  const handleGoToBackoffice = (filialeId?: any) => {
     setAppMode('backoffice');
-    window.location.hash = '#/';
+    if (typeof filialeId === 'string' && VALID_FILIALES.includes(filialeId as FilialeId)) {
+      setBackofficeScope(filialeId as FilialeId);
+      window.location.hash = `#/admin/${filialeId}`;
+    } else {
+      setBackofficeScope('hq');
+      window.location.hash = '#/admin';
+    }
   };
 
   const handleLoginSuccess = (user: any, token: string) => {
@@ -193,9 +239,19 @@ export const App: React.FC = () => {
   return (
     <div className="min-h-screen flex flex-col font-sans bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100">
       
-      {/* 1. BACKOFFICE MODE (Active by default on project startup) */}
+      {/* 1. BACKOFFICE MODE (Single unified backoffice console) */}
       {appMode === 'backoffice' ? (
         <GlobalMultiShopBackoffice
+          initialShop={backofficeScope === 'hq' ? 'all' : backofficeScope}
+          onSelectShopContext={(newShopId) => {
+            if (newShopId === 'all') {
+              setBackofficeScope('hq');
+              window.location.hash = '#/admin';
+            } else {
+              setBackofficeScope(newShopId as FilialeId);
+              window.location.hash = `#/admin/${newShopId}`;
+            }
+          }}
           onGoToStorefront={handleGoToStorefront}
           currentUser={currentUser}
           onLogout={handleLogout}

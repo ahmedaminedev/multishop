@@ -34,13 +34,16 @@ interface AdminPageProps {
     setPromotionsData: React.Dispatch<React.SetStateAction<Promotion[]>>;
     storesData: Store[];
     setStoresData: React.Dispatch<React.SetStateAction<Store[]>>;
+    hideSidebar?: boolean;
+    forcedPage?: AdminPageName;
 }
 
 export const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [activePage, setActivePage] = useState<AdminPageName>('dashboard');
+    const effectivePage = props.forcedPage || activePage;
 
     const renderActivePage = () => {
-        switch (activePage) {
+        switch (effectivePage) {
             case 'dashboard':
                 return <DashboardHomePage orders={props.ordersData} products={props.productsData} messages={props.messagesData}/>;
             case 'chat':
@@ -94,9 +97,11 @@ export const AdminPage: React.FC<AdminPageProps> = (props) => {
     };
 
     return (
-        <div className="flex min-h-screen bg-gray-100 dark:bg-gray-900">
-            <AdminSidebar activePage={activePage} setActivePage={setActivePage} onNavigateHome={props.onNavigateHome} onLogout={props.onLogout} />
-            <main className="flex-1 p-8 overflow-y-auto">
+        <div className={`flex ${props.hideSidebar ? 'h-auto min-h-0 bg-transparent' : 'min-h-screen bg-gray-100 dark:bg-gray-900'}`}>
+            {!props.hideSidebar && (
+                <AdminSidebar activePage={activePage} setActivePage={setActivePage} onNavigateHome={props.onNavigateHome} onLogout={props.onLogout} />
+            )}
+            <main className={`flex-1 min-w-0 ${props.hideSidebar ? 'p-0' : 'p-8 overflow-y-auto'}`}>
                 {renderActivePage()}
             </main>
         </div>

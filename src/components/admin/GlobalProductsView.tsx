@@ -5,13 +5,30 @@ import { FilialeType, FILIALE_CONFIG } from '../../models/ProductFiliale';
 interface GlobalProductsViewProps {
   products: any[];
   onSaveProduct: (product: any) => Promise<void>;
+  activeShop?: string;
+  onSelectShop?: (shop: string) => void;
 }
 
-export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({ products, onSaveProduct }) => {
-  const [filialeFilter, setFilialeFilter] = useState('all');
+export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
+  products,
+  onSaveProduct,
+  activeShop = 'all',
+  onSelectShop
+}) => {
+  const [filialeFilter, setFilialeFilter] = useState(activeShop);
   const [searchQuery, setSearchQuery] = useState('');
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+
+  // Keep in sync with parent activeShop context
+  React.useEffect(() => {
+    setFilialeFilter(activeShop);
+  }, [activeShop]);
+
+  const handleShopFilterChange = (shop: string) => {
+    setFilialeFilter(shop);
+    if (onSelectShop) onSelectShop(shop);
+  };
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
@@ -23,6 +40,14 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({ products
       return matchFiliale && matchSearch;
     });
   }, [products, filialeFilter, searchQuery]);
+
+  const shopTabs = [
+    { id: 'all', label: 'Toutes (67)', icon: '🌐' },
+    { id: 'para', label: 'Pharma (2)', icon: '🌿' },
+    { id: 'nutrition', label: 'Nutrition (15)', icon: '⚡' },
+    { id: 'cosmetic', label: 'Cosmetic (19)', icon: '💄' },
+    { id: 'electro', label: 'Electro (31)', icon: '🔌' },
+  ];
 
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,6 +73,28 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({ products
             Gestion des 67 références réparties sur les 4 boutiques avec héritage de types
           </p>
         </div>
+
+        {/* Quick Shop Filter Pills */}
+        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 overflow-x-auto no-scrollbar">
+          {shopTabs.map((st) => {
+            const isSelected = filialeFilter === st.id;
+            return (
+              <button
+                key={st.id}
+                type="button"
+                onClick={() => handleShopFilterChange(st.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
+                  isSelected
+                    ? 'bg-blue-600 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-white'
+                }`}
+              >
+                <span>{st.icon}</span>
+                <span>{st.label}</span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* Filter Bar */}
@@ -65,7 +112,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({ products
 
         <select
           value={filialeFilter}
-          onChange={(e) => setFilialeFilter(e.target.value)}
+          onChange={(e) => handleShopFilterChange(e.target.value)}
           className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
         >
           <option value="all">Toutes les Filiales (67)</option>
