@@ -159,7 +159,7 @@ export const App: React.FC = () => {
       } else {
         const titles: Record<FilialeId, string> = {
           para: 'PharmaShop | Administration Dédiée',
-          nutrition: 'IronFuel Nutrition | Administration Dédiée',
+          nutrition: 'Fitness Shop | Administration Dédiée',
           cosmetic: 'Cosmetics Shop | Administration Dédiée',
           electro: 'Electro Shop | Administration Dédiée'
         };
@@ -168,7 +168,7 @@ export const App: React.FC = () => {
     } else {
       const titles: Record<FilialeId, string> = {
         para: 'PharmaShop | Parapharmacie & Soins Bio',
-        nutrition: 'IronFuel Nutrition | Elite Sport & Performance',
+        nutrition: 'Fitness Shop | Équipements de Musculation & Fitness Pro',
         cosmetic: 'Cosmetics Shop | Beauté, Soins & Luxe',
         electro: 'Electro Shop | High-Tech & Électroménager'
       };

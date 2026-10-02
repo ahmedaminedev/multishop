@@ -25,11 +25,11 @@ export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
   },
   {
     id: 'nutrition',
-    name: 'IronFuel Nutrition',
-    tabLabel: 'Nutrition Shop',
-    tagline: 'Performance Sportive Elite',
-    badge: 'Pro Performance',
-    icon: '⚡',
+    name: 'Fitness Shop',
+    tabLabel: 'Fitness Shop',
+    tagline: 'Équipements de Musculation & Fitness',
+    badge: 'Fitness & Muscu',
+    icon: '🏋️‍♂️',
     enumType: 'produit_myshops_nutrition'
   },
   {

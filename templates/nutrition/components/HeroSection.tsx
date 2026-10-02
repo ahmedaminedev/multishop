@@ -1,97 +1,128 @@
-
-import React, { useState, useEffect } from 'react';
-import { ChevronLeftIcon, ChevronRightIcon } from './IconComponents';
-import type { HeroSlide } from '../types';
+import React from 'react';
+import { Truck, ShieldCheck, Headphones, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface HeroSectionProps {
-    slides: HeroSlide[];
+    onExplore?: () => void;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ slides }) => {
-    const [currentSlide, setCurrentSlide] = useState(0);
-
-    const nextSlide = () => {
-        setCurrentSlide(prev => (prev === slides.length - 1 ? 0 : prev + 1));
-    };
-
-    const prevSlide = () => {
-        setCurrentSlide(prev => (prev === 0 ? slides.length - 1 : prev - 1));
-    };
-    
-    useEffect(() => {
-        const slideInterval = setInterval(nextSlide, 7000);
-        return () => clearInterval(slideInterval);
-    }, [slides]);
-
-    if (!slides || slides.length === 0) return null;
-
+export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore }) => {
     return (
-        <section className="relative w-full h-[600px] lg:h-[800px] overflow-hidden bg-brand-black text-white group">
-            {slides.map((slide, index) => (
-                <div
-                    key={slide.id}
-                    className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentSlide ? 'opacity-100 z-10' : 'opacity-0 z-0'}`}
+        <section className="relative w-full bg-[#0a0d14] text-white overflow-hidden">
+            {/* Background Image Container with athlete */}
+            <div className="relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex items-center">
+                
+                {/* Background image with dramatic lighting */}
+                <div 
+                    className="absolute inset-0 bg-cover bg-right md:bg-center"
+                    style={{ 
+                        backgroundImage: `url('/src/assets/images/hero_fitness_athlete_1790951585544.jpg')`
+                    }}
                 >
-                    {/* Background with Parallax effect */}
-                    <div 
-                        className={`absolute inset-0 bg-cover bg-center transition-transform duration-[7000ms] ease-linear ${index === currentSlide ? 'scale-110' : 'scale-100'}`}
-                        style={{ backgroundImage: `url('${slide.bgImage}')` }} 
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-r from-black via-black/40 to-transparent"></div>
-                        {/* Carbon Texture Overlay */}
-                        <div className="absolute inset-0 opacity-10 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]"></div>
-                    </div>
+                    {/* Dark gradient overlay for text readability on left */}
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0a0d14] via-[#0a0d14]/85 md:via-[#0a0d14]/70 to-transparent"></div>
+                </div>
 
-                    <div className="absolute inset-0 flex items-center px-6 md:px-24">
-                        <div className="max-w-5xl relative z-20">
-                            {/* Decorative Slant Line */}
-                            <div className="w-16 h-1 bg-brand-neon mb-6 slant"></div>
-                            
-                            <h1 
-                                className="text-6xl md:text-9xl font-serif font-black italic uppercase leading-[0.8] tracking-tighter mb-6 animate-fadeInUp"
-                                style={{ transitionDelay: '200ms' }}
-                                dangerouslySetInnerHTML={{ __html: slide.title }}
-                            ></h1>
-                            
-                            <p 
-                                className="text-lg md:text-2xl text-gray-300 font-sans font-medium uppercase tracking-[0.3em] mb-10 max-w-xl border-l-4 border-brand-neon pl-6 animate-fadeInUp"
-                                style={{ transitionDelay: '400ms' }}
-                                dangerouslySetInnerHTML={{ __html: slide.subtitle }}
-                            ></p>
-                            
-                            <a 
-                                href={slide.link || "#"} 
-                                className="inline-block bg-brand-neon text-black font-black text-xl py-5 px-12 uppercase slant hover:bg-white transition-all duration-300 shadow-[0_0_20px_rgba(204,255,0,0.3)] animate-fadeInUp"
-                                style={{ transitionDelay: '600ms' }}
-                            >
-                                <span className="slant-reverse block">
-                                    {slide.buttonText}
-                                </span>
-                            </a>
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12 lg:py-16 w-full z-10">
+                    <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
+                        
+                        {/* Left Column: Headline and Call-to-Action */}
+                        <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+                            <span className="inline-block text-[11px] sm:text-xs font-black tracking-[0.25em] uppercase text-slate-300">
+                                ÉQUIPEMENT DE MUSCULATION
+                            </span>
+
+                            <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-[0.9] text-white">
+                                ATTEINS TES<br />
+                                <span className="text-[#84cc16]">OBJECTIFS</span>
+                            </h1>
+
+                            <p className="text-sm sm:text-base text-slate-300 max-w-lg font-medium leading-relaxed">
+                                Matériel de sport de qualité pour un entraînement plus efficace et plus motivant.
+                            </p>
+
+                            <div className="pt-2">
+                                <button
+                                    type="button"
+                                    onClick={() => onExplore?.()}
+                                    className="px-6 sm:px-8 py-3.5 bg-[#84cc16] hover:bg-[#72b012] text-black font-extrabold text-sm rounded-lg inline-flex items-center gap-2 shadow-lg shadow-[#84cc16]/20 transition-all hover:translate-x-1 cursor-pointer"
+                                >
+                                    <span>Découvrir la collection</span>
+                                    <ArrowRight className="w-4 h-4 stroke-[3]" />
+                                </button>
+                            </div>
+
+                            {/* 3 Value propositions below CTA */}
+                            <div className="pt-6 sm:pt-10 flex flex-wrap items-center gap-6 sm:gap-8 text-xs text-slate-300 border-t border-white/10">
+                                <div className="flex items-center gap-2.5">
+                                    <Truck className="w-5 h-5 text-[#84cc16] shrink-0" />
+                                    <div className="flex flex-col leading-tight">
+                                        <span className="font-bold text-white">Livraison rapide</span>
+                                        <span className="text-[10px] text-slate-400">partout en Tunisie</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2.5">
+                                    <ShieldCheck className="w-5 h-5 text-[#84cc16] shrink-0" />
+                                    <div className="flex flex-col leading-tight">
+                                        <span className="font-bold text-white">Paiement sécurisé</span>
+                                        <span className="text-[10px] text-slate-400">à la livraison ou en ligne</span>
+                                    </div>
+                                </div>
+
+                                <div className="flex items-center gap-2.5">
+                                    <Headphones className="w-5 h-5 text-[#84cc16] shrink-0" />
+                                    <div className="flex flex-col leading-tight">
+                                        <span className="font-bold text-white">Service client</span>
+                                        <span className="text-[10px] text-slate-400">7j/7</span>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
+
+                        {/* Right Column: Inscription / Calligraphy Slogan & Carousel controls */}
+                        <div className="hidden lg:flex lg:col-span-5 flex-col items-end justify-between self-stretch pt-4 pb-2">
+                            {/* Script quote "Plus fort chaque jour" matching screenshot */}
+                            <div className="relative text-right mr-4 select-none">
+                                <span className="font-serif italic text-3xl xl:text-4xl text-white/90 drop-shadow-md">
+                                    Plus fort
+                                </span>
+                                <div className="font-serif italic text-3xl xl:text-4xl text-white/90 drop-shadow-md">
+                                    chaque jour
+                                </div>
+                                <div className="w-24 h-1 bg-[#84cc16] rounded-full ml-auto mt-2"></div>
+                            </div>
+
+                            {/* Carousel Controls matching screenshot */}
+                            <div className="flex items-center gap-4 mt-auto">
+                                <div className="flex items-center gap-2">
+                                    <button 
+                                        type="button"
+                                        className="w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                                        title="Précédent"
+                                    >
+                                        <ChevronLeft className="w-4 h-4" />
+                                    </button>
+                                    <button 
+                                        type="button"
+                                        className="w-8 h-8 rounded-full bg-black/60 hover:bg-black/90 border border-white/20 text-white flex items-center justify-center transition-colors cursor-pointer"
+                                        title="Suivant"
+                                    >
+                                        <ChevronRight className="w-4 h-4" />
+                                    </button>
+                                </div>
+
+                                {/* Pagination Dots */}
+                                <div className="flex items-center gap-1.5">
+                                    <span className="w-2 h-2 rounded-full bg-[#84cc16]"></span>
+                                    <span className="w-2 h-2 rounded-full bg-white/40"></span>
+                                    <span className="w-2 h-2 rounded-full bg-white/40"></span>
+                                </div>
+                            </div>
+                        </div>
+
                     </div>
                 </div>
-            ))}
-            
-            {/* Minimalist Controls */}
-            <div className="absolute bottom-12 right-12 flex gap-4 z-30">
-                <button onClick={prevSlide} className="w-12 h-12 border border-white/20 hover:border-brand-neon hover:text-brand-neon flex items-center justify-center transition-all bg-black/40 backdrop-blur-md">
-                    <ChevronLeftIcon className="w-6 h-6" />
-                </button>
-                <button onClick={nextSlide} className="w-12 h-12 border border-white/20 hover:border-brand-neon hover:text-brand-neon flex items-center justify-center transition-all bg-black/40 backdrop-blur-md">
-                    <ChevronRightIcon className="w-6 h-6" />
-                </button>
-            </div>
 
-            {/* Dash Indicators */}
-            <div className="absolute bottom-12 left-12 flex gap-3 z-30">
-                {slides.map((_, index) => (
-                    <button 
-                        key={index} 
-                        onClick={() => setCurrentSlide(index)} 
-                        className={`h-1 transition-all duration-500 ${currentSlide === index ? 'w-12 bg-brand-neon' : 'w-4 bg-gray-600'}`}
-                    />
-                ))}
             </div>
         </section>
     );

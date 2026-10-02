@@ -1,27 +1,33 @@
 import React from 'react';
 
 export const Logo: React.FC = () => (
-    <div className="flex items-center gap-4 select-none group">
-        <div className="relative w-12 h-12 flex items-center justify-center bg-gray-900 border-2 border-brand-neon slant transform transition-transform group-hover:scale-110 duration-300">
-            {/* Dumbbell Icon */}
+    <div className="flex items-center gap-3 select-none group cursor-pointer">
+        {/* Hexagonal green badge with dumbbell icon */}
+        <div className="relative w-11 h-11 flex items-center justify-center bg-[#84cc16] rounded-xl shadow-sm group-hover:scale-105 transition-transform duration-200">
             <svg 
-                width="28" 
-                height="28" 
+                width="24" 
+                height="24" 
                 viewBox="0 0 24 24" 
                 fill="none" 
-                className="text-brand-neon transform slant-reverse" 
+                className="text-black" 
                 xmlns="http://www.w3.org/2000/svg"
             >
-                <path d="M6 4h2v16H6V4zm10 0h2v16h-2V4zM2 8h4v8H2V8zm16 0h4v8h-4V8zM8 11h8v2H8v-2z" fill="currentColor"/>
+                {/* Stylized dumbbell matching screenshot */}
+                <rect x="2" y="7" width="3" height="10" rx="1.5" fill="currentColor"/>
+                <rect x="5" y="9" width="2" height="6" rx="0.5" fill="currentColor"/>
+                <rect x="7" y="11" width="10" height="2" rx="0.5" fill="currentColor"/>
+                <rect x="17" y="9" width="2" height="6" rx="0.5" fill="currentColor"/>
+                <rect x="19" y="7" width="3" height="10" rx="1.5" fill="currentColor"/>
             </svg>
-            <div className="absolute inset-0 bg-brand-neon opacity-10 animate-pulse"></div>
         </div>
-        <div className="flex flex-col">
-            <span className="text-3xl font-serif font-black text-gray-900 dark:text-white tracking-tighter leading-none italic uppercase">
-                IRON<span className="text-brand-neon">FUEL</span>
+
+        {/* Brand Text */}
+        <div className="flex flex-col text-left">
+            <span className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none font-sans uppercase">
+                IRON<span className="text-slate-900 dark:text-white">FUEL</span>
             </span>
-            <span className="text-[10px] uppercase tracking-[0.5em] text-gray-500 dark:text-gray-400 font-sans font-black mt-1">
-                ELITE NUTRITION
+            <span className="text-[9px] uppercase tracking-[0.22em] text-slate-600 dark:text-slate-400 font-extrabold mt-0.5">
+                ELITE FITNESS EQUIPMENT
             </span>
         </div>
     </div>

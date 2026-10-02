@@ -85,7 +85,7 @@ interface GlobalBackofficeProps {
 
 const BOUTIQUES_META: Record<string, { name: string; icon: string; subtitle: string; color: string; bg: string }> = {
   para: { name: 'PharmaShop', icon: '🌿', subtitle: 'Parapharmacie, Phytothérapie & Soins Bio', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  nutrition: { name: 'IronFuel Nutrition', icon: '⚡', subtitle: 'Nutrition Sportive & Compléments Haute Performance', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
+  nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', subtitle: 'Équipements de Musculation, Cardio & Fitness', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   cosmetic: { name: 'Cosmetics Shop', icon: '💄', subtitle: 'Beauté, Cosmétique & Parfumerie de Luxe', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
   electro: { name: 'Electro Shop', icon: '🔌', subtitle: 'Électroménager, Multimédia & High-Tech', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' }
 };

@@ -1,140 +1,108 @@
 import React from 'react';
 import type { Product } from '../types';
-import { CartIcon, EyeIcon, HeartIcon, ScaleIcon } from './IconComponents';
+import { ShoppingCart, Star } from 'lucide-react';
 import { useCart } from './CartContext';
-import { useFavorites } from './FavoritesContext';
-import { useCompare } from './CompareContext';
 import { useToast } from './ToastContext';
 
 interface ProductCardProps {
     product: Product;
-    onPreview: (product: Product) => void;
+    onPreview?: (product: Product) => void;
     onNavigateToProductDetail: (productId: number) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onPreview, onNavigateToProductDetail }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onNavigateToProductDetail }) => {
     const { addToCart, openCart } = useCart();
-    const { toggleFavorite, isFavorite } = useFavorites();
-    const { addToCompare, isComparing, removeFromCompare } = useCompare();
     const { addToast } = useToast();
     
     const isOutOfStock = product.quantity === 0;
-    const isFav = isFavorite(product.id);
-    const comparing = isComparing(product.id);
 
     const handleAddToCart = (e: React.MouseEvent) => {
         e.stopPropagation();
         e.preventDefault();
         if (isOutOfStock) return;
         addToCart(product);
-        addToast("UNITÉ DÉPLOYÉE AU SET", "success");
+        addToast("Produit ajouté au panier !", "success");
         openCart();
     };
 
-    const handleCompare = (e: React.MouseEvent) => {
-        e.stopPropagation();
-        e.preventDefault();
-        if (comparing) {
-            removeFromCompare(product.id);
-        } else {
-            addToCompare(product);
-        }
-    };
-    
     const handleProductClick = (e: React.MouseEvent) => {
         e.preventDefault();
-        e.stopPropagation();
         onNavigateToProductDetail(product.id);
     };
 
     const discountPercentage = product.discount || (product.oldPrice && product.price ? Math.round(((product.oldPrice - product.price) / product.oldPrice) * 100) : 0);
 
+    // Reviews count fallback or calculated
+    const reviewCount = product.reviewsCount || (80 + ((product.id * 17) % 50));
+
     return (
         <div 
-            className="group relative bg-white dark:bg-[#0f0f0f] border-2 border-gray-100 dark:border-gray-800 hover:border-brand-neon transition-all duration-500 flex flex-col h-full overflow-hidden shadow-sm hover:shadow-[0_0_30px_rgba(204,255,0,0.15)] cursor-pointer"
             onClick={handleProductClick}
+            className="group relative bg-white dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-slate-200 dark:hover:border-slate-700 shadow-xs hover:shadow-md transition-all duration-300 flex flex-col justify-between p-3.5 sm:p-4 cursor-pointer"
         >
-            <div className="absolute inset-0 opacity-[0.02] dark:opacity-[0.05] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none"></div>
-
-            <div className="relative aspect-[4/5] overflow-hidden bg-gray-50 dark:bg-black/40">
-                <img 
-                    src={product.imageUrl} 
-                    alt={product.name} 
-                    loading="lazy"
-                    className={`w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 ${isOutOfStock ? 'opacity-30 grayscale' : ''}`}
-                />
-
-                <div className="absolute inset-0 bg-gradient-to-b from-brand-neon/20 to-transparent h-1 w-full -top-1 group-hover:animate-marquee opacity-0 group-hover:opacity-100 pointer-events-none z-10"></div>
-
-                <div className="absolute top-4 left-0 flex flex-col gap-1.5 z-10">
-                    {discountPercentage > 0 && (
-                        <div className="bg-brand-neon text-black text-[10px] font-black px-3 py-1 slant shadow-lg">
-                            <span className="slant-reverse block">-{discountPercentage}% IMPACT</span>
-                        </div>
+            <div>
+                {/* Top Badge: Lime Green Pill Discount */}
+                <div className="flex items-center justify-between mb-2">
+                    {discountPercentage > 0 ? (
+                        <span className="bg-[#84cc16] text-black font-extrabold text-[11px] px-2 py-0.5 rounded-full">
+                            -{discountPercentage}%
+                        </span>
+                    ) : (
+                        <span />
                     )}
                 </div>
 
-                {/* Quick Actions Overlay */}
-                <div className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center gap-2 z-20 backdrop-blur-[2px]">
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); onPreview(product); }}
-                        className="w-10 h-10 bg-white text-black flex items-center justify-center hover:bg-brand-neon transition-all transform -translate-y-2 group-hover:translate-y-0 duration-300"
-                        title="Aperçu"
-                    >
-                        <EyeIcon className="w-4 h-4" />
-                    </button>
-                    <button 
-                        onClick={handleCompare}
-                        className={`w-10 h-10 flex items-center justify-center transition-all transform translate-y-2 group-hover:translate-y-0 duration-300 ${comparing ? 'bg-brand-neon text-black' : 'bg-black text-white border border-white/20 hover:text-brand-neon'}`}
-                        title="Comparer"
-                    >
-                        <ScaleIcon className="w-4 h-4" />
-                    </button>
-                    <button 
-                        onClick={(e) => { e.stopPropagation(); toggleFavorite(product.id); }}
-                        className={`w-10 h-10 bg-black text-white border border-white/20 flex items-center justify-center hover:text-brand-neon transition-all transform translate-y-2 group-hover:translate-y-0 duration-300 ${isFav ? 'text-brand-neon border-brand-neon' : ''}`}
-                        title="Favoris"
-                    >
-                        <HeartIcon className="w-4 h-4" solid={isFav} />
-                    </button>
+                {/* Product Image on Pure White Background */}
+                <div className="relative aspect-square w-full flex items-center justify-center p-2 mb-3 overflow-hidden rounded-xl bg-slate-50/60 dark:bg-slate-800/40">
+                    <img 
+                        src={product.imageUrl} 
+                        alt={product.name} 
+                        loading="lazy"
+                        className={`w-full h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-300 ${isOutOfStock ? 'opacity-40 grayscale' : ''}`}
+                    />
                 </div>
 
-                {isOutOfStock && (
-                    <div className="absolute inset-0 flex items-center justify-center bg-black/80 z-20">
-                        <span className="border-2 border-brand-alert text-brand-alert px-6 py-2 font-black uppercase tracking-tighter slant">
-                            <span className="slant-reverse block italic text-sm">Signal Perdu</span>
-                        </span>
-                    </div>
-                )}
-            </div>
-
-            <div className="p-5 flex flex-col flex-grow relative z-10">
-                <div className="flex justify-between items-center mb-2">
-                    <span className="text-[9px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.3em] font-mono">{product.brand}</span>
-                </div>
-
-                <h3 className="font-serif font-black text-lg leading-tight mb-4 text-gray-900 dark:text-white group-hover:text-brand-neon transition-colors line-clamp-2 uppercase italic tracking-tighter">
+                {/* Product Name */}
+                <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white line-clamp-1 leading-snug group-hover:text-[#84cc16] transition-colors">
                     {product.name}
                 </h3>
 
-                <div className="mt-auto pt-4 border-t border-gray-100 dark:border-gray-800">
-                    <div className="flex items-baseline gap-2 mb-4">
-                        <span className="text-xl font-black text-gray-900 dark:text-white font-mono tracking-tighter">
-                            {product.price.toFixed(3)} <span className="text-[9px] font-bold text-brand-neon">TND</span>
-                        </span>
+                {/* Star Rating with Review Count */}
+                <div className="flex items-center gap-1 mt-1 text-amber-400">
+                    <div className="flex items-center">
+                        {[...Array(5)].map((_, i) => (
+                            <Star key={i} className="w-3.5 h-3.5 fill-current text-amber-400" />
+                        ))}
                     </div>
-
-                    <button 
-                        onClick={handleAddToCart}
-                        disabled={isOutOfStock}
-                        className="w-full bg-black dark:bg-white text-white dark:text-black font-black uppercase text-[9px] tracking-[0.2em] py-3.5 flex items-center justify-center gap-2 hover:bg-brand-neon hover:text-black dark:hover:bg-brand-neon dark:hover:text-black transition-all slant shadow-xl"
-                    >
-                        <span className="slant-reverse block flex items-center gap-2">
-                            {isOutOfStock ? 'INDISPONIBLE' : 'DÉPLOYER'}
-                            {!isOutOfStock && <CartIcon className="w-3 h-3" />}
-                        </span>
-                    </button>
+                    <span className="text-[11px] font-semibold text-slate-400 ml-1">
+                        ({reviewCount})
+                    </span>
                 </div>
+            </div>
+
+            {/* Bottom Row: Price and Add to Cart Button */}
+            <div className="flex items-end justify-between mt-3 pt-2">
+                <div className="flex flex-col leading-tight">
+                    <span className="text-xs sm:text-sm font-extrabold text-slate-900 dark:text-white">
+                        {product.price?.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
+                    </span>
+                    {product.oldPrice && product.oldPrice > product.price && (
+                        <span className="text-[11px] text-slate-400 line-through">
+                            {product.oldPrice.toLocaleString('fr-FR', { minimumFractionDigits: 3 })} DT
+                        </span>
+                    )}
+                </div>
+
+                {/* Round Lime Green Shopping Cart Button */}
+                <button
+                    type="button"
+                    onClick={handleAddToCart}
+                    disabled={isOutOfStock}
+                    className="w-8 h-8 rounded-full bg-[#84cc16] hover:bg-[#72b012] text-black flex items-center justify-center shadow-xs transition-transform active:scale-95 cursor-pointer shrink-0"
+                    title="Ajouter au panier"
+                >
+                    <ShoppingCart className="w-4 h-4 stroke-[2.5]" />
+                </button>
             </div>
         </div>
     );

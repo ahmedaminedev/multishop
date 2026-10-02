@@ -30,7 +30,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
   const shopOptions: { id: ShopContextId; label: string; icon: string; badge: string; color: string }[] = [
     { id: 'all', label: 'Toutes les boutiques (Consolidé)', icon: '🌐', badge: 'GROUPE HQ', color: 'text-blue-600' },
     { id: 'para', label: 'PharmaShop (Parapharmacie)', icon: '🌿', badge: 'FILIALE 1', color: 'text-emerald-600' },
-    { id: 'nutrition', label: 'IronFuel (Nutrition Sportive)', icon: '⚡', badge: 'FILIALE 2', color: 'text-amber-600' },
+    { id: 'nutrition', label: 'Fitness Shop (Équipements & Muscu)', icon: '🏋️‍♂️', badge: 'FILIALE 2', color: 'text-lime-600' },
     { id: 'cosmetic', label: 'Cosmetics Shop (Beauté & Soins)', icon: '💄', badge: 'FILIALE 3', color: 'text-rose-600' },
     { id: 'electro', label: 'Electro Shop (Tech & Maison)', icon: '🔌', badge: 'FILIALE 4', color: 'text-blue-600' },
   ];

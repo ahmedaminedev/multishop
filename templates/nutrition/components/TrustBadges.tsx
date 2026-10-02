@@ -1,64 +1,59 @@
 import React from 'react';
-import { DeliveryTruckIcon, CheckCircleIcon, CustomerSupportIcon, StarIcon } from './IconComponents';
-import type { TrustBadgeConfig } from '../types';
+import { Award, Truck, ShieldCheck, Headphones } from 'lucide-react';
 
-const TrustBadge: React.FC<{ icon: React.ReactNode; title: string; subtitle: string }> = ({ icon, title, subtitle }) => (
-    <div className="flex flex-col items-center text-center p-8 group transition-all duration-500 relative border-r border-gray-200 dark:border-gray-800 last:border-0">
-        {/* Background Decorative Element */}
-        <div className="absolute inset-0 bg-brand-neon opacity-0 group-hover:opacity-[0.03] dark:group-hover:opacity-[0.05] transition-opacity duration-500 skew-x-[-12deg]"></div>
-        
-        {/* Tactical Icon Container */}
-        <div className="mb-6 relative">
-            <div className="absolute -inset-4 border border-brand-neon/20 rounded-full scale-75 group-hover:scale-110 group-hover:border-brand-neon transition-all duration-500"></div>
-            
-            <div className="relative z-10 w-16 h-16 flex items-center justify-center bg-gray-900 text-brand-neon rounded-none slant border-2 border-brand-neon shadow-[0_0_15px_rgba(204,255,0,0.2)] group-hover:shadow-[0_0_25px_rgba(204,255,0,0.5)] transition-all">
-                <span className="slant-reverse block">
-                    {React.isValidElement(icon) ? React.cloneElement(icon as React.ReactElement<any>, { className: "w-8 h-8" }) : icon}
-                </span>
-            </div>
-        </div>
-
-        <h3 className="font-serif font-black italic text-xl text-gray-900 dark:text-white mb-2 uppercase tracking-tighter group-hover:text-brand-neon transition-colors">
-            {title}
-        </h3>
-        
-        <p className="text-[10px] font-mono font-bold text-gray-500 dark:text-gray-400 uppercase tracking-[0.2em] border-t border-gray-200 dark:border-gray-800 pt-3 mt-2 group-hover:border-brand-neon/50 transition-colors">
-            {subtitle}
-        </p>
-    </div>
-);
-
-interface TrustBadgesProps {
-    badges?: TrustBadgeConfig[];
-}
-
-export const TrustBadges: React.FC<TrustBadgesProps> = ({ badges }) => {
-    const defaultIcons = [<DeliveryTruckIcon />, <CheckCircleIcon />, <CustomerSupportIcon />, <StarIcon />];
-
-    const displayBadges = badges && badges.length > 0 
-        ? badges.map((badge, index) => ({
-            title: badge.title,
-            subtitle: badge.subtitle,
-            icon: badge.iconUrl 
-                ? <img src={badge.iconUrl} alt="" className="w-8 h-8 object-contain" /> 
-                : defaultIcons[index % defaultIcons.length]
-          }))
-        : [
-            { icon: <DeliveryTruckIcon />, title: "LIVRAISON EXPRESS", subtitle: "24/48H PARTOUT" },
-            { icon: <CheckCircleIcon />, title: "AUTHENTICITÉ 100%", subtitle: "PRODUITS CERTIFIÉS" },
-            { icon: <CustomerSupportIcon />, title: "EXPERTISE PRO", subtitle: "CONSEILS DE COACHS" },
-            { icon: <StarIcon />, title: "MEILLEUR PRIX", subtitle: "GARANTI SUR LE MARCHÉ" }
-        ];
-
+export const TrustBadges: React.FC = () => {
     return (
-        <section className="relative py-0 border-y-4 border-black dark:border-brand-neon bg-white dark:bg-brand-black overflow-hidden">
-            <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] pointer-events-none"></div>
-            
-            <div className="max-w-screen-2xl mx-auto px-0">
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4">
-                    {displayBadges.map((badge, index) => (
-                        <TrustBadge key={index} {...badge} />
-                    ))}
+        <section className="relative w-full bg-[#0a0f18] text-white overflow-hidden border-t border-white/5 py-8 sm:py-10">
+            {/* Green geometric accent strip on right side matching screenshot */}
+            <div className="absolute right-0 top-0 bottom-0 w-24 sm:w-36 bg-[#84cc16]/20 skew-x-[-20deg] translate-x-12 pointer-events-none"></div>
+
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
+                    
+                    {/* 1. Produits de qualité */}
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-full bg-[#84cc16]/10 flex items-center justify-center shrink-0">
+                            <Award className="w-6 h-6 text-[#84cc16]" />
+                        </div>
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-sm font-bold text-white">Produits de qualité</span>
+                            <span className="text-xs text-slate-400 mt-0.5">Marques reconnues mondialement</span>
+                        </div>
+                    </div>
+
+                    {/* 2. Livraison rapide */}
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-full bg-[#84cc16]/10 flex items-center justify-center shrink-0">
+                            <Truck className="w-6 h-6 text-[#84cc16]" />
+                        </div>
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-sm font-bold text-white">Livraison rapide</span>
+                            <span className="text-xs text-slate-400 mt-0.5">Partout en Tunisie</span>
+                        </div>
+                    </div>
+
+                    {/* 3. Paiement sécurisé */}
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-full bg-[#84cc16]/10 flex items-center justify-center shrink-0">
+                            <ShieldCheck className="w-6 h-6 text-[#84cc16]" />
+                        </div>
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-sm font-bold text-white">Paiement sécurisé</span>
+                            <span className="text-xs text-slate-400 mt-0.5">À la livraison ou en ligne</span>
+                        </div>
+                    </div>
+
+                    {/* 4. Service client */}
+                    <div className="flex items-center gap-3.5">
+                        <div className="w-11 h-11 rounded-full bg-[#84cc16]/10 flex items-center justify-center shrink-0">
+                            <Headphones className="w-6 h-6 text-[#84cc16]" />
+                        </div>
+                        <div className="flex flex-col leading-tight">
+                            <span className="text-sm font-bold text-white">Service client</span>
+                            <span className="text-xs text-slate-400 mt-0.5">Disponible 7j/7</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </section>

@@ -1,9 +1,9 @@
-
 import React, { useState } from 'react';
-import { MenuIcon } from './IconComponents';
+import { Menu, ChevronDown, Flame } from 'lucide-react';
 
 interface NavBarProps {
     onNavigateHome: () => void;
+    onNavigateToCategory?: (categoryName: string) => void;
     onNavigateToPacks: () => void;
     onNavigateToPromotions: () => void;
     onNavigateToBlog: () => void;
@@ -13,89 +13,103 @@ interface NavBarProps {
 
 export const NavBar: React.FC<NavBarProps> = ({ 
     onNavigateHome, 
-    onNavigateToPacks,
-    onNavigateToPromotions,
-    onNavigateToBlog, 
-    onNavigateToNews,
-    onNavigateToContact 
+    onNavigateToCategory,
+    onNavigateToPromotions
 }) => {
-    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
+    const [activeTab, setActiveTab] = useState('Accueil');
 
-    const navLinks = [
-        { name: 'Catalogue', action: onNavigateHome },
-        { name: 'Packs Elite', action: onNavigateToPacks },
-        // CHANGED: highlight logic to use brand-neon text
-        { name: 'Offres', action: onNavigateToPromotions, highlight: true },
-        { name: 'Blog', action: onNavigateToBlog },
-        { name: 'Contact', action: onNavigateToContact },
+    const categoriesList = [
+        'Musculation',
+        'Cardio',
+        'Cross Training',
+        'Fitness & Yoga',
+        'Haltères & Poids',
+        'Bancs de Musculation',
+        'Racks & Stations',
+        'Disques & Barres',
+        'Kettlebells',
+        'Accessoires',
+        'Nutrition & Protéines'
     ];
 
-    const handleLinkClick = (e: React.MouseEvent, action: () => void) => {
-        e.preventDefault();
-        action();
-        setIsMobileMenuOpen(false);
-    };
+    const mainNavItems = [
+        { label: 'Accueil', action: () => { setActiveTab('Accueil'); onNavigateHome(); } },
+        { label: 'Musculation', action: () => { setActiveTab('Musculation'); onNavigateToCategory?.('Musculation'); } },
+        { label: 'Cardio', action: () => { setActiveTab('Cardio'); onNavigateToCategory?.('Cardio'); } },
+        { label: 'Cross Training', action: () => { setActiveTab('Cross Training'); onNavigateToCategory?.('Cross Training'); } },
+        { label: 'Fitness & Yoga', action: () => { setActiveTab('Fitness & Yoga'); onNavigateToCategory?.('Fitness & Yoga'); } },
+        { label: 'Accessoires', action: () => { setActiveTab('Accessoires'); onNavigateToCategory?.('Accessoires'); } },
+        { label: 'Marques', action: () => { setActiveTab('Marques'); onNavigateToCategory?.('product-list'); } },
+        { label: 'Promotions', action: () => { setActiveTab('Promotions'); onNavigateToPromotions(); }, isPromo: true },
+    ];
 
     return (
-        <nav className="sticky top-0 z-50 bg-white/90 dark:bg-brand-black/90 backdrop-blur-md border-b-2 border-brand-light/10 dark:border-brand-dark transition-colors duration-300">
-            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="flex items-center justify-between h-16">
+        <nav className="w-full bg-[#0c1422] text-white relative z-40 border-t border-white/5">
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div className="flex items-center h-12">
                     
-                    {/* Mobile Menu Button */}
-                    <div className="md:hidden">
-                        <button 
-                            onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)} 
-                            className="text-brand-black dark:text-white p-2 border border-brand-gray/20 rounded"
+                    {/* Left: Green "Toutes les catégories" Button */}
+                    <div className="relative shrink-0 mr-4 lg:mr-8">
+                        <button
+                            type="button"
+                            onClick={() => setIsCategoriesDropdownOpen(!isCategoriesDropdownOpen)}
+                            className="h-12 px-4 sm:px-6 bg-[#84cc16] hover:bg-[#72b012] text-black font-extrabold text-xs sm:text-sm uppercase tracking-wide flex items-center gap-2.5 transition-colors cursor-pointer"
                         >
-                            <MenuIcon className="w-6 h-6" />
+                            <Menu className="w-4 h-4 stroke-[2.5]" />
+                            <span>Toutes les catégories</span>
+                            <ChevronDown className={`w-3.5 h-3.5 stroke-[2.5] transition-transform ${isCategoriesDropdownOpen ? 'rotate-180' : ''}`} />
                         </button>
+
+                        {/* Dropdown Menu */}
+                        {isCategoriesDropdownOpen && (
+                            <div className="absolute left-0 top-full w-64 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-2xl py-2 z-50 animate-fadeIn">
+                                {categoriesList.map((cat) => (
+                                    <button
+                                        key={cat}
+                                        type="button"
+                                        onClick={() => {
+                                            setIsCategoriesDropdownOpen(false);
+                                            setActiveTab(cat);
+                                            onNavigateToCategory?.(cat);
+                                        }}
+                                        className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-[#84cc16] transition-colors flex items-center justify-between"
+                                    >
+                                        <span>{cat}</span>
+                                        <span className="text-[10px] text-slate-400">→</span>
+                                    </button>
+                                ))}
+                            </div>
+                        )}
                     </div>
 
-                    {/* Desktop Navigation - Centered & Technical */}
-                    <div className="hidden md:flex flex-1 justify-center">
-                        <div className="flex items-center space-x-2">
-                            {navLinks.map((link) => (
-                                 <a 
-                                    key={link.name} 
-                                    href="#" 
-                                    onClick={(e) => handleLinkClick(e, link.action)}
-                                    className={`
-                                        group relative py-2.5 px-7 skew-x-[-12deg] border-r border-gray-200 dark:border-white/10 last:border-0
-                                        hover:bg-brand-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all duration-200
-                                        ${link.highlight ? 'text-brand-neon font-black' : 'text-brand-black dark:text-white font-black'}
-                                    `}
+                    {/* Desktop Navigation Links */}
+                    <div className="flex-1 overflow-x-auto scrollbar-none flex items-center space-x-1 sm:space-x-4 lg:space-x-6">
+                        {mainNavItems.map((item) => {
+                            const isActive = activeTab === item.label;
+                            return (
+                                <button
+                                    key={item.label}
+                                    type="button"
+                                    onClick={item.action}
+                                    className={`relative h-12 px-2.5 sm:px-3 text-xs sm:text-sm font-semibold whitespace-nowrap transition-colors flex items-center gap-1.5 cursor-pointer ${
+                                        isActive 
+                                            ? 'text-[#84cc16]' 
+                                            : 'text-slate-300 hover:text-white'
+                                    }`}
                                 >
-                                    <span className="block skew-x-[12deg] uppercase text-base lg:text-[17px] font-black tracking-widest relative z-10">
-                                        {link.name}
-                                        {/* Underline for Highlight */}
-                                        {link.highlight && <span className="absolute -bottom-1 left-0 w-full h-0.5 bg-brand-neon"></span>}
-                                    </span>
-                                    {/* Petit indicateur au survol */}
-                                    <span className="absolute bottom-0 left-0 w-full h-1 bg-brand-neon transform scale-x-0 group-hover:scale-x-100 transition-transform duration-200 origin-left"></span>
-                                </a>
-                            ))}
-                        </div>
+                                    {item.isPromo && <Flame className="w-3.5 h-3.5 text-[#84cc16] animate-pulse" />}
+                                    <span>{item.label}</span>
+                                    {isActive && (
+                                        <span className="absolute bottom-0 left-0 right-0 h-[3px] bg-[#84cc16]"></span>
+                                    )}
+                                </button>
+                            );
+                        })}
                     </div>
+
                 </div>
             </div>
-
-            {/* Mobile Menu */}
-            {isMobileMenuOpen && (
-                 <div className="md:hidden absolute top-full left-0 w-full bg-white dark:bg-brand-black border-b border-brand-gray/20 shadow-xl z-50">
-                     <div className="flex flex-col">
-                         {navLinks.map((link) => (
-                             <a 
-                                key={link.name}
-                                href="#" 
-                                onClick={(e) => handleLinkClick(e, link.action)}
-                                className={`px-6 py-4 text-base font-serif font-bold uppercase tracking-widest border-b border-gray-100 dark:border-white/5 hover:bg-brand-neon hover:text-black transition-colors ${link.highlight ? 'text-brand-neon' : ''}`}
-                            >
-                                {link.name}
-                             </a>
-                         ))}
-                     </div>
-                 </div>
-            )}
         </nav>
     );
 };

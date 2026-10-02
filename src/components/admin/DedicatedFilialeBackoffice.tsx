@@ -57,13 +57,13 @@ export const FILIALES_CONFIG: Record<FilialeId, FilialeMeta> = {
   },
   nutrition: {
     id: 'nutrition',
-    name: 'IronFuel Nutrition',
-    subtitle: 'Nutrition Sportive Elite',
-    tagline: 'Performance Sportive Elite & Protéines • produit_myshops_nutrition',
-    icon: '⚡',
-    colorName: 'amber',
-    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
-    headerAccent: 'text-amber-700'
+    name: 'Fitness Shop',
+    subtitle: 'Musculation & Fitness',
+    tagline: 'Équipements de Musculation, Cardio & Fitness • produit_myshops_nutrition',
+    icon: '🏋️‍♂️',
+    colorName: 'lime',
+    badgeClass: 'bg-lime-50 text-lime-800 border-lime-200',
+    headerAccent: 'text-lime-700'
   },
   cosmetic: {
     id: 'cosmetic',

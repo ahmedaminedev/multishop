@@ -46,16 +46,16 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
     },
     {
       key: 'nutrition' as BackofficeTab,
-      name: 'IronFuel Nutrition',
-      subtitle: 'Performance Sportive Elite',
+      name: 'Fitness Shop',
+      subtitle: 'Matériel Musculation & Fitness',
       enumType: 'produit_myshops_nutrition',
-      icon: '⚡',
+      icon: '🏋️‍♂️',
       revenue: stats?.filiales?.nutrition?.revenue ?? 289,
       orders: stats?.filiales?.nutrition?.ordersCount ?? 1,
       articles: stats?.filiales?.nutrition?.productsCount ?? 15,
-      badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
-      iconBg: 'bg-amber-50 text-amber-500',
-      statColor: 'text-amber-600'
+      badgeColor: 'bg-lime-50 text-lime-700 border-lime-200',
+      iconBg: 'bg-lime-50 text-lime-600',
+      statColor: 'text-lime-600'
     },
     {
       key: 'cosmetic' as BackofficeTab,

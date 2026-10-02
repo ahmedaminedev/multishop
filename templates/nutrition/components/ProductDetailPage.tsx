@@ -151,29 +151,27 @@ export const ProductDetailPage: React.FC<{
                             {/* Actions */}
                             <div className="flex flex-col sm:flex-row gap-4 mb-12">
                                 {/* Quantity */}
-                                <div className="flex items-center bg-gray-100 dark:bg-gray-800 h-14 border border-gray-300 dark:border-gray-600 w-full sm:w-auto">
-                                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-full flex items-center justify-center hover:bg-black hover:text-white transition-colors"><MinusIcon className="w-4 h-4"/></button>
-                                    <span className="w-12 text-center font-bold font-mono text-lg">{quantity}</span>
-                                    <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-full flex items-center justify-center hover:bg-black hover:text-white transition-colors"><PlusIcon className="w-4 h-4"/></button>
+                                <div className="flex items-center bg-slate-100 dark:bg-slate-800 h-13 border border-slate-200 dark:border-slate-700 rounded-xl w-full sm:w-auto overflow-hidden">
+                                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><MinusIcon className="w-4 h-4"/></button>
+                                    <span className="w-12 text-center font-extrabold text-base">{quantity}</span>
+                                    <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><PlusIcon className="w-4 h-4"/></button>
                                 </div>
 
                                 {/* Add To Cart */}
                                 <button 
                                     onClick={handleAddToCart}
                                     disabled={isOutOfStock}
-                                    className="flex-1 relative overflow-hidden group bg-brand-black dark:bg-white text-white dark:text-black h-14 font-black uppercase tracking-[0.15em] text-sm hover:bg-brand-neon hover:text-black transition-all skew-x-[-12deg] disabled:opacity-50 disabled:cursor-not-allowed"
+                                    className="flex-1 bg-[#84cc16] hover:bg-[#72b012] text-black h-13 font-black uppercase tracking-wider text-sm rounded-xl shadow-md transition-all active:scale-[0.99] disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer"
                                 >
-                                    <span className="relative z-10 flex items-center justify-center gap-3 skew-x-[12deg]">
-                                        {isOutOfStock ? 'RUPTURE DE STOCK' : 'AJOUTER AU PANIER'}
-                                    </span>
+                                    <span>{isOutOfStock ? 'RUPTURE DE STOCK' : 'AJOUTER AU PANIER'}</span>
                                 </button>
 
                                 {/* Wishlist */}
                                 <button 
                                     onClick={() => toggleFavorite(product.id as number)}
-                                    className={`h-14 w-14 flex items-center justify-center border-2 transition-all ${isFav ? 'border-brand-alert bg-brand-alert text-white' : 'border-gray-300 dark:border-gray-600 text-gray-400 hover:border-white hover:text-white'}`}
+                                    className={`h-13 w-13 flex items-center justify-center rounded-xl border border-slate-200 dark:border-slate-700 transition-all ${isFav ? 'bg-rose-500 border-rose-500 text-white' : 'text-slate-400 hover:text-rose-500 hover:border-rose-300'}`}
                                 >
-                                    <HeartIcon className="w-6 h-6" solid={isFav} />
+                                    <HeartIcon className="w-5 h-5" solid={isFav} />
                                 </button>
                             </div>
 

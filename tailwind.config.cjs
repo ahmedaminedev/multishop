@@ -5,6 +5,7 @@ module.exports = {
     "./index.tsx",
     "./App.tsx",
     "./src/**/*.{js,ts,jsx,tsx}",
+    "./templates/**/*.{js,ts,jsx,tsx}",
     "./ParaShop-main/components/**/*.{js,ts,jsx,tsx}",
     "./ParaShop-main/*.{js,ts,jsx,tsx}",
     "./NutritionShop-main/components/**/*.{js,ts,jsx,tsx}",

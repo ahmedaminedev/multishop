@@ -29,10 +29,10 @@ export const FILIALE_MAP = {
     key: 'nutrition',
     folder: 'templates/nutrition',
     legacyFolder: 'NutritionShop-main',
-    name: 'IronFuel Nutrition',
+    name: 'Fitness Shop',
     filialeType: 'produit_myshops_nutrition',
-    accentColor: '#ccff00',
-    badge: 'Pro Performance'
+    accentColor: '#84cc16',
+    badge: 'Fitness & Muscu'
   },
   cosmetic: {
     key: 'cosmetic',
@@ -69,11 +69,12 @@ function enrichProductWithFiliale(product, filialeKey) {
     p.referenceTechnique = p.referenceTechnique || `AUX-${(p.brand || 'TECH').slice(0, 3).toUpperCase()}-${p.id}`;
     p.voltage = p.voltage || '220-240V / 50Hz';
   } else if (filialeKey === 'nutrition') {
-    p.goutSaveur = p.goutSaveur || (p.name.includes('Whey') ? 'Chocolat Belge' : p.name.includes('Créatine') ? 'Neutre' : 'Fruits Rouges');
-    p.poidsKg = p.poidsKg || (p.name.includes('2.2') ? 2.2 : p.name.includes('5kg') ? 5.0 : 1.0);
-    p.proteinesParPortion = p.proteinesParPortion || '24g / portion';
-    p.objectifSportif = p.objectifSportif || (p.name.includes('Whey') ? 'Prise de masse sèche' : p.name.includes('Pre') ? 'Énergie explosive' : 'Récupération musculaire');
-    p.valeurEnergetiqueKcal = p.valeurEnergetiqueKcal || 380;
+    p.poidsKg = p.poidsKg || (p.name.includes('2x10kg') ? 20 : p.name.includes('50kg') ? 50 : p.name.includes('2.2') ? 2.2 : 1.0);
+    p.garantieMois = p.garantieMois || (p.price > 500 ? 36 : p.price > 150 ? 24 : 12);
+    p.chargeMaxKg = p.chargeMaxKg || (p.name.includes('Rack') ? 600 : p.name.includes('Banc') ? 450 : undefined);
+    p.matiere = p.matiere || (p.name.includes('Haltère') ? 'Caoutchouc & Fonte' : p.name.includes('Rack') ? 'Acier Carbone 75x75mm' : undefined);
+    p.goutSaveur = p.goutSaveur || (p.name.includes('Whey') ? 'Chocolat Belge' : p.name.includes('Créatine') ? 'Neutre' : undefined);
+    p.objectifSportif = p.objectifSportif || (p.name.includes('Tapis') ? 'Endurance Cardio & Brûle-graisses' : 'Force & Hypertrophie Musculaire');
   } else if (filialeKey === 'cosmetic') {
     p.teinte = p.teinte || (p.category?.includes('Lèvres') ? 'Rouge Carmin 04' : p.category?.includes('Teint') ? 'Beige Doré 02' : 'Universel');
     p.volumeMl = p.volumeMl || (p.category?.includes('Parfum') ? 100 : p.category?.includes('Soin') ? 50 : 30);

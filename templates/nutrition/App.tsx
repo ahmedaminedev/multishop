@@ -461,7 +461,7 @@ const AppContent: React.FC = () => {
         }
 
         return (
-            <div className="flex flex-col min-h-screen w-full overflow-x-clip transition-colors duration-300 bg-gray-100 dark:bg-gray-950 text-gray-800 dark:text-gray-100 font-sans">
+            <div className="flex flex-col min-h-screen w-full overflow-x-clip transition-colors duration-300 bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 font-sans">
                 <Header 
                     user={user}
                     onNavigateToLogin={navigateToLogin} 
@@ -479,14 +479,13 @@ const AppContent: React.FC = () => {
                 />
                 <NavBar 
                     onNavigateHome={navigateToHome}
+                    onNavigateToCategory={navigateToCategory}
                     onNavigateToPacks={navigateToPacks}
                     onNavigateToPromotions={navigateToPromotions}
                     onNavigateToBlog={navigateToBlog}
                     onNavigateToNews={() => {}}
                     onNavigateToContact={navigateToContact}
                 />
-                
-                <CategoryBar categories={categories} onCategoryClick={navigateToCategory} />
                 
                 <main className="flex-grow">
                     <Suspense fallback={<PageLoader />}>

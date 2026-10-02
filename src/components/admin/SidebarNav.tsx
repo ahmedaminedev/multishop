@@ -52,7 +52,7 @@ interface SidebarNavProps {
 const SHOP_CONFIGS: Record<string, { name: string; icon: string; color: string; bg: string }> = {
   all: { name: 'Toutes les boutiques', icon: '🌐', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
   para: { name: 'PharmaShop', icon: '🌿', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  nutrition: { name: 'IronFuel Nutrition', icon: '⚡', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
+  nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   cosmetic: { name: 'Cosmetics Shop', icon: '💄', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
   electro: { name: 'Electro Shop', icon: '🔌', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' }
 };
