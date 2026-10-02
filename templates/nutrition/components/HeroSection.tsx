@@ -1,21 +1,32 @@
 import React from 'react';
 import { Truck, ShieldCheck, Headphones, ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
+import type { FitnessHomeHeroConfig } from '../types';
 
 interface HeroSectionProps {
     onExplore?: () => void;
+    config?: FitnessHomeHeroConfig;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, config }) => {
+    const badge = config?.badge || 'ÉQUIPEMENT DE MUSCULATION';
+    const title = config?.title || 'ATTEINS TES';
+    const titleHighlight = config?.titleHighlight || 'OBJECTIFS';
+    const description = config?.description || 'Matériel de sport de qualité pour un entraînement plus efficace et plus motivant.';
+    const buttonText = config?.buttonText || 'Découvrir la collection';
+    const bgImage = config?.bgImage || '/src/assets/images/hero_fitness_athlete_1790951585544.jpg';
+    const calligraphyTop = config?.calligraphyTop || 'Plus fort';
+    const calligraphyBottom = config?.calligraphyBottom || 'chaque jour';
+
     return (
-        <section className="relative w-full bg-[#0a0d14] text-white overflow-hidden">
+        <section className="relative w-full bg-[#0a0d14] text-white overflow-hidden font-sans">
             {/* Background Image Container with athlete */}
             <div className="relative w-full min-h-[460px] sm:min-h-[520px] lg:min-h-[580px] flex items-center">
                 
                 {/* Background image with dramatic lighting */}
                 <div 
-                    className="absolute inset-0 bg-cover bg-right md:bg-center"
+                    className="absolute inset-0 bg-cover bg-right md:bg-center transition-all duration-500"
                     style={{ 
-                        backgroundImage: `url('/src/assets/images/hero_fitness_athlete_1790951585544.jpg')`
+                        backgroundImage: `url('${bgImage}')`
                     }}
                 >
                     {/* Dark gradient overlay for text readability on left */}
@@ -28,16 +39,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore }) => {
                         {/* Left Column: Headline and Call-to-Action */}
                         <div className="lg:col-span-7 space-y-4 sm:space-y-6">
                             <span className="inline-block text-[11px] sm:text-xs font-black tracking-[0.25em] uppercase text-slate-300">
-                                ÉQUIPEMENT DE MUSCULATION
+                                {badge}
                             </span>
 
                             <h1 className="text-4xl sm:text-6xl lg:text-7xl font-black uppercase tracking-tight leading-[0.9] text-white">
-                                ATTEINS TES<br />
-                                <span className="text-[#84cc16]">OBJECTIFS</span>
+                                {title}<br />
+                                <span className="text-[#84cc16]">{titleHighlight}</span>
                             </h1>
 
                             <p className="text-sm sm:text-base text-slate-300 max-w-lg font-medium leading-relaxed">
-                                Matériel de sport de qualité pour un entraînement plus efficace et plus motivant.
+                                {description}
                             </p>
 
                             <div className="pt-2">
@@ -46,7 +57,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore }) => {
                                     onClick={() => onExplore?.()}
                                     className="px-6 sm:px-8 py-3.5 bg-[#84cc16] hover:bg-[#72b012] text-black font-extrabold text-sm rounded-lg inline-flex items-center gap-2 shadow-lg shadow-[#84cc16]/20 transition-all hover:translate-x-1 cursor-pointer"
                                 >
-                                    <span>Découvrir la collection</span>
+                                    <span>{buttonText}</span>
                                     <ArrowRight className="w-4 h-4 stroke-[3]" />
                                 </button>
                             </div>
@@ -84,10 +95,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore }) => {
                             {/* Script quote "Plus fort chaque jour" matching screenshot */}
                             <div className="relative text-right mr-4 select-none">
                                 <span className="font-serif italic text-3xl xl:text-4xl text-white/90 drop-shadow-md">
-                                    Plus fort
+                                    {calligraphyTop}
                                 </span>
                                 <div className="font-serif italic text-3xl xl:text-4xl text-white/90 drop-shadow-md">
-                                    chaque jour
+                                    {calligraphyBottom}
                                 </div>
                                 <div className="w-24 h-1 bg-[#84cc16] rounded-full ml-auto mt-2"></div>
                             </div>

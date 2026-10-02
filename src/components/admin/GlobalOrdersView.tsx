@@ -44,7 +44,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
   const shopTabs = [
     { id: 'all', label: 'Toutes', icon: '🌐' },
     { id: 'para', label: 'PharmaShop', icon: '🌿' },
-    { id: 'nutrition', label: 'IronFuel', icon: '⚡' },
+    { id: 'nutrition', label: 'Fitness Shop', icon: '⚡' },
     { id: 'cosmetic', label: 'Cosmetics', icon: '💄' },
     { id: 'electro', label: 'Electro', icon: '🔌' },
   ];
@@ -58,7 +58,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
             GESTION DES COMMANDES <span className="text-blue-600">CENTRALISÉES</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Visualisez et traitez les commandes clients de PharmaShop, IronFuel, Cosmetics et Electro Shop
+            Visualisez et traitez les commandes clients de PharmaShop, Fitness Shop, Cosmetics et Electro Shop
           </p>
         </div>
 
@@ -107,7 +107,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
         >
           <option value="all">Toutes les Boutiques</option>
           <option value="para">🌿 PharmaShop</option>
-          <option value="nutrition">⚡ IronFuel Nutrition</option>
+          <option value="nutrition">⚡ Fitness Shop</option>
           <option value="cosmetic">💄 Cosmetics Shop</option>
           <option value="electro">🔌 Electro Shop</option>
         </select>
@@ -156,7 +156,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
                     <td className="py-3 px-4">
                       <span className="font-semibold text-slate-700">
                         {order.filialeKey === 'para' && '🌿 PharmaShop'}
-                        {order.filialeKey === 'nutrition' && '⚡ IronFuel'}
+                        {order.filialeKey === 'nutrition' && '⚡ Fitness Shop'}
                         {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
                         {order.filialeKey === 'electro' && '🔌 Electro Shop'}
                       </span>

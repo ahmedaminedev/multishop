@@ -1,5 +1,5 @@
 // Unified Multi-Store Cart Infrastructure
-// Synchronizes cart selections across all 4 sub-shops (Pharma Shop, IronFuel Nutrition, Cosmetics Shop, Electro Shop)
+// Synchronizes cart selections across all 4 sub-shops (Pharma Shop, Fitness Shop, Cosmetics Shop, Electro Shop)
 
 export interface ShopMeta {
   id: string;
@@ -25,10 +25,10 @@ export const SHOPS_META: Record<string, ShopMeta> = {
   },
   nutrition: {
     id: 'nutrition',
-    name: 'IronFuel Nutrition',
+    name: 'Fitness Shop',
     icon: '⚡',
-    color: '#f97316',
-    badge: 'Pro Performance',
+    color: '#84cc16',
+    badge: 'Fitness & Pro',
     borderColor: 'border-amber-200 dark:border-amber-800/60',
     bgColor: 'bg-amber-50/80 dark:bg-amber-950/40',
     textColor: 'text-amber-800 dark:text-amber-300'

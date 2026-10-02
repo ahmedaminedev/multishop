@@ -118,7 +118,7 @@ const PackCard: React.FC<{ pack: Pack; allProducts: Product[]; onNavigateToPackD
 
 export const PacksPage: React.FC<PacksPageProps> = ({ onNavigateHome, packs, allProducts, onNavigateToPackDetail }) => {
     useEffect(() => {
-        document.title = `PROTOCOL STACKS - Coffrets Elite IronFuel`;
+        document.title = `Packs & Équipements Complets - Fitness Shop`;
         window.scrollTo(0,0);
     }, []);
 

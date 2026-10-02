@@ -574,15 +574,15 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </SubAdminErrorBoundary>
                 )}
 
-                {/* 2. IronFuel Nutrition Sub-Pages */}
+                {/* 2. Fitness Shop Sub-Pages */}
                 {targetBoutiqueKey === 'nutrition' && (
-                  <SubAdminErrorBoundary filialeName="IronFuel Nutrition" onBackToHq={() => setCurrentMenu('dashboard')}>
+                  <SubAdminErrorBoundary filialeName="Fitness Shop" onBackToHq={() => setCurrentMenu('dashboard')}>
                     <NutritionThemeProvider>
                       <NutritionToastProvider>
                         <NutritionCartProvider>
                           <NutritionFavoritesProvider>
                             <NutritionCompareProvider>
-                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module IronFuel...</div>}>
+                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module Fitness Shop...</div>}>
                                 <NutritionAdminPage
                                   hideSidebar={true}
                                   forcedPage={currentMenu as any}

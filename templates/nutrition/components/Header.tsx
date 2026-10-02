@@ -5,7 +5,7 @@ import { ThemeToggle } from './ThemeToggle';
 import { useCart } from './CartContext';
 import { useFavorites } from './FavoritesContext';
 import { useCompare } from './CompareContext';
-import type { Product, Pack, Category, SearchResult, SearchResultItem, User as UserType } from '../types';
+import type { Product, Pack, Category, SearchResult, SearchResultItem, User as UserType, Advertisements, LogoConfig } from '../types';
 import { SearchResultsDropdown } from './SearchResultsDropdown';
 
 interface HeaderProps {
@@ -22,6 +22,8 @@ interface HeaderProps {
     onNavigateToCategory: (categoryName: string) => void;
     onNavigateToProductDetail: (productId: number) => void;
     onNavigateToCompare: () => void;
+    advertisements?: Advertisements;
+    logoConfig?: LogoConfig;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -36,7 +38,9 @@ export const Header: React.FC<HeaderProps> = ({
     allCategories,
     onNavigateToCategory,
     onNavigateToProductDetail,
-    onNavigateToCompare
+    onNavigateToCompare,
+    advertisements,
+    logoConfig
 }) => {
     const { itemCount, openCart, cartTotal } = useCart();
     const { favoritesCount } = useFavorites();
@@ -45,6 +49,8 @@ export const Header: React.FC<HeaderProps> = ({
     const [searchQuery, setSearchQuery] = useState('');
     const [results, setResults] = useState<SearchResult | null>(null);
     const searchRef = useRef<HTMLDivElement>(null);
+
+    const activeLogoConfig = logoConfig || advertisements?.logoConfig;
 
     useEffect(() => {
         const handleClickOutside = (event: MouseEvent) => {
@@ -110,9 +116,9 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center justify-between gap-4 lg:gap-8">
                     
                     {/* Logo */}
-                    <div className="shrink-0">
+                    <div className="shrink-0 flex items-center">
                         <a href="#/" className="block">
-                            <Logo />
+                            <Logo logoConfig={activeLogoConfig} variant="navbar" />
                         </a>
                     </div>
 

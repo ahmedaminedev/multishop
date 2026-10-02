@@ -313,6 +313,46 @@ export interface FeaturedGridConfig {
     buttonLink: string;
 }
 
+export interface LogoConfig {
+  logoUrl?: string;
+  navbarHeight?: number;
+  footerHeight?: number;
+  textPrimary?: string;
+  textSecondary?: string;
+  tagline?: string;
+}
+
+export interface FitnessHomeHeroConfig {
+  badge?: string;
+  title?: string;
+  titleHighlight?: string;
+  description?: string;
+  buttonText?: string;
+  buttonCategory?: string;
+  bgImage?: string;
+  calligraphyTop?: string;
+  calligraphyBottom?: string;
+}
+
+export interface FitnessHomePromoBannerConfig {
+  tag?: string;
+  title?: string;
+  discountHighlight?: string;
+  description?: string;
+  buttonText?: string;
+  categoryTarget?: string;
+  bgImage?: string;
+}
+
+export interface FitnessHomeConfig {
+  hero?: FitnessHomeHeroConfig;
+  promoBanner?: FitnessHomePromoBannerConfig;
+  bestsellersTitle?: string;
+  bestsellersKicker?: string;
+  secondaryTitle?: string;
+  secondaryKicker?: string;
+}
+
 export interface Advertisements {
   heroSlides: HeroSlide[];
   trustBadges?: TrustBadgeConfig[]; 
@@ -324,7 +364,9 @@ export interface Advertisements {
   newArrivals?: ProductCarouselConfig; 
   summerSelection?: ProductCarouselConfig;
   virtualTryOn?: VirtualTryOnConfig; 
-  featuredGrid?: FeaturedGridConfig; 
+  featuredGrid?: FeaturedGridConfig;
+  logoConfig?: LogoConfig;
+  fitnessHome?: FitnessHomeConfig;
 }
 
 export interface PromoSectionConfig {

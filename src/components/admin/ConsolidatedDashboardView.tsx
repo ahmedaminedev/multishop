@@ -327,7 +327,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
                     <td className="py-2.5">
                       <span className="font-medium text-slate-700 text-[11px]">
                         {order.filialeKey === 'para' && '🌿 PharmaShop'}
-                        {order.filialeKey === 'nutrition' && '⚡ IronFuel'}
+                        {order.filialeKey === 'nutrition' && '⚡ Fitness Shop'}
                         {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
                         {order.filialeKey === 'electro' && '🔌 Electro Shop'}
                       </span>

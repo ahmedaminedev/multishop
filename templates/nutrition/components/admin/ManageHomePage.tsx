@@ -1,195 +1,441 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import type { Advertisements, Product, Pack, Category } from '../../types';
+import type { Advertisements, Product, Pack, Category, LogoConfig, FitnessHomeConfig } from '../../types';
 import { useToast } from '../ToastContext';
-import { SelectableWrapper } from './SelectableWrapper';
 import { EditorPanel } from './EditorPanel';
-import { SparklesIcon, ArrowsPointingOutIcon, XMarkIcon } from '../IconComponents';
 import { api } from '../../utils/api';
-
-// Front Office Components
+import { Logo } from '../Logo';
 import { HeroSection } from '../HeroSection';
+import { CategoryBar } from '../CategoryBar';
+import { ProductCard } from '../ProductCard';
 import { TrustBadges } from '../TrustBadges';
-import { ProductCarousel } from '../ProductCarousel';
-import { AudioPromoBanner } from '../AudioPromoBanner';
-import { MediumPromoBanner } from '../MediumPromoBanner';
-import { ShoppableVideoCarousel } from '../ShoppableVideoCarousel';
-import { EditorialMasonry } from '../EditorialMasonry';
-import { ProductGridSection } from '../ProductGridSection';
-import { VirtualTryOnSection } from '../VirtualTryOnSection';
+import { Footer } from '../Footer';
+import { Sparkles, Sliders, Layout, ArrowRight, Eye, CheckCircle2, RotateCcw } from 'lucide-react';
 
 interface ManageHomePageProps {
     initialAds: Advertisements;
     onSave: (newAds: Advertisements) => void;
     allProducts: Product[];
-    allPacks: Pack[];
-    allCategories: Category[];
+    allPacks?: Pack[];
+    allCategories?: Category[];
 }
 
-export const ManageHomePage: React.FC<ManageHomePageProps> = ({ initialAds, onSave, allProducts, allPacks, allCategories }) => {
-    const [adsConfig, setAdsConfig] = useState<Advertisements>(initialAds);
-    const [activeSection, setActiveSection] = useState<string>('hero');
-    const [isDirty, setIsDirty] = useState(false);
-    const [isFullScreen, setIsFullScreen] = useState(false);
+export const ManageHomePage: React.FC<ManageHomePageProps> = ({ 
+    initialAds, 
+    onSave, 
+    allProducts = []
+}) => {
     const { addToast } = useToast();
 
+    // Default configuration for Fitness Shop if empty
+    const defaultLogoConfig: LogoConfig = {
+        logoUrl: '',
+        navbarHeight: 42,
+        footerHeight: 48,
+        textPrimary: 'FITNESS',
+        textSecondary: 'SHOP',
+        tagline: 'ELITE FITNESS EQUIPMENT'
+    };
+
+    const defaultFitnessHome: FitnessHomeConfig = {
+        hero: {
+            badge: 'ÉQUIPEMENT DE MUSCULATION',
+            title: 'ATTEINS TES',
+            titleHighlight: 'OBJECTIFS',
+            description: 'Matériel de sport de qualité pour un entraînement plus efficace et plus motivant.',
+            buttonText: 'Découvrir la collection',
+            buttonCategory: 'Musculation',
+            bgImage: '/src/assets/images/hero_fitness_athlete_1790951585544.jpg',
+            calligraphyTop: 'Plus fort',
+            calligraphyBottom: 'chaque jour'
+        },
+        promoBanner: {
+            tag: 'PROMOTION',
+            title: "JUSQU'À",
+            discountHighlight: '-20%',
+            description: "SUR UNE SÉLECTION D'HALTÈRES ET DISQUES",
+            buttonText: 'Voir la sélection',
+            categoryTarget: 'Disques & Barres',
+            bgImage: '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg'
+        },
+        bestsellersTitle: 'Nos Bestsellers',
+        bestsellersKicker: 'LES PLUS VENDUS',
+        secondaryTitle: 'Compléments, Accessoires & Nutrition',
+        secondaryKicker: 'CATALOGUE COMPLET & NUTRITION'
+    };
+
+    const [adsConfig, setAdsConfig] = useState<Advertisements>(() => {
+        return {
+            ...initialAds,
+            logoConfig: { ...defaultLogoConfig, ...(initialAds?.logoConfig || {}) },
+            fitnessHome: { 
+                ...defaultFitnessHome, 
+                ...(initialAds?.fitnessHome || {}),
+                hero: { ...defaultFitnessHome.hero, ...(initialAds?.fitnessHome?.hero || {}) },
+                promoBanner: { ...defaultFitnessHome.promoBanner, ...(initialAds?.fitnessHome?.promoBanner || {}) }
+            }
+        };
+    });
+
+    const [activeSection, setActiveSection] = useState<'logo' | 'hero' | 'promoBanner' | 'bestsellers'>('logo');
+    const [isDirty, setIsDirty] = useState(false);
+    const [isSaving, setIsSaving] = useState(false);
+
     useEffect(() => {
-        if (!initialAds.trustBadges || initialAds.trustBadges.length === 0) {
-            const defaultBadges = [
-                { id: 1, title: 'Livraison Rapide', subtitle: 'Sur toute la Tunisie' },
-                { id: 2, title: 'Paiement Sécurisé', subtitle: '100% sécurisé' },
-                { id: 3, title: 'Service Client', subtitle: 'A votre écoute 7j/7' },
-                { id: 4, title: 'Garantie', subtitle: 'Produits authentiques' }
-            ];
-            setAdsConfig(prev => ({ ...prev, trustBadges: defaultBadges }));
-        } else {
-            setAdsConfig(initialAds);
+        if (initialAds && Object.keys(initialAds).length > 0) {
+            setAdsConfig(prev => ({
+                ...prev,
+                ...initialAds,
+                logoConfig: { ...defaultLogoConfig, ...(initialAds.logoConfig || prev.logoConfig || {}) },
+                fitnessHome: {
+                    ...defaultFitnessHome,
+                    ...(initialAds.fitnessHome || prev.fitnessHome || {}),
+                    hero: { ...defaultFitnessHome.hero, ...(initialAds.fitnessHome?.hero || prev.fitnessHome?.hero || {}) },
+                    promoBanner: { ...defaultFitnessHome.promoBanner, ...(initialAds.fitnessHome?.promoBanner || prev.fitnessHome?.promoBanner || {}) }
+                }
+            }));
         }
     }, [initialAds]);
 
-    const handleUpdateConfig = (sectionKey: string, data: any) => {
-        const newConfig = { ...adsConfig };
-        
-        if (sectionKey === 'hero') newConfig.heroSlides = data;
-        else if (sectionKey === 'trustBadges') newConfig.trustBadges = data;
-        else if (sectionKey === 'audioPromo') newConfig.audioPromo = data;
-        else if (sectionKey === 'promoBanner1') newConfig.promoBanners[0] = data;
-        else if (sectionKey === 'promoBanner2') newConfig.promoBanners[1] = data;
-        else if (sectionKey === 'shoppableVideos') newConfig.shoppableVideos = data;
-        else if (sectionKey === 'editorialCollage') newConfig.editorialCollage = data;
-        else if (sectionKey === 'newArrivals') newConfig.newArrivals = data;
-        else if (sectionKey === 'summerSelection') newConfig.summerSelection = data;
-        else if (sectionKey === 'virtualTryOn') newConfig.virtualTryOn = data;
-        else if (sectionKey === 'featuredGrid') newConfig.featuredGrid = data;
-
-        setAdsConfig(newConfig);
+    const handleUpdateAdsConfig = (newAds: Advertisements) => {
+        setAdsConfig(newAds);
         setIsDirty(true);
     };
 
     const handleSaveClick = async () => {
+        setIsSaving(true);
         try {
+            // Save directly to backend (/api/advertisements)
             await api.updateAdvertisements(adsConfig);
+
+            // Save in localStorage for immediate sync across tabs/storefront
+            if (adsConfig.logoConfig) {
+                localStorage.setItem('multishop_fitness_logo', JSON.stringify(adsConfig.logoConfig));
+            }
+
+            // Propagate up to parent React state
             onSave(adsConfig);
             setIsDirty(false);
-            addToast("Déploiement Front-Office réussi !", "success");
+
+            // Dispatch event for any active views
+            window.dispatchEvent(new CustomEvent('fitness-ads-updated', { detail: adsConfig }));
+
+            addToast("Logo et modifications de l'accueil enregistrés avec succès dans le backend !", "success");
         } catch (error) {
-            console.error(error);
-            addToast("Erreur lors de la sauvegarde.", "error");
+            console.error("Save error:", error);
+            addToast("Erreur lors de la sauvegarde sur le serveur.", "error");
+        } finally {
+            setIsSaving(false);
         }
     };
 
-    const getCurrentSectionData = () => {
-        if (activeSection === 'hero') return adsConfig.heroSlides;
-        if (activeSection === 'trustBadges') return adsConfig.trustBadges || [];
-        if (activeSection === 'audioPromo') return adsConfig.audioPromo;
-        if (activeSection === 'promoBanner1') return adsConfig.promoBanners[0];
-        if (activeSection === 'promoBanner2') return adsConfig.promoBanners[1];
-        if (activeSection === 'shoppableVideos') return adsConfig.shoppableVideos;
-        if (activeSection === 'editorialCollage') return adsConfig.editorialCollage;
-        if (activeSection === 'newArrivals') return adsConfig.newArrivals || { title: "Nouvelles Arrivées", productIds: [] };
-        if (activeSection === 'summerSelection') return adsConfig.summerSelection || { title: "Sélection d'été", productIds: [] };
-        if (activeSection === 'virtualTryOn') return adsConfig.virtualTryOn || { title: "Virtual Try-On", description: "", buttonText: "Découvrir" };
-        if (activeSection === 'featuredGrid') return adsConfig.featuredGrid || { title: "Nos Trésors", productIds: [], buttonText: "Voir tout", buttonLink: "#" };
-        return null;
-    };
-
-    const newArrivalProducts = useMemo(() => {
-        if (adsConfig.newArrivals && adsConfig.newArrivals.productIds.length > 0) {
-            return allProducts.filter(p => adsConfig.newArrivals!.productIds.includes(p.id));
+    // Bestseller mock items for preview
+    const bestsellersPreview = useMemo(() => {
+        if (allProducts && allProducts.length >= 4) {
+            return allProducts.slice(0, 4);
         }
-        return allProducts.slice(0, 8);
-    }, [allProducts, adsConfig.newArrivals]);
+        return [
+            {
+                id: 101,
+                name: 'Haltères Hexagonaux 2x10kg',
+                price: 169.000,
+                oldPrice: 199.000,
+                discount: 15,
+                imageUrl: '/src/assets/images/category_halteres_poids_1790951598408.jpg',
+                category: 'Haltères & Poids',
+                quantity: 40
+            },
+            {
+                id: 102,
+                name: 'Banc Ajustable Pro',
+                price: 349.000,
+                oldPrice: 389.000,
+                discount: 10,
+                imageUrl: '/src/assets/images/category_banc_musculation_1790951610418.jpg',
+                category: 'Bancs de Musculation',
+                quantity: 25
+            },
+            {
+                id: 103,
+                name: 'Rack de Musculation Heavy Duty',
+                price: 1249.000,
+                oldPrice: 1429.000,
+                discount: 12,
+                imageUrl: '/src/assets/images/category_rack_station_1790951619589.jpg',
+                category: 'Racks & Stations',
+                quantity: 15
+            },
+            {
+                id: 104,
+                name: 'Tapis de Course 2.5HP Pro',
+                price: 1299.000,
+                oldPrice: 1399.000,
+                discount: 8,
+                imageUrl: '/src/assets/images/category_tapis_cardio_1790951629862.jpg',
+                category: 'Cardio',
+                quantity: 10
+            }
+        ];
+    }, [allProducts]);
 
-    const summerSelectionProducts = useMemo(() => {
-        if (adsConfig.summerSelection && adsConfig.summerSelection.productIds.length > 0) {
-            return allProducts.filter(p => adsConfig.summerSelection!.productIds.includes(p.id));
-        }
-        return allProducts.slice(8, 16);
-    }, [allProducts, adsConfig.summerSelection]);
-
-    const renderSection = (section: string, label: string, content: React.ReactNode, interactive: boolean) => {
-        if (interactive) {
-            return (
-                <SelectableWrapper
-                    isActive={activeSection === section}
-                    onClick={() => setActiveSection(section)}
-                    label={label}
-                >
-                    {content}
-                </SelectableWrapper>
-            );
-        }
-        return <div>{content}</div>;
-    };
-
-    const renderPreviewContent = (interactive: boolean) => {
-        return (
-            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8 lg:py-12 bg-white dark:bg-[#050505] min-h-screen transition-colors duration-300">
-                {renderSection('hero', 'Carrousel Principal', <HeroSection slides={adsConfig.heroSlides} />, interactive)}
-                <div className="my-8">
-                    {renderSection('trustBadges', 'Badges de Confiance', <TrustBadges badges={adsConfig.trustBadges} />, interactive)}
-                </div>
-                <div className="my-12">
-                    {renderSection('newArrivals', 'Carrousel Nouveautés', (
-                        <ProductCarousel 
-                            title={adsConfig.newArrivals?.title || "Nouvelles Arrivées"} 
-                            products={newArrivalProducts} 
-                            onPreview={() => {}} 
-                            onNavigateToProductDetail={() => {}} 
-                        />
-                    ), interactive)}
-                </div>
-                {renderSection('audioPromo', 'Bannière Audio', <AudioPromoBanner ads={adsConfig.audioPromo} />, interactive)}
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 my-12">
-                    {renderSection('promoBanner1', 'Bannière Gauche', <MediumPromoBanner banner={adsConfig.promoBanners[0]} isPreview allProducts={allProducts} allPacks={allPacks} onPreview={() => {}} />, interactive)}
-                    {renderSection('promoBanner2', 'Bannière Droite', <MediumPromoBanner banner={adsConfig.promoBanners[1]} isPreview allProducts={allProducts} allPacks={allPacks} onPreview={() => {}} />, interactive)}
-                </div>
-                {renderSection('shoppableVideos', 'Vidéos Shopping', <ShoppableVideoCarousel videos={adsConfig.shoppableVideos || []} isPreview />, interactive)}
-                {renderSection('editorialCollage', 'Collage Éditorial', <EditorialMasonry items={adsConfig.editorialCollage || []} isPreview />, interactive)}
-                <div className="my-12">
-                    {renderSection('summerSelection', 'Carrousel Été', (
-                        <ProductCarousel title={adsConfig.summerSelection?.title || "Sélection d'été"} products={summerSelectionProducts} onPreview={() => {}} onNavigateToProductDetail={() => {}} />
-                    ), interactive)}
-                </div>
-                <div className="my-16">
-                    {renderSection('virtualTryOn', 'Bloc Interactif', <VirtualTryOnSection config={adsConfig.virtualTryOn} />, interactive)}
-                </div>
-                {renderSection('featuredGrid', 'Grille Produits', (
-                    <ProductGridSection allProducts={allProducts} onPreview={() => {}} onNavigateToProductDetail={() => {}} config={adsConfig.featuredGrid}/>
-                ), interactive)}
-            </div>
-        );
-    };
+    const fitnessHome = adsConfig.fitnessHome || defaultFitnessHome;
+    const heroConfig = fitnessHome.hero || defaultFitnessHome.hero;
+    const promoConfig = fitnessHome.promoBanner || defaultFitnessHome.promoBanner;
+    const currentLogoConfig = adsConfig.logoConfig || defaultLogoConfig;
 
     return (
-        <div className="flex flex-col h-full w-full bg-gray-100 dark:bg-[#050505] relative text-gray-900 dark:text-white transition-colors duration-300">
-            <div className="bg-white dark:bg-[#050505] border-b border-gray-200 dark:border-gray-800 p-4 flex justify-between items-center shadow-md z-20 flex-shrink-0 transition-colors">
-                <div>
-                    <h1 className="text-xl font-black text-gray-900 dark:text-white italic uppercase tracking-wider flex items-center gap-2">
-                        <SparklesIcon className="w-5 h-5 text-black dark:text-brand-neon" />
-                        Éditeur Accueil
-                    </h1>
-                </div>
+        <div className="flex flex-col h-full w-full bg-[#f8fafc] dark:bg-[#070a12] text-slate-900 dark:text-slate-100 font-sans">
+            
+            {/* Top Toolbar */}
+            <div className="bg-white dark:bg-[#0c1422] border-b border-slate-200 dark:border-slate-800 px-6 py-3.5 flex flex-wrap items-center justify-between gap-4 shrink-0 shadow-2xs z-20">
                 <div className="flex items-center gap-3">
-                    <button onClick={() => setIsFullScreen(true)} className="p-2 text-gray-500 dark:text-gray-400 hover:text-black dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800 rounded-sm transition-colors border border-gray-200 dark:border-gray-700" title="Aperçu Plein Écran"><ArrowsPointingOutIcon className="w-5 h-5" /></button>
-                    <button onClick={handleSaveClick} disabled={!isDirty} className={`px-6 py-2 font-bold text-xs uppercase tracking-widest transition-all shadow-md flex items-center gap-2 ${isDirty ? 'bg-black dark:bg-brand-neon text-white dark:text-black hover:bg-gray-800 dark:hover:bg-white skew-x-[-12deg]' : 'bg-gray-200 dark:bg-gray-800 text-gray-500 cursor-not-allowed skew-x-[-12deg]'}`}><span className="skew-x-[12deg]">{isDirty ? 'DÉPLOYER' : 'SAUVEGARDÉ'}</span></button>
-                </div>
-            </div>
-            <div className="flex flex-1 overflow-hidden">
-                <div className="flex-1 overflow-y-auto custom-scrollbar bg-gray-50 dark:bg-black">
-                    <div className="bg-white dark:bg-[#050505] min-h-full pointer-events-auto">
-                        {renderPreviewContent(true)}
+                    <div className="w-9 h-9 rounded-xl bg-[#84cc16] text-black flex items-center justify-center font-bold">
+                        <Sparkles className="w-5 h-5 stroke-[2.5]" />
+                    </div>
+                    <div>
+                        <h1 className="text-base font-black uppercase text-slate-900 dark:text-white leading-none">
+                            Éditeur Accueil & Logo Fitness Shop
+                        </h1>
+                        <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 mt-0.5">
+                            Édition en direct du sous-site, contrôle de taille des logos et sauvegarde backend
+                        </p>
                     </div>
                 </div>
-                <div className="w-[380px] bg-white dark:bg-[#111] border-l border-gray-200 dark:border-gray-800 shadow-xl z-10 flex flex-col flex-shrink-0 transition-colors">
-                    <EditorPanel section={activeSection} data={getCurrentSectionData()} onChange={(data) => handleUpdateConfig(activeSection, data)} allProducts={allProducts} allCategories={allCategories} allPacks={allPacks} />
+
+                {/* Section selection quick tabs */}
+                <div className="flex items-center bg-slate-100 dark:bg-slate-900/90 p-1 rounded-xl border border-slate-200 dark:border-slate-800">
+                    <button
+                        type="button"
+                        onClick={() => setActiveSection('logo')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            activeSection === 'logo'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span className="w-2 h-2 rounded-full bg-[#84cc16]"></span>
+                        <span>Logo & Tailles</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setActiveSection('hero')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            activeSection === 'hero'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span>Bannière Hero</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setActiveSection('promoBanner')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            activeSection === 'promoBanner'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span>Bannière Promo</span>
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => setActiveSection('bestsellers')}
+                        className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                            activeSection === 'bestsellers'
+                                ? 'bg-white dark:bg-slate-800 text-slate-900 dark:text-white shadow-xs'
+                                : 'text-slate-500 hover:text-slate-900 dark:hover:text-white'
+                        }`}
+                    >
+                        <span>Bestsellers</span>
+                    </button>
+                </div>
+
+                {/* Save button */}
+                <div className="flex items-center gap-3">
+                    <button
+                        type="button"
+                        onClick={handleSaveClick}
+                        disabled={isSaving}
+                        className={`px-5 py-2.5 rounded-xl font-extrabold text-xs uppercase tracking-wider flex items-center gap-2 transition-all cursor-pointer ${
+                            isDirty 
+                                ? 'bg-[#84cc16] hover:bg-[#72b012] text-black shadow-md shadow-[#84cc16]/25 animate-pulse'
+                                : 'bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-300'
+                        }`}
+                    >
+                        <CheckCircle2 className="w-4 h-4" />
+                        <span>{isSaving ? 'Enregistrement...' : isDirty ? 'Enregistrer & Déployer' : 'Modifications enregistrées'}</span>
+                    </button>
                 </div>
             </div>
-            {isFullScreen && (
-                <div className="fixed inset-0 z-[9999] bg-white dark:bg-black overflow-y-auto animate-fadeIn">
-                    <div className="fixed top-6 right-6 z-[10000]"><button onClick={() => setIsFullScreen(false)} className="flex items-center gap-2 bg-black dark:bg-brand-neon text-white dark:text-black px-5 py-3 rounded-full shadow-2xl font-bold uppercase tracking-wider hover:bg-gray-800 dark:hover:bg-white transition-colors"><XMarkIcon className="w-5 h-5" /><span>Fermer</span></button></div>
-                    <div className="w-full">{renderPreviewContent(false)}</div>
+
+            {/* Split View: Live Preview on left, Controls on right */}
+            <div className="flex flex-1 overflow-hidden">
+                
+                {/* Left: Scrollable Home Page Live Preview */}
+                <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 bg-slate-200/50 dark:bg-[#05070c]">
+                    <div className="max-w-6xl mx-auto space-y-6">
+
+                        {/* Interactive Clickable Section 1: Top Navigation Bar Preview with Logo */}
+                        <div 
+                            onClick={() => setActiveSection('logo')}
+                            className={`relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border-2 transition-all cursor-pointer shadow-sm ${
+                                activeSection === 'logo'
+                                    ? 'border-[#84cc16] ring-4 ring-[#84cc16]/20'
+                                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-400'
+                            }`}
+                        >
+                            <div className="absolute top-2 right-2 z-20 px-2.5 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-sm flex items-center gap-1">
+                                <Sliders className="w-3 h-3" />
+                                <span>Cliquez pour régler le logo ({currentLogoConfig.navbarHeight || 42}px)</span>
+                            </div>
+
+                            <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                                <Logo logoConfig={currentLogoConfig} variant="navbar" />
+                                <div className="flex items-center gap-3 text-xs text-slate-400 font-semibold">
+                                    <span>Musculation</span>
+                                    <span>Cardio</span>
+                                    <span>Cross Training</span>
+                                    <span className="text-[#84cc16] font-bold">Promotions</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Interactive Clickable Section 2: Hero Section */}
+                        <div 
+                            onClick={() => setActiveSection('hero')}
+                            className={`relative rounded-3xl overflow-hidden border-2 transition-all cursor-pointer shadow-md ${
+                                activeSection === 'hero'
+                                    ? 'border-[#84cc16] ring-4 ring-[#84cc16]/20'
+                                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-400'
+                            }`}
+                        >
+                            <div className="absolute top-3 right-3 z-30 px-3 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-md flex items-center gap-1">
+                                <Layout className="w-3 h-3" />
+                                <span>Éditer Bannière Hero</span>
+                            </div>
+
+                            <HeroSection config={heroConfig} />
+                        </div>
+
+                        {/* Section 3: CategoryBar */}
+                        <div className="rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                            <CategoryBar onCategoryClick={() => {}} />
+                        </div>
+
+                        {/* Interactive Clickable Section 4: Bestsellers & Right Promo Banner */}
+                        <div 
+                            className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-6"
+                        >
+                            {/* Section header click to edit titles */}
+                            <div 
+                                onClick={() => setActiveSection('bestsellers')}
+                                className={`flex justify-between items-center p-3 rounded-2xl border-2 transition-all cursor-pointer ${
+                                    activeSection === 'bestsellers'
+                                        ? 'border-[#84cc16] bg-[#84cc16]/5'
+                                        : 'border-transparent hover:border-slate-200 dark:hover:border-slate-700'
+                                }`}
+                            >
+                                <div>
+                                    <span className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
+                                        <span className="w-4 h-1 bg-[#84cc16] rounded-full inline-block"></span>
+                                        {fitnessHome.bestsellersKicker || 'LES PLUS VENDUS'}
+                                    </span>
+                                    <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                                        {fitnessHome.bestsellersTitle || 'Nos Bestsellers'}
+                                    </h3>
+                                </div>
+                                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
+                                    Modifier les titres
+                                </span>
+                            </div>
+
+                            {/* Bestsellers Grid with Right Promo Banner */}
+                            <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
+                                {/* Left: Product cards */}
+                                <div className="xl:col-span-8 grid grid-cols-2 sm:grid-cols-4 gap-4">
+                                    {bestsellersPreview.map((p) => (
+                                        <ProductCard 
+                                            key={`admin-prev-${p.id}`} 
+                                            product={p as any} 
+                                            onNavigateToProductDetail={() => {}} 
+                                        />
+                                    ))}
+                                </div>
+
+                                {/* Right: Promotional Card */}
+                                <div 
+                                    onClick={() => setActiveSection('promoBanner')}
+                                    className={`xl:col-span-4 relative rounded-2xl overflow-hidden bg-black text-white min-h-[300px] flex flex-col justify-between p-6 shadow-sm border-2 transition-all cursor-pointer ${
+                                        activeSection === 'promoBanner'
+                                            ? 'border-[#84cc16] ring-4 ring-[#84cc16]/20'
+                                            : 'border-transparent hover:border-slate-400'
+                                    }`}
+                                >
+                                    <div 
+                                        className="absolute inset-0 bg-cover bg-center"
+                                        style={{ backgroundImage: `url('${promoConfig.bgImage || '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg'}')` }}
+                                    >
+                                        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/80 to-black/40"></div>
+                                    </div>
+
+                                    <div className="relative z-10">
+                                        <span className="inline-block bg-[#84cc16] text-black text-[10px] font-extrabold uppercase px-2 py-0.5 rounded-sm mb-3">
+                                            {promoConfig.tag || 'PROMOTION'}
+                                        </span>
+                                        <h3 className="text-3xl font-black uppercase leading-none tracking-tight">
+                                            {promoConfig.title || "JUSQU'À"}<br />
+                                            <span className="text-[#84cc16]">{promoConfig.discountHighlight || '-20%'}</span>
+                                        </h3>
+                                        <p className="text-xs font-bold text-slate-300 uppercase tracking-wider mt-2">
+                                            {promoConfig.description || "SUR UNE SÉLECTION D'HALTÈRES ET DISQUES"}
+                                        </p>
+                                    </div>
+
+                                    <div className="relative z-10 pt-4">
+                                        <span className="px-4 py-2 border border-white text-white text-xs font-bold rounded-lg inline-flex items-center gap-1.5">
+                                            <span>{promoConfig.buttonText || 'Voir la sélection'}</span>
+                                            <ArrowRight className="w-3.5 h-3.5" />
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* Interactive Clickable Section 5: Footer Preview with Footer Logo */}
+                        <div 
+                            onClick={() => setActiveSection('logo')}
+                            className={`relative rounded-3xl overflow-hidden border-2 transition-all cursor-pointer shadow-md ${
+                                activeSection === 'logo'
+                                    ? 'border-[#84cc16] ring-4 ring-[#84cc16]/20'
+                                    : 'border-slate-200 dark:border-slate-800 hover:border-slate-400'
+                            }`}
+                        >
+                            <div className="absolute top-4 right-4 z-30 px-3 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-md flex items-center gap-1">
+                                <Sliders className="w-3 h-3" />
+                                <span>Logo Footer ({currentLogoConfig.footerHeight || 48}px)</span>
+                            </div>
+
+                            <Footer logoConfig={currentLogoConfig} />
+                        </div>
+
+                    </div>
                 </div>
-            )}
+
+                {/* Right: Dedicated Customization Sidebar Controls */}
+                <div className="w-[360px] lg:w-[400px] bg-white dark:bg-[#0c1422] border-l border-slate-200 dark:border-slate-800 shadow-xl flex flex-col shrink-0">
+                    <EditorPanel 
+                        section={activeSection}
+                        adsConfig={adsConfig}
+                        onChangeAdsConfig={handleUpdateAdsConfig}
+                        allProducts={allProducts}
+                    />
+                </div>
+
+            </div>
+
         </div>
     );
 };

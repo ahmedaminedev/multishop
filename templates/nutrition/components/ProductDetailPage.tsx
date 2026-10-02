@@ -74,7 +74,7 @@ export const ProductDetailPage: React.FC<{
             
             <SEO 
                 title={product.name}
-                description={product.description || `Achetez ${product.name} chez IronFuel.`}
+                description={product.description || `Achetez ${product.name} chez FitnessShop.`}
                 image={product.imageUrl}
                 type="product"
             />

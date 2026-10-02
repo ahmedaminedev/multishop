@@ -18,7 +18,7 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
 
     // Persistance locale
     useEffect(() => {
-        const stored = localStorage.getItem('ironfuel_compare');
+        const stored = localStorage.getItem('fitnessshop_compare');
         if (stored) {
             try {
                 setCompareList(JSON.parse(stored));
@@ -29,7 +29,7 @@ export const CompareProvider: React.FC<{ children: React.ReactNode }> = ({ child
     }, []);
 
     useEffect(() => {
-        localStorage.setItem('ironfuel_compare', JSON.stringify(compareList));
+        localStorage.setItem('fitnessshop_compare', JSON.stringify(compareList));
     }, [compareList]);
 
     const addToCompare = useCallback((product: Product) => {

@@ -21,7 +21,7 @@ export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; 
   },
   [FilialeType.PRODUIT_MYSHOPS_NUTRITION]: {
     id: 'nutrition',
-    name: 'IronFuel Nutrition',
+    name: 'Fitness Shop',
     badgeColor: 'bg-lime-100 text-lime-900 border-lime-300 dark:bg-zinc-800 dark:text-lime-400',
     icon: '⚡'
   },
@@ -147,7 +147,7 @@ export class ProduitNutrition extends ProduitFiliale {
   valeurEnergetiqueKcal?: number;
 
   constructor(data: any) {
-    super(data, FilialeType.PRODUIT_MYSHOPS_NUTRITION, 'IronFuel Nutrition');
+    super(data, FilialeType.PRODUIT_MYSHOPS_NUTRITION, 'Fitness Shop');
     this.goutSaveur = data.goutSaveur || 'Chocolat Intense';
     this.poidsKg = data.poidsKg || 2.0;
     this.proteinesParPortion = data.proteinesParPortion || '24g / portion';

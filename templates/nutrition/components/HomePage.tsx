@@ -21,8 +21,26 @@ interface HomePageProps {
 export const HomePage: React.FC<HomePageProps> = ({ 
     onNavigate, 
     onNavigateToProductDetail,
-    products
+    products,
+    advertisements
 }) => {
+    const fitnessHome = advertisements?.fitnessHome;
+    const heroConfig = fitnessHome?.hero;
+    const promoConfig = fitnessHome?.promoBanner;
+
+    const bestsellersTitle = fitnessHome?.bestsellersTitle || 'Nos Bestsellers';
+    const bestsellersKicker = fitnessHome?.bestsellersKicker || 'LES PLUS VENDUS';
+    const secondaryTitle = fitnessHome?.secondaryTitle || 'Compléments, Accessoires & Nutrition';
+    const secondaryKicker = fitnessHome?.secondaryKicker || 'CATALOGUE COMPLET & NUTRITION';
+
+    const promoTag = promoConfig?.tag || 'PROMOTION';
+    const promoTitle = promoConfig?.title || "JUSQU'À";
+    const promoDiscount = promoConfig?.discountHighlight || '-20%';
+    const promoDesc = promoConfig?.description || "SUR UNE SÉLECTION D'HALTÈRES ET DISQUES";
+    const promoButton = promoConfig?.buttonText || 'Voir la sélection';
+    const promoCategory = promoConfig?.categoryTarget || 'Disques & Barres';
+    const promoBg = promoConfig?.bgImage || '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg';
+
     // Curated bestsellers matching the screenshot with real backend data fallback
     const bestsellers = useMemo(() => {
         // Prioritize fitness equipment items
@@ -104,7 +122,10 @@ export const HomePage: React.FC<HomePageProps> = ({
         <div className="w-full bg-[#f8fafc] dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 flex flex-col">
             
             {/* 1. Hero Section matching screenshot */}
-            <HeroSection onExplore={() => onNavigate('Musculation')} />
+            <HeroSection 
+                config={heroConfig}
+                onExplore={() => onNavigate(heroConfig?.buttonCategory || 'Musculation')} 
+            />
 
             {/* 2. Horizontal 7-Category Bar matching screenshot */}
             <CategoryBar onCategoryClick={onNavigate} />
@@ -118,11 +139,11 @@ export const HomePage: React.FC<HomePageProps> = ({
                         <div className="flex items-center gap-2 mb-1">
                             <span className="w-6 h-1 bg-[#84cc16] rounded-full inline-block"></span>
                             <span className="text-xs font-black uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                LES PLUS VENDUS
+                                {bestsellersKicker}
                             </span>
                         </div>
                         <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
-                            Nos Bestsellers
+                            {bestsellersTitle}
                         </h2>
                     </div>
 
@@ -155,9 +176,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                         
                         {/* Background photo of bumper plates */}
                         <div 
-                            className="absolute inset-0 bg-cover bg-center"
+                            className="absolute inset-0 bg-cover bg-center transition-all duration-300"
                             style={{ 
-                                backgroundImage: `url('/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg')`
+                                backgroundImage: `url('${promoBg}')`
                             }}
                         >
                             {/* Dark gradient for text legibility */}
@@ -167,26 +188,26 @@ export const HomePage: React.FC<HomePageProps> = ({
                         {/* Content */}
                         <div className="relative z-10">
                             <span className="inline-block bg-[#84cc16] text-black text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-sm tracking-wider mb-4">
-                                PROMOTION
+                                {promoTag}
                             </span>
 
                             <h3 className="text-3xl sm:text-4xl font-black uppercase leading-none tracking-tight">
-                                JUSQU'À<br />
-                                <span className="text-[#84cc16]">-20%</span>
+                                {promoTitle}<br />
+                                <span className="text-[#84cc16]">{promoDiscount}</span>
                             </h3>
 
                             <p className="text-xs sm:text-sm font-bold text-slate-300 uppercase tracking-wider mt-3 max-w-[240px]">
-                                SUR UNE SÉLECTION D'HALTÈRES ET DISQUES
+                                {promoDesc}
                             </p>
                         </div>
 
                         <div className="relative z-10 pt-6">
                             <button
                                 type="button"
-                                onClick={() => onNavigate('Disques & Barres')}
+                                onClick={() => onNavigate(promoCategory)}
                                 className="px-5 py-2.5 border border-white/80 hover:border-[#84cc16] hover:bg-[#84cc16] hover:text-black text-white text-xs font-bold rounded-lg inline-flex items-center gap-2 transition-all cursor-pointer"
                             >
-                                <span>Voir la sélection</span>
+                                <span>{promoButton}</span>
                                 <ArrowRight className="w-3.5 h-3.5" />
                             </button>
                         </div>
@@ -203,10 +224,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                     <div className="flex items-center justify-between mb-6">
                         <div>
                             <span className="text-xs font-black uppercase tracking-wider text-slate-500">
-                                CATALOGUE COMPLET & NUTRITION
+                                {secondaryKicker}
                             </span>
                             <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                                Compléments, Accessoires & Nutrition
+                                {secondaryTitle}
                             </h2>
                         </div>
                         <button

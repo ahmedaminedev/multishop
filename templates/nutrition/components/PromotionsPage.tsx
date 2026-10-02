@@ -1,12 +1,10 @@
-
 import React, { useState, useEffect, useMemo } from 'react';
-import type { Product, OffersPageConfig } from '../types';
+import type { Product } from '../types';
 import { Breadcrumb } from './Breadcrumb';
 import { ProductCard } from './ProductCard';
-import { Squares2X2Icon, Bars3Icon, ChevronDownIcon, SparklesIcon, ClockIcon, ArrowUpRightIcon } from './IconComponents';
 import { ProductListItem } from './ProductListItem';
-import { useCart } from './CartContext';
-import { api } from '../utils/api';
+import { Squares2X2Icon, Bars3Icon } from './IconComponents';
+import { Flame, Clock, Tag, ArrowRight, ShieldCheck } from 'lucide-react';
 
 interface PromotionsPageProps {
     onNavigateHome: () => void;
@@ -16,43 +14,39 @@ interface PromotionsPageProps {
     onNavigateToProductDetail: (productId: number) => void;
 }
 
-// Digital/Military Style Countdown
 const CountdownTimer: React.FC = () => {
-    const calculateTimeLeft = () => {
-        const difference = +new Date("2025-12-31") - +new Date();
-        let timeLeft: { [key: string]: number } = {};
-
-        if (difference > 0) {
-            timeLeft = {
-                DAYS: Math.floor(difference / (1000 * 60 * 60 * 24)),
-                HRS: Math.floor((difference / (1000 * 60 * 60)) % 24),
-                MIN: Math.floor((difference / 1000 / 60) % 60),
-                SEC: Math.floor((difference / 1000) % 60)
-            };
-        }
-        return timeLeft;
-    };
-
-    const [timeLeft, setTimeLeft] = useState(calculateTimeLeft());
+    // Dynamic countdown timer set for current rolling 7 days
+    const [timeLeft, setTimeLeft] = useState({
+        DAYS: 4,
+        HRS: 14,
+        MIN: 32,
+        SEC: 45
+    });
 
     useEffect(() => {
-        const timer = setTimeout(() => {
-            setTimeLeft(calculateTimeLeft());
+        const interval = setInterval(() => {
+            setTimeLeft(prev => {
+                if (prev.SEC > 0) return { ...prev, SEC: prev.SEC - 1 };
+                if (prev.MIN > 0) return { ...prev, MIN: 59, SEC: 59 };
+                if (prev.HRS > 0) return { ...prev, HRS: prev.HRS - 1, MIN: 59, SEC: 59 };
+                if (prev.DAYS > 0) return { ...prev, DAYS: prev.DAYS - 1, HRS: 23, MIN: 59, SEC: 59 };
+                return prev;
+            });
         }, 1000);
-        return () => clearTimeout(timer);
-    });
+        return () => clearInterval(interval);
+    }, []);
 
     const formatTime = (time: number) => String(time).padStart(2, '0');
 
     return (
-        <div className="flex items-center gap-2 sm:gap-6 bg-gray-900 dark:bg-brand-black/90 p-4 border border-brand-neon/20 skew-x-[-6deg] w-fit mx-auto lg:mx-0 shadow-lg">
-            {Object.keys(timeLeft).map((interval, index) => (
-                <div key={interval} className="flex flex-col items-center skew-x-[6deg]">
-                    <span className="text-3xl md:text-5xl font-black text-brand-neon font-mono tracking-tighter">
-                        {formatTime(timeLeft[interval] || 0)}
+        <div className="flex items-center gap-2 sm:gap-3 bg-[#0a0d14] border border-white/10 p-3 sm:p-4 rounded-2xl shadow-lg">
+            {Object.keys(timeLeft).map((unit) => (
+                <div key={unit} className="flex flex-col items-center px-2 sm:px-3 py-1 bg-white/5 rounded-xl border border-white/5 min-w-[50px] sm:min-w-[62px]">
+                    <span className="text-xl sm:text-2xl font-black text-[#84cc16] font-mono leading-none">
+                        {formatTime((timeLeft as any)[unit] || 0)}
                     </span>
-                    <span className="text-[9px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-widest mt-1">
-                        {interval}
+                    <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                        {unit}
                     </span>
                 </div>
             ))}
@@ -60,340 +54,283 @@ const CountdownTimer: React.FC = () => {
     );
 };
 
-// --- SECTION 1: Performance Highlight ---
-export const PerformanceSpotlight: React.FC<{ config?: any }> = ({ config }) => {
-    if (!config) return null;
+export const PromotionsPage: React.FC<PromotionsPageProps> = ({
+    onNavigateHome,
+    onNavigateToCategory,
+    onPreview,
+    products,
+    onNavigateToProductDetail
+}) => {
+    const [selectedCategory, setSelectedCategory] = useState<string>('all');
+    const [sortOrder, setSortOrder] = useState<string>('discount-desc');
+    const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+
+    useEffect(() => {
+        document.title = 'Offres & Ventes Flash - Fitness Shop';
+        window.scrollTo(0, 0);
+    }, []);
+
+    // Filter promo products
+    const promoProducts = useMemo(() => {
+        let list = products.filter(p => p.promo || p.discount || (p.oldPrice && p.oldPrice > p.price));
+        if (list.length === 0) list = products.slice(0, 8); // graceful fallback
+
+        if (selectedCategory !== 'all') {
+            list = list.filter(p => p.category?.toLowerCase().includes(selectedCategory.toLowerCase()));
+        }
+
+        list.sort((a, b) => {
+            const discA = a.discount || (a.oldPrice ? Math.round(((a.oldPrice - a.price) / a.oldPrice) * 100) : 0);
+            const discB = b.discount || (b.oldPrice ? Math.round(((b.oldPrice - b.price) / b.oldPrice) * 100) : 0);
+            if (sortOrder === 'discount-desc') return discB - discA;
+            if (sortOrder === 'price-asc') return a.price - b.price;
+            if (sortOrder === 'price-desc') return b.price - a.price;
+            return a.name.localeCompare(b.name);
+        });
+
+        return list;
+    }, [products, selectedCategory, sortOrder]);
+
+    const promoTabs = [
+        { id: 'all', label: 'Toutes les promos' },
+        { id: 'musculation', label: 'Musculation' },
+        { id: 'cardio', label: 'Cardio' },
+        { id: 'halt', label: 'Haltères & Poids' },
+        { id: 'banc', label: 'Bancs & Racks' },
+        { id: 'accessoires', label: 'Accessoires' }
+    ];
+
     return (
-        <section className="relative w-full max-w-screen-2xl mx-auto my-16 bg-white dark:bg-[#0a0a0a] border border-gray-200 dark:border-gray-900 group overflow-hidden shadow-sm hover:shadow-xl transition-all duration-500">
-            {/* Grid Pattern Overlay */}
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-5 dark:opacity-10 pointer-events-none"></div>
+        <div className="w-full bg-[#f8fafc] dark:bg-slate-950 min-h-screen text-slate-900 dark:text-slate-100 font-sans transition-colors duration-300">
             
-            <div className="flex flex-col lg:flex-row h-auto lg:h-[650px] relative z-10">
-                {/* Content Side (Left) */}
-                <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 lg:p-20 relative">
-                    <div className="absolute top-0 left-0 w-24 h-1 bg-brand-neon"></div>
-                    
-                    <span className="text-xs font-bold text-brand-neon uppercase tracking-[0.3em] mb-4 flex items-center gap-3">
-                        <span className="w-3 h-3 bg-brand-neon animate-pulse"></span>
-                        {config.subtitle || "FEATURED STACK"}
-                    </span>
-                    
-                    <h2 
-                        className="text-5xl lg:text-7xl font-serif font-black text-gray-900 dark:text-white mb-8 leading-[0.85] uppercase italic tracking-tight"
-                        dangerouslySetInnerHTML={{ __html: config.title }}
-                    >
-                    </h2>
-                    
-                    <div className="mb-10">
-                        <a 
-                            href={config.link || "#"}
-                            className="inline-flex items-center justify-center px-10 py-4 bg-black dark:bg-brand-neon text-white dark:text-black font-black uppercase tracking-[0.15em] text-sm hover:bg-brand-neon hover:text-black dark:hover:bg-white transition-all duration-300 slant"
-                        >
-                            <span className="slant-reverse block">{config.buttonText || "ACCÉDER"}</span>
-                        </a>
+            {/* --- HERO SECTION MATCHING HOMEPAGE --- */}
+            <div className="relative w-full bg-[#0a0d14] text-white overflow-hidden border-b border-white/10">
+                <div 
+                    className="absolute inset-0 bg-cover bg-center"
+                    style={{ backgroundImage: `url('/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg')` }}
+                >
+                    <div className="absolute inset-0 bg-gradient-to-r from-[#0a0d14] via-[#0a0d14]/90 to-[#0a0d14]/75"></div>
+                </div>
+
+                <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 z-10">
+                    <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+                        <div className="max-w-2xl space-y-3">
+                            <div className="flex items-center gap-2">
+                                <span className="inline-flex items-center gap-1.5 px-3 py-1 bg-[#84cc16]/20 border border-[#84cc16]/40 text-[#84cc16] text-[10px] font-black uppercase tracking-widest rounded-full">
+                                    <Flame className="w-3.5 h-3.5 fill-current" />
+                                    <span>Ventes Flash Limitées</span>
+                                </span>
+                            </div>
+
+                            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black uppercase tracking-tight text-white leading-none">
+                                OFFRES & <span className="text-[#84cc16]">PROMOTIONS</span>
+                            </h1>
+
+                            <p className="text-xs sm:text-sm text-slate-300 font-medium leading-relaxed max-w-lg">
+                                Jusqu'à -40% sur une sélection exclusive de barres, disques bumper, haltères professionnels et bancs fitness.
+                            </p>
+                        </div>
+
+                        {/* Flash Deal Countdown Timer */}
+                        <div className="flex flex-col items-start lg:items-end gap-2">
+                            <span className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1.5">
+                                <Clock className="w-3.5 h-3.5 text-[#84cc16]" />
+                                <span>Fin des offres dans :</span>
+                            </span>
+                            <CountdownTimer />
+                        </div>
+                    </div>
+
+                    {/* Quick Category filter buttons */}
+                    <div className="mt-8 pt-6 border-t border-white/10 flex items-center gap-2 overflow-x-auto scrollbar-none">
+                        {promoTabs.map((tab) => (
+                            <button
+                                key={tab.id}
+                                type="button"
+                                onClick={() => setSelectedCategory(tab.id)}
+                                className={`px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                                    selectedCategory === tab.id
+                                        ? 'bg-[#84cc16] text-black shadow-md shadow-[#84cc16]/20'
+                                        : 'bg-white/10 hover:bg-white/20 text-slate-300 hover:text-white'
+                                }`}
+                            >
+                                {tab.label}
+                            </button>
+                        ))}
                     </div>
                 </div>
-
-                {/* Image Side (Right) */}
-                <div className="w-full lg:w-1/2 relative h-[400px] lg:h-full overflow-hidden bg-gray-100">
-                    <div className="absolute inset-0 bg-gradient-to-r from-white dark:from-[#0a0a0a] to-transparent z-10"></div>
-                    <img 
-                        src={config.image}
-                        alt="Performance"
-                        className="w-full h-full object-cover object-center filter grayscale contrast-125 hover:grayscale-0 transition-all duration-700"
-                    />
-                </div>
             </div>
-        </section>
-    );
-};
 
-// --- SECTION 2: Mass/Muscle Builders ---
-export const MuscleBuilders: React.FC<{ config?: any }> = ({ config }) => {
-    if (!config) return null;
-    return (
-        <section className="relative w-full max-w-screen-2xl mx-auto my-16 bg-white dark:bg-[#111] border-l-4 border-brand-neon shadow-sm hover:shadow-xl transition-all">
-            <div className="flex flex-col-reverse lg:flex-row items-center">
+            {/* Breadcrumb */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-4 sm:py-6">
+                <Breadcrumb 
+                    items={[
+                        { name: 'Accueil', onClick: onNavigateHome }, 
+                        { name: 'Fitness Shop', onClick: () => onNavigateToCategory('product-list') },
+                        { name: 'Promotions' }
+                    ]} 
+                />
+            </div>
+
+            {/* Content Section */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-16">
                 
-                {/* Image Side */}
-                <div className="w-full lg:w-3/5 h-[400px] lg:h-[600px] relative overflow-hidden group bg-gray-200">
-                    <div className="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-colors duration-500 z-10"></div>
-                    <img 
-                        src={config.image} 
-                        alt="Muscle Builders" 
-                        className="w-full h-full object-cover transform group-hover:scale-105 transition-transform duration-700"
-                    />
-                    <div className="absolute bottom-6 left-6 z-20">
-                        <p className="text-[100px] font-black text-transparent opacity-30 leading-none select-none" style={{ WebkitTextStroke: '2px #fff' }}>GAIN</p>
-                    </div>
-                </div>
-
-                {/* Content Side */}
-                <div className="w-full lg:w-2/5 p-10 lg:p-16 bg-gray-50 dark:bg-[#111] text-gray-900 dark:text-white h-full flex flex-col justify-center relative">
-                    <div className="absolute top-0 right-0 p-4 opacity-5">
-                        <ArrowUpRightIcon className="w-24 h-24" />
-                    </div>
-
-                    <h2 
-                        className="text-4xl md:text-5xl font-serif font-black uppercase mb-4 tracking-tighter"
-                        dangerouslySetInnerHTML={{ __html: config.title }}
-                    >
-                    </h2>
-                    <div className="w-16 h-2 bg-brand-neon mb-6"></div>
-                    <p 
-                        className="text-lg text-gray-600 dark:text-gray-400 font-sans mb-8 leading-relaxed"
-                        dangerouslySetInnerHTML={{ __html: config.subtitle }}
-                    >
-                    </p>
-                    <a 
-                        href={config.link || "#"}
-                        className="inline-block border-2 border-black dark:border-white text-black dark:text-white px-8 py-3 font-bold uppercase tracking-widest text-xs hover:bg-black hover:text-white dark:hover:bg-white dark:hover:text-black transition-all text-center"
-                    >
-                        {config.buttonText}
-                    </a>
-                </div>
-            </div>
-        </section>
-    );
-};
-
-// --- SECTION 3: Flash Deal ---
-export const FlashDeal: React.FC<{ product: Product; onNavigateToProductDetail: (productId: number) => void; titleColor?: string; subtitleColor?: string; }> = ({ product, onNavigateToProductDetail, titleColor, subtitleColor }) => {
-    const { addToCart, openCart } = useCart();
-    
-    const handleAddToCart = () => {
-        addToCart(product);
-        openCart();
-    };
-
-    return (
-        <section className="relative my-20 max-w-screen-xl mx-auto bg-white dark:bg-[#050505] border border-gray-200 dark:border-gray-800 overflow-hidden shadow-2xl">
-            <div className="absolute top-0 right-0 p-4 z-20">
-                <div className="flex items-center gap-2 bg-brand-neon text-black px-4 py-1 font-black uppercase tracking-wider text-xs transform rotate-2">
-                    <ClockIcon className="w-4 h-4" /> Flash Deal
-                </div>
-            </div>
-
-            <div className="flex flex-col lg:flex-row">
-                
-                {/* Product Image */}
-                <div className="w-full lg:w-1/2 bg-gradient-to-b from-gray-50 to-white dark:from-gray-900 dark:to-black p-10 flex items-center justify-center relative group">
-                    <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-gray-200 dark:from-gray-800/30 via-transparent to-transparent opacity-50"></div>
-                    
-                    {/* Discount Tag */}
-                    <div className="absolute top-10 left-10 w-24 h-24 bg-brand-neon flex flex-col items-center justify-center rounded-full border-4 border-white dark:border-black z-20 shadow-lg transform -rotate-12 group-hover:rotate-0 transition-transform">
-                        <span className="text-xs font-bold uppercase text-black">Save</span>
-                        <span className="text-3xl font-black leading-none text-black">
-                            {Math.round(((product.oldPrice || product.price) - product.price) / (product.oldPrice || product.price) * 100)}%
+                {/* Toolbar */}
+                <div className="bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 rounded-2xl p-4 mb-6 flex flex-col sm:flex-row justify-between items-center gap-4 shadow-2xs">
+                    <div className="flex items-center gap-2">
+                        <span className="w-2.5 h-2.5 rounded-full bg-[#84cc16] animate-pulse"></span>
+                        <span className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                            <strong className="text-slate-900 dark:text-white font-black">{promoProducts.length}</strong> articles en réduction immédiate
                         </span>
                     </div>
 
-                    <img 
-                        src={product.imageUrl} 
-                        alt={product.name} 
-                        className="relative z-10 w-full max-w-[300px] lg:max-w-md object-contain drop-shadow-2xl transition-transform duration-500 group-hover:scale-110 cursor-pointer" 
-                        onClick={() => onNavigateToProductDetail(product.id)}
-                    />
-                </div>
-                
-                {/* Details */}
-                <div className="w-full lg:w-1/2 p-10 lg:p-16 flex flex-col justify-center bg-white dark:bg-brand-black">
-                    <h3 
-                        className="text-4xl md:text-6xl font-serif font-black uppercase italic mb-4 leading-none text-gray-900 dark:text-white tracking-tighter"
-                        style={{ color: titleColor }}
-                    >
-                        {product.name}
-                    </h3>
-                    
-                    <p 
-                        className="text-gray-500 dark:text-gray-400 font-mono text-sm mb-8 border-l-2 border-gray-300 dark:border-gray-700 pl-4 py-1"
-                        style={{ color: subtitleColor }}
-                    >
-                        {product.description || "Offre à durée limitée sur ce produit d'exception."}
-                    </p>
-                    
-                    <div className="mb-10">
-                        <CountdownTimer />
-                    </div>
+                    <div className="flex items-center gap-4 w-full sm:w-auto justify-end">
+                        <div className="flex items-center gap-2">
+                            <span className="text-xs font-semibold text-slate-400 hidden sm:inline">Trier par :</span>
+                            <select 
+                                value={sortOrder} 
+                                onChange={(e) => setSortOrder(e.target.value)} 
+                                className="bg-slate-100 dark:bg-slate-800 border-none rounded-xl py-1.5 px-3 text-xs font-bold text-slate-900 dark:text-white focus:ring-2 focus:ring-[#84cc16] cursor-pointer"
+                            >
+                                <option value="discount-desc">Plus forte réduction</option>
+                                <option value="price-asc">Prix Croissant</option>
+                                <option value="price-desc">Prix Décroissant</option>
+                                <option value="name-asc">Nom (A-Z)</option>
+                            </select>
+                        </div>
 
-                    <div className="flex items-end gap-6 mb-8">
-                        <div className="flex flex-col">
-                            <span className="text-sm text-gray-400 dark:text-gray-500 line-through decoration-brand-alert decoration-2 font-bold">
-                                {product.oldPrice?.toFixed(3)} DT
-                            </span>
-                            <span className="text-5xl font-black text-gray-900 dark:text-white tracking-tighter">
-                                {product.price.toFixed(3)} <span className="text-xl text-brand-neon">DT</span>
-                            </span>
+                        <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+                            <button 
+                                onClick={() => setViewMode('grid')} 
+                                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid' ? 'bg-white dark:bg-slate-900 text-[#84cc16] shadow-xs' : 'text-slate-400'}`}
+                                title="Grille"
+                            >
+                                <Squares2X2Icon className="w-4 h-4"/>
+                            </button>
+                            <button 
+                                onClick={() => setViewMode('list')} 
+                                className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-900 text-[#84cc16] shadow-xs' : 'text-slate-400'}`}
+                                title="Liste"
+                            >
+                                <Bars3Icon className="w-4 h-4"/>
+                            </button>
                         </div>
                     </div>
-                    
-                    <button 
-                        onClick={handleAddToCart} 
-                        className="w-full bg-black dark:bg-brand-neon hover:bg-brand-neon hover:text-black dark:hover:bg-white text-white dark:text-black font-black uppercase tracking-[0.2em] text-sm py-5 px-8 transition-colors slant shadow-xl"
-                    >
-                        <span className="slant-reverse block">AJOUTER AU PANIER</span>
-                    </button>
                 </div>
+
+                {/* Promo Grid */}
+                {promoProducts.length > 0 ? (
+                    <div className={
+                        viewMode === 'list'
+                            ? 'space-y-4'
+                            : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5'
+                    }>
+                        {promoProducts.map((product) => (
+                            <div key={`promo-${product.id}`}>
+                                {viewMode === 'list' ? (
+                                    <ProductListItem 
+                                        product={product} 
+                                        onPreview={onPreview} 
+                                        onNavigateToProductDetail={onNavigateToProductDetail}
+                                    />
+                                ) : (
+                                    <ProductCard 
+                                        product={product} 
+                                        onPreview={onPreview} 
+                                        onNavigateToProductDetail={onNavigateToProductDetail} 
+                                    />
+                                )}
+                            </div>
+                        ))}
+                    </div>
+                ) : (
+                    <div className="py-20 text-center bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800">
+                        <Tag className="w-12 h-12 text-[#84cc16] mx-auto mb-3" />
+                        <h3 className="text-base font-bold text-slate-900 dark:text-white">Aucune offre active dans ce rayon</h3>
+                        <p className="text-xs text-slate-500 mt-1">Revenez bientôt ou consultez l'ensemble de notre catalogue fitness.</p>
+                    </div>
+                )}
+
             </div>
-        </section>
+        </div>
     );
 };
 
-
-export const PromotionsPage: React.FC<PromotionsPageProps> = ({ onNavigateHome, onPreview, products: allProducts, onNavigateToProductDetail }) => {
-    const [offersConfig, setOffersConfig] = useState<OffersPageConfig | null>(null);
-    const [sortOrder, setSortOrder] = useState('discount-desc');
-    const [viewMode, setViewMode] = useState('grid');
-    
-    useEffect(() => {
-        document.title = `Offres & Deals - IronFuel`;
-        api.getOffersConfig().then(setOffersConfig).catch(console.error);
-    }, []);
-
-    const displayedProducts = useMemo(() => {
-        if (!offersConfig) return [];
-        let baseList: Product[] = [];
-        if (offersConfig.allOffersGrid?.useManualSelection) {
-            baseList = allProducts.filter(p => offersConfig.allOffersGrid.manualProductIds?.includes(p.id));
-        } else {
-            baseList = allProducts.filter(p => p.promo || p.discount);
-        }
-        const sorted = [...baseList];
-        sorted.sort((a, b) => {
-            switch (sortOrder) {
-                case 'price-asc': return a.price - b.price;
-                case 'price-desc': return b.price - a.price;
-                case 'discount-desc': return (b.discount || 0) - (a.discount || 0);
-                default: return 0;
-            }
-        });
-        const limit = offersConfig.allOffersGrid?.limit || 12;
-        return sorted.slice(0, limit);
-    }, [allProducts, sortOrder, offersConfig]);
-
-    const gridClasses = useMemo(() => {
-        switch (viewMode) {
-            case 'grid': return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-            case 'list': return 'grid-cols-1';
-            default: return 'grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4';
-        }
-    }, [viewMode]);
-
-    const dealOfTheDayProduct = useMemo(() => {
-        if (offersConfig && offersConfig.dealOfTheDay && offersConfig.dealOfTheDay.productId) {
-            const product = allProducts.find(p => p.id === offersConfig.dealOfTheDay.productId);
-            if (product) return product;
-        }
-        return [...allProducts].sort((a, b) => (b.discount || 0) - (a.discount || 0))[0] || allProducts[0];
-    }, [allProducts, offersConfig]);
-
-    if (!offersConfig) return <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-black text-gray-900 dark:text-white font-mono">LOADING DATA...</div>;
-
+export const PerformanceSpotlight: React.FC<{ config: any }> = ({ config }) => {
+    if (!config) return null;
     return (
-        <div className="bg-gray-50 dark:bg-[#050505] min-h-screen text-gray-900 dark:text-gray-100 font-sans selection:bg-brand-neon selection:text-black transition-colors duration-300">
-            <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-                <Breadcrumb items={[{ name: 'Accueil', onClick: onNavigateHome }, { name: 'Offres Spéciales' }]} />
-                
-                {/* Header Section */}
-                <div className="text-center max-w-5xl mx-auto mt-12 mb-20 relative">
-                    <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full text-[12vw] font-black text-black/[0.02] dark:text-white/[0.02] pointer-events-none select-none italic font-serif">OFFERS</div>
-                    <span className="bg-brand-neon text-black px-4 py-1 font-black uppercase tracking-[0.25em] text-xs inline-block transform -skew-x-12 mb-6">
-                        Limited Time Offers
-                    </span>
-                    <h1 
-                        className="text-6xl md:text-8xl font-serif font-black uppercase italic mb-6 text-gray-900 dark:text-white tracking-tighter leading-none relative z-10"
-                        dangerouslySetInnerHTML={{ __html: offersConfig.header.title }}
-                    >
-                    </h1>
-                    <div className="w-24 h-1 bg-gray-200 dark:bg-gray-800 mx-auto mb-6"></div>
-                    <p 
-                        className="font-mono text-gray-500 dark:text-gray-400 text-sm md:text-base max-w-2xl mx-auto relative z-10"
-                        dangerouslySetInnerHTML={{ __html: offersConfig.header.subtitle }}
-                    >
-                    </p>
-                </div>
-
-                {/* --- SECTIONS PROMO --- */}
-                <div className="space-y-16 lg:space-y-32 mb-32">
-                    <PerformanceSpotlight config={offersConfig.performanceSection} />
-                    <MuscleBuilders config={offersConfig.muscleBuilders} />
-                </div>
-
-                <FlashDeal 
-                    product={dealOfTheDayProduct} 
-                    onNavigateToProductDetail={onNavigateToProductDetail}
-                    titleColor={offersConfig.dealOfTheDay.titleColor}
-                    subtitleColor={offersConfig.dealOfTheDay.subtitleColor}
+        <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-white/10 p-6 sm:p-8 text-white">
+            {config.image && (
+                <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-30" 
+                    style={{ backgroundImage: `url('${config.image}')` }}
                 />
-
-                <main className="mt-32">
-                    {/* Toolbar */}
-                    <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-12 border-b border-gray-200 dark:border-gray-800 pb-6">
-                        <div>
-                            <h2 
-                                className="text-3xl font-serif font-black text-gray-900 dark:text-white uppercase italic"
-                                dangerouslySetInnerHTML={{ __html: offersConfig.allOffersGrid?.title || "Toutes les offres" }}
-                            >
-                            </h2>
-                        </div>
-
-                        <div className="flex items-center gap-6">
-                            <div className="flex items-center bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 p-1 rounded-sm">
-                                <button 
-                                    onClick={() => setViewMode('grid')} 
-                                    className={`p-2 transition-all ${viewMode === 'grid' ? 'bg-black dark:bg-brand-neon text-white dark:text-black shadow-md' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}
-                                >
-                                    <Squares2X2Icon className="w-4 h-4"/>
-                                </button>
-                                <button 
-                                    onClick={() => setViewMode('list')} 
-                                    className={`p-2 transition-all ${viewMode === 'list' ? 'bg-black dark:bg-brand-neon text-white dark:text-black shadow-md' : 'text-gray-500 hover:text-black dark:hover:text-white'}`}
-                                >
-                                    <Bars3Icon className="w-4 h-4"/>
-                                </button>
-                            </div>
-
-                            <div className="relative group">
-                                <select 
-                                    value={sortOrder} 
-                                    onChange={(e) => setSortOrder(e.target.value)} 
-                                    className="appearance-none bg-white dark:bg-black border border-gray-200 dark:border-gray-700 text-gray-900 dark:text-white pl-4 pr-10 py-3 text-xs font-bold uppercase tracking-wider cursor-pointer focus:border-brand-neon outline-none"
-                                >
-                                    <option value="discount-desc">Meilleurs Deals</option>
-                                    <option value="price-asc">Prix Croissant</option>
-                                    <option value="price-desc">Prix Décroissant</option>
-                                </select>
-                                <ChevronDownIcon className="w-4 h-4 text-brand-neon absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none" />
-                            </div>
-                        </div>
-                    </div>
-                    
-                    {/* Products Grid/List */}
-                    {displayedProducts.length > 0 ? (
-                        viewMode === 'list' ? (
-                            <div className="space-y-6">
-                                {displayedProducts.map(product => (
-                                    <ProductListItem key={product.id} product={product} onPreview={onPreview} onNavigateToProductDetail={onNavigateToProductDetail} />
-                                ))}
-                            </div>
-                        ) : (
-                            <div className={`grid ${gridClasses} gap-8`}>
-                                {displayedProducts.map(product => (
-                                    <ProductCard key={product.id} product={product} onPreview={onPreview} onNavigateToProductDetail={onNavigateToProductDetail} />
-                                ))}
-                            </div>
-                        )
-                    ) : (
-                        <div className="text-center py-32 border border-dashed border-gray-300 dark:border-gray-800 bg-white dark:bg-gray-900/50 rounded-xl">
-                            <div className="w-20 h-20 bg-gray-100 dark:bg-black rounded-full flex items-center justify-center mx-auto mb-6 text-gray-400 dark:text-gray-600 border border-gray-200 dark:border-gray-800">
-                                <SparklesIcon className="w-8 h-8" />
-                            </div>
-                            <p className="text-xl font-serif font-bold text-gray-900 dark:text-white uppercase mb-2">Aucune offre active.</p>
-                            <p className="text-gray-500 font-mono text-sm">Revenez plus tard pour de nouveaux drops.</p>
-                        </div>
-                    )}
-                </main>
+            )}
+            <div className="relative z-10 max-w-lg space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#84cc16]">Exclusivité</span>
+                <h3 className="text-2xl sm:text-3xl font-black uppercase text-white" dangerouslySetInnerHTML={{ __html: config.title || '' }} />
+                <p className="text-xs sm:text-sm text-slate-300 font-medium">{config.subtitle}</p>
+                {config.buttonText && (
+                    <button className="px-5 py-2.5 bg-[#84cc16] text-black font-extrabold text-xs uppercase rounded-xl hover:bg-[#72b012] transition-colors">
+                        {config.buttonText}
+                    </button>
+                )}
             </div>
+        </div>
+    );
+};
+
+export const MuscleBuilders: React.FC<{ config: any }> = ({ config }) => {
+    if (!config) return null;
+    return (
+        <div className="relative overflow-hidden rounded-2xl bg-zinc-900 border border-white/10 p-6 sm:p-8 text-white">
+            {config.image && (
+                <div 
+                    className="absolute inset-0 bg-cover bg-center opacity-30" 
+                    style={{ backgroundImage: `url('${config.image}')` }}
+                />
+            )}
+            <div className="relative z-10 max-w-lg space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-[#84cc16]">Force & Volume</span>
+                <h3 className="text-2xl sm:text-3xl font-black uppercase text-white" dangerouslySetInnerHTML={{ __html: config.title || '' }} />
+                <p className="text-xs sm:text-sm text-slate-300 font-medium">{config.subtitle}</p>
+                {config.buttonText && (
+                    <button className="px-5 py-2.5 bg-white text-black font-extrabold text-xs uppercase rounded-xl hover:bg-slate-200 transition-colors">
+                        {config.buttonText}
+                    </button>
+                )}
+            </div>
+        </div>
+    );
+};
+
+export const FlashDeal: React.FC<{ product?: any; onNavigateToProductDetail?: (id: number) => void; titleColor?: string; subtitleColor?: string; }> = ({
+    product,
+    onNavigateToProductDetail
+}) => {
+    if (!product) return null;
+    return (
+        <div className="rounded-2xl bg-gradient-to-r from-zinc-950 via-zinc-900 to-zinc-950 border border-[#84cc16]/30 p-6 sm:p-8 text-white flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
+            <div className="flex items-center gap-5">
+                {product.imageUrl && (
+                    <img src={product.imageUrl} alt={product.name} className="w-24 h-24 object-contain rounded-xl bg-white/5 p-2 shrink-0" />
+                )}
+                <div>
+                    <span className="inline-block px-2.5 py-1 bg-[#84cc16] text-black font-black text-[10px] uppercase rounded-md mb-2">Deal Flash</span>
+                    <h4 className="text-lg font-black text-white uppercase">{product.name}</h4>
+                    <p className="text-xs text-slate-400 mt-1">{product.description || 'Offre limitée dans le temps'}</p>
+                    <div className="flex items-center gap-3 mt-2">
+                        <span className="text-xl font-black text-[#84cc16] font-mono">{Number(product.price || 0).toFixed(3)} DT</span>
+                        {product.oldPrice && <span className="text-xs text-slate-500 line-through font-mono">{Number(product.oldPrice).toFixed(3)} DT</span>}
+                    </div>
+                </div>
+            </div>
+            <button 
+                onClick={() => onNavigateToProductDetail?.(product.id)}
+                className="px-6 py-3 bg-[#84cc16] hover:bg-[#72b012] text-black font-extrabold text-xs uppercase rounded-xl transition-all cursor-pointer whitespace-nowrap"
+            >
+                Profiter du deal
+            </button>
         </div>
     );
 };

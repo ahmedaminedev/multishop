@@ -117,7 +117,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
         >
           <option value="all">Toutes les Filiales (67)</option>
           <option value="para">🌿 PharmaShop (2)</option>
-          <option value="nutrition">⚡ IronFuel Nutrition (15)</option>
+          <option value="nutrition">⚡ Fitness Shop (15)</option>
           <option value="cosmetic">💄 Cosmetics Shop (19)</option>
           <option value="electro">🔌 Electro Shop (31)</option>
         </select>

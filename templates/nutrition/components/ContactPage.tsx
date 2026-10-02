@@ -67,7 +67,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigateHome, stores
     const { addToast } = useToast();
 
     useEffect(() => {
-        document.title = `CONTACT HQ - IronFuel Nutrition`;
+        document.title = `CONTACT HQ - FitnessShop`;
         window.scrollTo(0,0);
     }, []);
 
@@ -163,7 +163,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigateHome, stores
                                 <h3 className="text-[10px] font-black text-gray-400 dark:text-gray-500 uppercase tracking-[0.5em] mb-10 border-l-4 border-brand-neon pl-4">Intel & Contacts</h3>
                                 <div className="space-y-4">
                                     <ContactInfoItem label="Live Comms" icon={<PhoneIcon className="w-5 h-5"/>} title="Radio Freq" content={<a href="tel:+21655263522" className="hover:text-brand-neon transition-colors">+216 55 263 522</a>} />
-                                    <ContactInfoItem label="Secured Channel" icon={<MailIcon className="w-5 h-5"/>} title="Signal HQ" content={<a href="mailto:hq@ironfuel.tn" className="hover:text-brand-neon transition-colors">hq@ironfuel.tn</a>} />
+                                    <ContactInfoItem label="Secured Channel" icon={<MailIcon className="w-5 h-5"/>} title="Signal HQ" content={<a href="mailto:hq@fitnessshop.tn" className="hover:text-brand-neon transition-colors">hq@fitnessshop.tn</a>} />
                                 </div>
                             </div>
                         </div>

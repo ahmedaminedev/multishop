@@ -96,7 +96,7 @@ const FavoritesSummary: React.FC<{
                 </div>
 
                 <div className="mt-8 pt-6 border-t border-gray-100 dark:border-gray-900">
-                    <p className="text-[9px] text-gray-400 dark:text-gray-600 font-mono uppercase tracking-[0.3em] text-center italic">Système IronFuel v2.4 Actif</p>
+                    <p className="text-[9px] text-gray-400 dark:text-gray-600 font-mono uppercase tracking-[0.3em] text-center italic">Système FitnessShop v2.4 Actif</p>
                 </div>
             </div>
         </aside>
@@ -108,7 +108,7 @@ export const FavoritesPage: React.FC<FavoritesPageProps> = ({ onNavigateHome, on
     const { addToCart, openCart } = useCart();
 
     useEffect(() => {
-        document.title = `L'ARMURERIE - Mes Favoris IronFuel`;
+        document.title = `L'ARMURERIE - Mes Favoris FitnessShop`;
         window.scrollTo(0,0);
     }, []);
 

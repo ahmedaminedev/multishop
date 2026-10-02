@@ -624,9 +624,14 @@ export function handleApiRequest(req, res, next) {
       if (endpoint === '/advertisements' && req.method === 'GET') {
         return sendJson(200, shop.advertisements || {});
       }
-      if (endpoint === '/advertisements' && req.method === 'POST') {
+      if (endpoint === '/advertisements' && (req.method === 'POST' || req.method === 'PUT')) {
         const body = await getBody();
-        shop.advertisements = { ...shop.advertisements, ...body };
+        shop.advertisements = { 
+          ...shop.advertisements, 
+          ...body,
+          logoConfig: { ...(shop.advertisements?.logoConfig || {}), ...(body?.logoConfig || {}) },
+          fitnessHome: { ...(shop.advertisements?.fitnessHome || {}), ...(body?.fitnessHome || {}) }
+        };
         return sendJson(200, shop.advertisements);
       }
 

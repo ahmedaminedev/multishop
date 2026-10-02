@@ -54,7 +54,7 @@ export const PackDetailPage: React.FC<PackDetailPageProps> = ({ pack, allProduct
     }, [packContents]);
 
     useEffect(() => {
-        document.title = `${pack.name} | PROTOCOL BRIEFING - IronFuel`;
+        document.title = `${pack.name} | PROTOCOL BRIEFING - PharmaShop`;
         window.scrollTo(0, 0);
     }, [pack]);
 

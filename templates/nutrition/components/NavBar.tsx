@@ -40,7 +40,7 @@ export const NavBar: React.FC<NavBarProps> = ({
         { label: 'Cross Training', action: () => { setActiveTab('Cross Training'); onNavigateToCategory?.('Cross Training'); } },
         { label: 'Fitness & Yoga', action: () => { setActiveTab('Fitness & Yoga'); onNavigateToCategory?.('Fitness & Yoga'); } },
         { label: 'Accessoires', action: () => { setActiveTab('Accessoires'); onNavigateToCategory?.('Accessoires'); } },
-        { label: 'Marques', action: () => { setActiveTab('Marques'); onNavigateToCategory?.('product-list'); } },
+        { label: 'Marques', action: () => { setActiveTab('Marques'); onNavigateToCategory?.('Marques'); } },
         { label: 'Promotions', action: () => { setActiveTab('Promotions'); onNavigateToPromotions(); }, isPromo: true },
     ];
 

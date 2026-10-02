@@ -130,7 +130,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({ onNavigateHome, onSelectPost
     const { addToast } = useToast();
 
     useEffect(() => {
-        document.title = `IRON HUB - Communauté IronFuel`;
+        document.title = `FITNESS HUB - Communauté FitnessShop`;
         window.scrollTo(0,0);
         setIsLoggedIn(!!localStorage.getItem('token'));
 
@@ -185,7 +185,7 @@ export const BlogPage: React.FC<BlogPageProps> = ({ onNavigateHome, onSelectPost
                     </h1>
                     
                     <p className="text-gray-500 dark:text-gray-500 font-mono text-sm md:text-base leading-relaxed max-w-2xl mx-auto uppercase tracking-wide">
-                        Décryptage nutritionnel, protocoles d'entraînement et coulisses de l'élite IronFuel.
+                        Décryptage nutritionnel, protocoles d'entraînement et coulisses de l'élite FitnessShop.
                     </p>
 
                     {isLoggedIn && (

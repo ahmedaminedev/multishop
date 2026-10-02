@@ -116,7 +116,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
   if (currentMenu === 'stores') {
     const storesList = [
       { name: 'MultiShop Flagship Tunis Centre', address: 'Avenue Habib Bourguiba, Tunis', phone: '+216 71 100 200', branches: ['PharmaShop', 'Cosmetics', 'Electro'], scope: ['para', 'cosmetic', 'electro'] },
-      { name: 'MultiShop Megastore Sousse', address: 'Boulevard 14 Janvier, Sousse', phone: '+216 73 200 300', branches: ['IronFuel Nutrition', 'Electro'], scope: ['nutrition', 'electro'] },
+      { name: 'MultiShop Megastore Sousse', address: 'Boulevard 14 Janvier, Sousse', phone: '+216 73 200 300', branches: ['Fitness Shop', 'Electro'], scope: ['nutrition', 'electro'] },
       { name: 'MultiShop Point de Vente Sfax', address: 'Route de Téniour, Sfax', phone: '+216 74 300 400', branches: ['PharmaShop', 'Cosmetics'], scope: ['para', 'cosmetic'] },
       { name: 'MultiShop Nabeul Cap Bon', address: 'Avenue Habib Thameur, Nabeul', phone: '+216 72 400 500', branches: ['Toutes Filiales'], scope: ['para', 'nutrition', 'cosmetic', 'electro'] }
     ];
@@ -184,7 +184,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
 
   if (currentMenu === 'messages') {
     const allMessages = [
-      { id: '1', author: 'Mehdi Ben Salah', email: 'mehdi.bensalah@gmail.com', shop: '⚡ IronFuel', shopKey: 'nutrition', text: 'Bonjour, quel est le délai de livraison pour la Whey Isolate sur Sousse ?', time: 'Il y a 2h' },
+      { id: '1', author: 'Mehdi Ben Salah', email: 'mehdi.bensalah@gmail.com', shop: '⚡ Fitness Shop', shopKey: 'nutrition', text: 'Bonjour, quel est le délai de livraison pour la Whey Isolate sur Sousse ?', time: 'Il y a 2h' },
       { id: '2', author: 'Sonia Triki', email: 'sonia.triki@yahoo.fr', shop: '💄 Cosmetics', shopKey: 'cosmetic', text: 'Le sérum à l\'acide hyaluronique convient-il aux peaux très sensibles ?', time: 'Hier' },
       { id: '3', author: 'Khaled Mansouri', email: 'khaled.m@gmail.com', shop: '🔌 Electro', shopKey: 'electro', text: 'La machine à café expresso est-elle garantie 2 ans avec facture ?', time: 'Il y a 2 jours' },
       { id: '4', author: 'Amina Cherif', email: 'amina.cherif@outlook.com', shop: '🌿 PharmaShop', shopKey: 'para', text: 'Est-il possible de préparer une commande click & collect pour cet après-midi ?', time: 'Il y a 3 jours' }
@@ -315,7 +315,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
 
               <div>
                 <div className="flex justify-between mb-1">
-                  <span className="font-semibold text-slate-700">⚡ IronFuel Nutrition (289 DT)</span>
+                  <span className="font-semibold text-slate-700">⚡ Fitness Shop (289 DT)</span>
                   <span className="font-bold text-amber-600">6.4%</span>
                 </div>
                 <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">

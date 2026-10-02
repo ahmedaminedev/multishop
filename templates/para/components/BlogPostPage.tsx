@@ -166,7 +166,7 @@ export const BlogPostPage: React.FC<BlogPostPageProps> = ({ slug, onNavigateHome
                                 <p className="text-[10px] font-black text-brand-neon uppercase tracking-[0.4em] mb-2">Author Credential</p>
                                 <h3 className="text-2xl font-serif font-black italic text-gray-900 dark:text-white uppercase mb-4">{post.author}</h3>
                                 <p className="text-gray-500 font-mono text-xs leading-relaxed uppercase">
-                                    Analyste Performance & Coach certifié. Membre du comité de débriefing technique IronFuel.
+                                    Pharmacien & Expert Conseil certifié. Membre du comité de débriefing technique PharmaShop.
                                 </p>
                             </div>
                         </div>

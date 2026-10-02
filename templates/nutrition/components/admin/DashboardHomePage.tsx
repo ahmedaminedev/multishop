@@ -48,7 +48,7 @@ const SmartInsight: React.FC<{ text: string; isActive: boolean }> = ({ text, isA
             <div className="absolute bottom-full mb-3 right-0 w-72 max-w-[calc(100vw-2rem)] p-5 bg-zinc-950 text-white text-[11px] leading-relaxed rounded-2xl shadow-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-[100] text-left border border-zinc-800 ring-4 ring-lime-400/10">
                 <div className="flex items-center gap-2 mb-2 text-lime-400 font-black uppercase tracking-wider text-[9px]">
                     <SparklesIcon className="w-3 h-3" />
-                    Conseil Stratégique IronFuel
+                    Conseil Stratégique Fitness Shop
                 </div>
                 {text}
                 <div className="absolute bottom-[-6px] right-2 w-3 h-3 bg-zinc-950 transform rotate-45 border-r border-b border-zinc-800"></div>
@@ -156,7 +156,7 @@ export const DashboardHomePage: React.FC<DashboardHomePageProps> = ({ orders, pr
                     <h1 className="text-3xl font-black text-white uppercase tracking-wider font-oswald">
                         Centre de <span className="text-lime-400">Commandement</span>
                     </h1>
-                    <p className="text-zinc-400 font-medium text-xs mt-1">Surveillance opérationnelle et analytique IronFuel</p>
+                    <p className="text-zinc-400 font-medium text-xs mt-1">Surveillance opérationnelle et analytique Fitness Shop</p>
                 </div>
                 
                 <div className="flex gap-4 items-center">

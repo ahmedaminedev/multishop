@@ -476,6 +476,8 @@ const AppContent: React.FC = () => {
                     onNavigateToCategory={navigateToCategory}
                     onNavigateToProductDetail={navigateToProductDetail}
                     onNavigateToCompare={navigateToCompare}
+                    advertisements={advertisements}
+                    logoConfig={advertisements?.logoConfig}
                 />
                 <NavBar 
                     onNavigateHome={navigateToHome}
@@ -637,6 +639,9 @@ const AppContent: React.FC = () => {
                 <Footer 
                     onNavigateToPrivacy={navigateToPrivacyPolicy}
                     onNavigateToDataDeletion={navigateToDataDeletion}
+                    onNavigateToCategory={navigateToCategory}
+                    advertisements={advertisements}
+                    logoConfig={advertisements?.logoConfig}
                 />
                 {(!user || user.role !== 'ADMIN') && <SupportWidget user={user} />}
                 <ScrollToTopButton />

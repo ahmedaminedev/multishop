@@ -4,7 +4,7 @@ const allProducts = [
     { 
         id: 101, 
         name: 'Haltères Hexagonaux 2x10kg', 
-        brand: 'IRONFUEL', 
+        brand: 'FitnessShop', 
         price: 169, 
         oldPrice: 199, 
         imageUrl: '/src/assets/images/category_halteres_poids_1790951598408.jpg', 
@@ -21,7 +21,7 @@ const allProducts = [
     { 
         id: 102, 
         name: 'Banc Ajustable Pro', 
-        brand: 'IRONFUEL', 
+        brand: 'FitnessShop', 
         price: 349, 
         oldPrice: 389, 
         imageUrl: '/src/assets/images/category_banc_musculation_1790951610418.jpg', 
@@ -38,7 +38,7 @@ const allProducts = [
     { 
         id: 103, 
         name: 'Rack de Musculation Heavy Duty', 
-        brand: 'IRONFUEL', 
+        brand: 'FitnessShop', 
         price: 1249, 
         oldPrice: 1429, 
         imageUrl: '/src/assets/images/category_rack_station_1790951619589.jpg', 
@@ -55,7 +55,7 @@ const allProducts = [
     { 
         id: 104, 
         name: 'Tapis de Course 2.5HP Pro', 
-        brand: 'IRONFUEL', 
+        brand: 'FitnessShop', 
         price: 1299, 
         oldPrice: 1399, 
         imageUrl: '/src/assets/images/category_tapis_cardio_1790951629862.jpg', 
@@ -72,7 +72,7 @@ const allProducts = [
     { 
         id: 105, 
         name: 'Kit Disques Bumper Plates 50kg', 
-        brand: 'IRONFUEL', 
+        brand: 'FitnessShop', 
         price: 450, 
         oldPrice: 560, 
         imageUrl: '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg', 
@@ -94,13 +94,13 @@ const allProducts = [
     { id: 5, name: 'BCAA Xplode Powder', brand: 'OLIMP', price: 120, oldPrice: 140, imageUrl: 'https://images.unsplash.com/photo-1546483875-ad9014c88eba?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1546483875-ad9014c88eba?q=80&w=400&auto=format&fit=crop'], discount: 14, category: 'Acides Aminés', description: 'BCAA ratio 2:1:1 enrichi en glutamine et vitamine B6 pour une récupération anti-catabolique.', quantity: 60 },
     { id: 6, name: 'Mass Tech Extreme 2000', brand: 'MUSCLETECH', price: 340, imageUrl: 'https://images.unsplash.com/photo-1622484214532-6b99015c7427?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1622484214532-6b99015c7427?q=80&w=400&auto=format&fit=crop'], category: 'Prise de Masse', description: 'Gainer hypercalorique pour les profils ectomorphes. Apport massif en glucides et protéines.', quantity: 20, specifications: [{ name: 'Calories', value: '2000+' },{ name: 'Poids', value: '3kg' }] },
     { id: 7, name: 'Multivitamin for Men', brand: 'BIOTECH USA', price: 45, oldPrice: 60, imageUrl: 'https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1550572017-edd951aa8f72?q=80&w=400&auto=format&fit=crop'], discount: 25, category: 'Santé & Bien-être', description: 'Complexe complet de vitamines et minéraux formulé spécifiquement pour les hommes actifs.', quantity: 150 },
-    { id: 8, name: 'Shaker Pro Metal 700ml', brand: 'IRONFUEL', price: 35, imageUrl: 'https://images.unsplash.com/photo-1575459372270-36a8779b7c3c?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1575459372270-36a8779b7c3c?q=80&w=400&auto=format&fit=crop'], category: 'Accessoires', description: 'Shaker en acier inoxydable, robuste et sans odeur. Design ergonomique.', quantity: 200 },
+    { id: 8, name: 'Shaker Pro Metal 700ml', brand: 'FitnessShop', price: 35, imageUrl: 'https://images.unsplash.com/photo-1575459372270-36a8779b7c3c?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1575459372270-36a8779b7c3c?q=80&w=400&auto=format&fit=crop'], category: 'Accessoires', description: 'Shaker en acier inoxydable, robuste et sans odeur. Design ergonomique.', quantity: 200 },
     { id: 9, name: 'Peanut Butter 1kg', brand: 'PROZIS', price: 28, imageUrl: 'https://images.unsplash.com/photo-1527663327663-128c94982a39?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1527663327663-128c94982a39?q=80&w=400&auto=format&fit=crop'], category: 'Nutrition', description: 'Beurre de cacahuète 100% naturel, riche en protéines et bonnes graisses. Sans huile de palme.', quantity: 100 },
     { id: 10, name: 'Omega 3 Gold', brand: 'MAXLER', price: 55, oldPrice: 70, imageUrl: 'https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1620916297397-a4a5402a3c6c?q=80&w=400&auto=format&fit=crop'], discount: 21, category: 'Santé & Bien-être', description: 'Huile de poisson haute concentration en EPA et DHA pour la santé cardiovasculaire.', quantity: 90 },
     { id: 11, name: 'Ceinture de Musculation Cuir', brand: 'GORILLA WEAR', price: 110, imageUrl: 'https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1517836357463-d25dfeac3438?q=80&w=400&auto=format&fit=crop'], category: 'Accessoires', description: 'Ceinture lombaire en cuir véritable pour un soutien maximal lors des squats et soulevés de terre.', quantity: 30 },
     { id: 12, name: 'ZMA Night Recovery', brand: 'SCITEC', price: 49, imageUrl: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?q=80&w=400&auto=format&fit=crop'], category: 'Récupération', description: 'Zinc, Magnésium et B6 pour optimiser le sommeil et la récupération nerveuse.', quantity: 60 },
     { id: 13, name: 'Barre Protéinée Carb Killa (Boite de 12)', brand: 'GRENADE', price: 85, oldPrice: 95, imageUrl: 'https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1622483767028-3f66f32aef97?q=80&w=400&auto=format&fit=crop'], discount: 10, category: 'Snacks', promo: true, description: 'Barre faible en sucre avec 23g de protéines. Goût incroyable.', quantity: 40 },
-    { id: 14, name: 'Bandages Poignets (Paire)', brand: 'IRONFUEL', price: 25, imageUrl: 'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=400&auto=format&fit=crop'], category: 'Accessoires', description: 'Soutien renforcé pour les exercices de poussée lourds.', quantity: 150 },
+    { id: 14, name: 'Bandages Poignets (Paire)', brand: 'FitnessShop', price: 25, imageUrl: 'https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1599058945522-28d584b6f0ff?q=80&w=400&auto=format&fit=crop'], category: 'Accessoires', description: 'Soutien renforcé pour les exercices de poussée lourds.', quantity: 150 },
     { id: 15, name: 'L-Carnitine 3000 Shot', brand: 'BIOTECH USA', price: 4, oldPrice: 6, imageUrl: 'https://images.unsplash.com/photo-1579722822553-73775073cb43?q=80&w=400&auto=format&fit=crop', images: ['https://images.unsplash.com/photo-1579722822553-73775073cb43?q=80&w=400&auto=format&fit=crop'], discount: 33, category: 'Perte de Poids', promo: true, description: 'Ampoule liquide pour mobiliser les graisses pendant l\'effort. Action rapide.', quantity: 500 }
 ];
 
@@ -198,12 +198,12 @@ const packs = [
 const stores = [
     {
         id: 1,
-        name: "IronFuel Gym Store - Lac 1",
+        name: "FitnessShop Gym Store - Lac 1",
         address: "Rue du Lac Windermere",
         city: "Tunis",
         postalCode: "1053",
         phone: "+216 71 000 111",
-        email: "lac@ironfuel.tn",
+        email: "lac@fitnessshop.tn",
         openingHours: "Lun - Sam: 09h00 - 21h00",
         imageUrl: "https://images.unsplash.com/photo-1593079831268-3381b0db4a77?q=80&w=600&auto=format&fit=crop",
         isPickupPoint: true,
@@ -211,12 +211,12 @@ const stores = [
     },
     {
         id: 2,
-        name: "IronFuel Sousse",
+        name: "FitnessShop Sousse",
         address: "Avenue Khezama",
         city: "Sousse",
         postalCode: "4000",
         phone: "+216 73 222 333",
-        email: "sousse@ironfuel.tn",
+        email: "sousse@fitnessshop.tn",
         openingHours: "Lun - Dim: 10h00 - 22h00",
         imageUrl: "https://images.unsplash.com/photo-1571902943202-507ec2618e8f?q=80&w=600&auto=format&fit=crop",
         isPickupPoint: true,
@@ -427,6 +427,40 @@ const initialAdvertisements = {
         productIds: [3, 2, 6, 4],
         buttonText: "VOIR LE CLASSEMENT",
         buttonLink: "#"
+    },
+    logoConfig: {
+        logoUrl: '',
+        navbarHeight: 42,
+        footerHeight: 48,
+        textPrimary: 'FITNESS',
+        textSecondary: 'SHOP',
+        tagline: 'ELITE FITNESS EQUIPMENT'
+    },
+    fitnessHome: {
+        hero: {
+            badge: 'ÉQUIPEMENT DE MUSCULATION',
+            title: 'ATTEINS TES',
+            titleHighlight: 'OBJECTIFS',
+            description: 'Matériel de sport de qualité pour un entraînement plus efficace et plus motivant.',
+            buttonText: 'Découvrir la collection',
+            buttonCategory: 'Musculation',
+            bgImage: '/src/assets/images/hero_fitness_athlete_1790951585544.jpg',
+            calligraphyTop: 'Plus fort',
+            calligraphyBottom: 'chaque jour'
+        },
+        promoBanner: {
+            tag: 'PROMOTION',
+            title: "JUSQU'À",
+            discountHighlight: '-20%',
+            description: "SUR UNE SÉLECTION D'HALTÈRES ET DISQUES",
+            buttonText: 'Voir la sélection',
+            categoryTarget: 'Disques & Barres',
+            bgImage: '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg'
+        },
+        bestsellersTitle: 'Nos Bestsellers',
+        bestsellersKicker: 'LES PLUS VENDUS',
+        secondaryTitle: 'Compléments, Accessoires & Nutrition',
+        secondaryKicker: 'CATALOGUE COMPLET & NUTRITION'
     }
 };
 

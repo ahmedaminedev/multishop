@@ -15,7 +15,7 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigateHome }) => {
     const { addToast } = useToast();
 
     useEffect(() => {
-        document.title = `VERSUS - Comparateur Performance IronFuel`;
+        document.title = `VERSUS - Comparateur Performance PharmaShop`;
         window.scrollTo(0,0);
     }, []);
 
@@ -198,7 +198,7 @@ export const ComparePage: React.FC<ComparePageProps> = ({ onNavigateHome }) => {
                             <div>
                                 <h4 className="text-xl font-serif font-black italic uppercase text-gray-900 dark:text-white mb-2">Aide à la décision</h4>
                                 <p className="text-xs text-gray-500 dark:text-gray-400 font-mono leading-relaxed uppercase tracking-wider">
-                                    IronFuel compare les données analytiques certifiées. Priorisez toujours la valeur nutritionnelle (Protéines/dose) par rapport au prix brut pour un impact métabolique maximal.
+                                    PharmaShop compare les données analytiques certifiées. Priorisez toujours la sécurité, l'efficacité pharmaceutique et la traçabilité des produits.
                                 </p>
                             </div>
                         </div>
