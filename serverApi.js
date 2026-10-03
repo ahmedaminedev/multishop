@@ -95,13 +95,8 @@ function enrichProductWithFiliale(product, filialeKey) {
 export async function initStores() {
   for (const [key, cfg] of Object.entries(FILIALE_MAP)) {
     try {
-      let p = path.resolve(process.cwd(), 'backend/src/data', `initialData_${key}.js`);
-      if (!fs.existsSync(p)) {
-        p = path.resolve(process.cwd(), cfg.legacyFolder || cfg.folder, 'backend/src/data/initialData.js');
-      }
-      if (!fs.existsSync(p)) {
-        p = path.resolve(process.cwd(), cfg.folder, 'data/initialData.js');
-      }
+      // The authoritative database is strictly located in backend/src/data/
+      const p = path.resolve(process.cwd(), 'backend/src/data', `initialData_${key}.js`);
       const data = require(p);
       const rawProducts = Array.isArray(data.allProducts) ? JSON.parse(JSON.stringify(data.allProducts)) : [];
       const products = rawProducts.map(prod => enrichProductWithFiliale(prod, key));
@@ -115,6 +110,17 @@ export async function initStores() {
       const blogPosts = Array.isArray(data.blogPosts) ? JSON.parse(JSON.stringify(data.blogPosts)) : [];
       const contactMessages = Array.isArray(data.contactMessages) ? JSON.parse(JSON.stringify(data.contactMessages)) : [];
       const brands = [...new Set(products.map(pr => pr.brand).filter(Boolean))].map((name, i) => ({ id: i + 1, name }));
+
+      if (key === 'nutrition' && !advertisements.logoConfig) {
+        advertisements.logoConfig = {
+          logoUrl: '',
+          navbarHeight: 42,
+          footerHeight: 48,
+          textPrimary: 'FITNESS',
+          textSecondary: 'SHOP',
+          tagline: 'ELITE FITNESS EQUIPMENT'
+        };
+      }
 
       storesData[key] = {
         key,
@@ -428,6 +434,80 @@ export function handleApiRequest(req, res, next) {
           return sendJson(200, { success: true, activeShop });
         }
         return sendJson(400, { error: 'Invalid shop' });
+      }
+
+      // --- FILE & LOGO UPLOAD (Saved directly to backend disk in public/uploads) ---
+      if ((endpoint === '/upload' || endpoint === '/upload/logo') && req.method === 'POST') {
+        const body = await getBody();
+        const targetShopKey = body.shop || shopKey || 'nutrition';
+        const targetStore = storesData[targetShopKey] || shop;
+
+        let fileBuffer = null;
+        let ext = 'png';
+
+        if (body.image && typeof body.image === 'string') {
+          // Format base64 data URL: data:image/png;base64,...
+          const matches = body.image.match(/^data:([A-Za-z-+\/]+);base64,(.+)$/);
+          if (matches && matches.length === 3) {
+            const mime = matches[1];
+            if (mime.includes('jpeg') || mime.includes('jpg')) ext = 'jpg';
+            else if (mime.includes('svg')) ext = 'svg';
+            else if (mime.includes('webp')) ext = 'webp';
+            else if (mime.includes('png')) ext = 'png';
+            fileBuffer = Buffer.from(matches[2], 'base64');
+          } else {
+            fileBuffer = Buffer.from(body.image, 'base64');
+          }
+        }
+
+        if (!fileBuffer && body.fileBuffer) {
+          fileBuffer = Buffer.from(body.fileBuffer);
+        }
+
+        if (!fileBuffer) {
+          return sendJson(400, { error: 'No image provided. Base64 payload required in image field.' });
+        }
+
+        const uploadsDir = path.resolve(process.cwd(), 'public/uploads');
+        if (!fs.existsSync(uploadsDir)) {
+          fs.mkdirSync(uploadsDir, { recursive: true });
+        }
+
+        const safePrefix = body.isLogo || endpoint.includes('logo') ? 'logo' : 'img';
+        const fileName = `${safePrefix}_${targetShopKey}_${Date.now()}.${ext}`;
+        const filePath = path.join(uploadsDir, fileName);
+        fs.writeFileSync(filePath, fileBuffer);
+
+        const publicUrl = `/uploads/${fileName}`;
+
+        // If it's a logo upload, immediately update the backend store
+        if (body.isLogo || endpoint.includes('logo') || body.type === 'logo') {
+          if (!targetStore.advertisements) {
+            targetStore.advertisements = {};
+          }
+          if (!targetStore.advertisements.logoConfig) {
+            targetStore.advertisements.logoConfig = {};
+          }
+          targetStore.advertisements.logoConfig.logoUrl = publicUrl;
+          if (body.navbarHeight) targetStore.advertisements.logoConfig.navbarHeight = body.navbarHeight;
+          if (body.footerHeight) targetStore.advertisements.logoConfig.footerHeight = body.footerHeight;
+        }
+
+        return sendJson(200, {
+          success: true,
+          url: publicUrl,
+          fileName,
+          logoConfig: targetStore.advertisements?.logoConfig || null
+        });
+      }
+
+      if ((endpoint === '/upload/logo' || endpoint === '/logo') && req.method === 'DELETE') {
+        const targetShopKey = parsedUrl.query.shop || shopKey || 'nutrition';
+        const targetStore = storesData[targetShopKey] || shop;
+        if (targetStore?.advertisements?.logoConfig) {
+          targetStore.advertisements.logoConfig.logoUrl = '';
+        }
+        return sendJson(200, { success: true, message: 'Logo réinitialisé', logoConfig: targetStore?.advertisements?.logoConfig });
       }
 
       // --- UNIFIED AUTH ROUTES (100% Dynamic with MongoDB schema) ---

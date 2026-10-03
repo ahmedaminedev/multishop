@@ -1,10 +1,11 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import type { Product, Pack, Advertisements, Category, Brand } from '../types';
 import { HeroSection } from './HeroSection';
 import { CategoryBar } from './CategoryBar';
 import { ProductCard } from './ProductCard';
-import { TrustBadges } from './TrustBadges';
-import { ArrowRight } from 'lucide-react';
+import { ShopByGoalSection } from './ShopByGoalSection';
+import { CrossShopSynergy } from './CrossShopSynergy';
+import { ArrowRight, Box, ShieldCheck, Truck, Wrench, Sparkles } from 'lucide-react';
 
 interface HomePageProps {
     onNavigate: (categoryName: string) => void;
@@ -130,6 +131,39 @@ export const HomePage: React.FC<HomePageProps> = ({
             {/* 2. Horizontal 7-Category Bar matching screenshot */}
             <CategoryBar onCategoryClick={onNavigate} />
 
+            {/* 2.1 Tunisia Live Metrics Bar */}
+            <div className="bg-slate-900 border-y border-slate-800 py-3.5 px-4">
+                <div className="max-w-7xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-4 text-center sm:text-left">
+                    <div className="flex items-center gap-2.5 justify-center sm:justify-start">
+                        <Truck className="w-4 h-4 text-[#84cc16] shrink-0" />
+                        <span className="text-[11px] font-bold text-slate-300">
+                            <strong className="text-white">+140 Tonnes</strong> livrées en Tunisie
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 justify-center sm:justify-start">
+                        <ShieldCheck className="w-4 h-4 text-[#84cc16] shrink-0" />
+                        <span className="text-[11px] font-bold text-slate-300">
+                            Garantie <strong className="text-white">36 Mois</strong> châssis acier
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 justify-center sm:justify-start">
+                        <Wrench className="w-4 h-4 text-[#84cc16] shrink-0" />
+                        <span className="text-[11px] font-bold text-slate-300">
+                            Service <strong className="text-white">Montage Pro</strong> disponible
+                        </span>
+                    </div>
+                    <div className="flex items-center gap-2.5 justify-center sm:justify-start">
+                        <Sparkles className="w-4 h-4 text-[#84cc16] shrink-0" />
+                        <span className="text-[11px] font-bold text-slate-300">
+                            Conseil coach <strong className="text-white">7j/7 gratuit</strong>
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            {/* 2.3 Shop By Goal Section */}
+            <ShopByGoalSection onSelectGoal={onNavigate} />
+
             {/* 3. Main Section: Bestsellers & Right Promo Banner matching screenshot */}
             <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 sm:py-14 w-full">
                 
@@ -251,8 +285,10 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </section>
             )}
 
-            {/* 5. Trust Bar matching screenshot */}
-            <TrustBadges />
+            {/* 4.1 Cross-Shop Synergy with other filiales */}
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8">
+                <CrossShopSynergy />
+            </div>
 
         </div>
     );

@@ -317,6 +317,8 @@ export interface LogoConfig {
   logoUrl?: string;
   navbarHeight?: number;
   footerHeight?: number;
+  navbarPosition?: 'left' | 'center' | 'right' | 'custom';
+  navbarOffset?: number;
   textPrimary?: string;
   textSecondary?: string;
   tagline?: string;
@@ -351,6 +353,14 @@ export interface FitnessHomeConfig {
   bestsellersKicker?: string;
   secondaryTitle?: string;
   secondaryKicker?: string;
+  enable3DStudio?: boolean;
+  studioDefaultMode?: 'gym' | 'barbell' | 'exploded';
+  deliveryFreeThreshold?: number;
+  deliveryTunisCost?: number;
+  deliveryRegionsCost?: number;
+  footerPhone?: string;
+  footerEmail?: string;
+  footerAddress?: string;
 }
 
 export interface Advertisements {

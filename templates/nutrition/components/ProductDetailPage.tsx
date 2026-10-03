@@ -9,6 +9,10 @@ import { ReviewsSection } from './ReviewsSection';
 import { ProductGallery } from './ProductGallery';
 import { SEO } from './SEO';
 import { ProductCarousel } from './ProductCarousel';
+import { Fitness3DStudio } from './Fitness3DStudio';
+import { HeavyDeliveryCalculator } from './HeavyDeliveryCalculator';
+import { CrossShopSynergy } from './CrossShopSynergy';
+import { Box, Layers, ShieldCheck, Scale, Dumbbell } from 'lucide-react';
 
 const DetailAccordion: React.FC<{ title: string; isOpen: boolean; onClick: () => void; children: React.ReactNode }> = ({ title, isOpen, onClick, children }) => {
     return (
@@ -42,13 +46,21 @@ export const ProductDetailPage: React.FC<{
 }> = ({ product, allProducts, onNavigateHome, onNavigateToProductDetail, onPreview }) => {
     const [quantity, setQuantity] = useState(1);
     const [selectedColor, setSelectedColor] = useState<ProductColor | null>(null);
+    const [selectedWeight, setSelectedWeight] = useState<number>(20);
     const [activeTab, setActiveTab] = useState<'details' | 'usage' | ''>('details');
+    const [show3DStudio, setShow3DStudio] = useState(false);
     
     const { addToCart, openCart } = useCart();
     const { toggleFavorite, isFavorite } = useFavorites();
     
     const isFav = isFavorite(product.id as number);
     const isOutOfStock = product.quantity === 0;
+
+    const isWeightEquipment = useMemo(() => {
+        const cat = (product.category || '').toLowerCase();
+        const nm = (product.name || '').toLowerCase();
+        return cat.includes('haltère') || cat.includes('poids') || cat.includes('rack') || cat.includes('muscu') || nm.includes('halt') || nm.includes('disque');
+    }, [product]);
 
     useEffect(() => {
         window.scrollTo(0,0);
@@ -61,7 +73,8 @@ export const ProductDetailPage: React.FC<{
 
     const handleAddToCart = () => {
         if (isOutOfStock) return;
-        addToCart({ ...product }, quantity, selectedColor?.name);
+        const variantLabel = selectedColor ? selectedColor.name : (isWeightEquipment ? `Disque Olympique ${selectedWeight} KG` : undefined);
+        addToCart({ ...product }, quantity, variantLabel);
         openCart();
     };
 
@@ -89,11 +102,22 @@ export const ProductDetailPage: React.FC<{
                         
                         {/* --- GAUCHE : GALERIE --- */}
                         <div className="w-full lg:w-1/2 relative">
-                            <div className="lg:sticky lg:top-32 h-auto border border-gray-100 dark:border-gray-800 p-2 bg-white dark:bg-gray-900">
+                            <div className="lg:sticky lg:top-32 h-auto border border-gray-100 dark:border-gray-800 p-2 bg-white dark:bg-gray-900 rounded-2xl shadow-sm">
                                 <ProductGallery 
                                     images={product.images && product.images.length > 0 ? product.images : [product.imageUrl]} 
                                     productName={product.name} 
                                 />
+
+                                {/* Interactive 3D Equipment Studio Trigger */}
+                                <button
+                                    type="button"
+                                    onClick={() => setShow3DStudio(true)}
+                                    className="w-full mt-3 py-3 px-4 bg-slate-900 hover:bg-slate-800 text-white rounded-xl border border-slate-700/80 text-xs font-black uppercase tracking-wider flex items-center justify-center gap-2.5 transition-all shadow-md group cursor-pointer"
+                                >
+                                    <Box className="w-4 h-4 text-[#84cc16] group-hover:rotate-12 transition-transform" />
+                                    <span>Visualiser en Studio 3D 360° & Vue Éclatée</span>
+                                    <span className="w-2 h-2 rounded-full bg-[#84cc16] animate-pulse ml-1"></span>
+                                </button>
                             </div>
                         </div>
 
@@ -118,15 +142,50 @@ export const ProductDetailPage: React.FC<{
                             </div>
 
                             {/* Description Technique */}
-                            <div className="bg-gray-50 dark:bg-[#1f2833] p-6 border-l-4 border-brand-neon mb-10">
+                            <div className="bg-gray-50 dark:bg-[#1f2833] p-6 border-l-4 border-brand-neon mb-8 rounded-r-xl">
                                 <p className="text-gray-700 dark:text-gray-300 font-medium leading-relaxed font-mono text-sm">
                                     {product.description || "Optimisez vos performances avec ce produit de haute qualité. Formulé pour les athlètes exigeants."}
                                 </p>
                             </div>
 
+                            {/* Olympic Weight Selector for weight gear */}
+                            {isWeightEquipment && (
+                                <div className="mb-8 p-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+                                    <div className="flex justify-between items-center mb-3">
+                                        <span className="text-xs font-black uppercase tracking-wider text-slate-700 dark:text-slate-300 flex items-center gap-1.5">
+                                            <Dumbbell className="w-4 h-4 text-[#84cc16]" />
+                                            <span>Déclinaison Charge Olympique (Norme IWF)</span>
+                                        </span>
+                                        <span className="text-xs font-mono font-bold text-[#84cc16]">{selectedWeight} KG</span>
+                                    </div>
+                                    <div className="grid grid-cols-4 gap-2">
+                                        {[
+                                            { wt: 10, color: '#16a34a', label: '10 KG' },
+                                            { wt: 15, color: '#eab308', label: '15 KG' },
+                                            { wt: 20, color: '#2563eb', label: '20 KG' },
+                                            { wt: 25, color: '#dc2626', label: '25 KG' }
+                                        ].map(p => (
+                                            <button
+                                                key={p.wt}
+                                                type="button"
+                                                onClick={() => setSelectedWeight(p.wt)}
+                                                className={`py-2 px-1 rounded-xl border text-center transition-all cursor-pointer ${
+                                                    selectedWeight === p.wt 
+                                                        ? 'border-[#84cc16] bg-white dark:bg-slate-800 shadow-sm' 
+                                                        : 'border-slate-200 dark:border-slate-800 hover:border-slate-400 bg-transparent'
+                                                }`}
+                                            >
+                                                <span className="w-3 h-3 rounded-full mx-auto block mb-1" style={{ backgroundColor: p.color }}></span>
+                                                <span className="text-xs font-mono font-black text-slate-900 dark:text-white block">{p.label}</span>
+                                            </button>
+                                        ))}
+                                    </div>
+                                </div>
+                            )}
+
                             {/* Sélecteur Variante */}
                             {product.colors && product.colors.length > 0 && (
-                                <div className="mb-10">
+                                <div className="mb-8">
                                     <div className="flex justify-between items-end mb-3">
                                         <span className="text-xs font-bold uppercase tracking-widest text-gray-500">Goût / Variante</span>
                                         <span className="font-bold text-brand-neon">{selectedColor?.name}</span>
@@ -149,12 +208,12 @@ export const ProductDetailPage: React.FC<{
                             )}
 
                             {/* Actions */}
-                            <div className="flex flex-col sm:flex-row gap-4 mb-12">
+                            <div className="flex flex-col sm:flex-row gap-4 mb-8">
                                 {/* Quantity */}
                                 <div className="flex items-center bg-slate-100 dark:bg-slate-800 h-13 border border-slate-200 dark:border-slate-700 rounded-xl w-full sm:w-auto overflow-hidden">
-                                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><MinusIcon className="w-4 h-4"/></button>
+                                    <button onClick={() => setQuantity(Math.max(1, quantity - 1))} className="w-12 h-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"><MinusIcon className="w-4 h-4"/></button>
                                     <span className="w-12 text-center font-extrabold text-base">{quantity}</span>
-                                    <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors"><PlusIcon className="w-4 h-4"/></button>
+                                    <button onClick={() => setQuantity(quantity + 1)} className="w-12 h-full flex items-center justify-center hover:bg-slate-200 dark:hover:bg-slate-700 transition-colors cursor-pointer"><PlusIcon className="w-4 h-4"/></button>
                                 </div>
 
                                 {/* Add To Cart */}
@@ -174,6 +233,13 @@ export const ProductDetailPage: React.FC<{
                                     <HeartIcon className="w-5 h-5" solid={isFav} />
                                 </button>
                             </div>
+
+                            {/* Tunisia Heavy Equipment Delivery Calculator */}
+                            <HeavyDeliveryCalculator 
+                                productWeightKg={product.poidsKg || (isWeightEquipment ? 45 : 10)} 
+                                productPrice={product.price}
+                                className="mb-8"
+                            />
 
                             {/* Specs Accordions */}
                             <div className="border-t-2 border-gray-100 dark:border-gray-800">
@@ -199,11 +265,15 @@ export const ProductDetailPage: React.FC<{
                         </div>
                     </div>
 
-                    <div className="mt-24 border-t border-gray-100 dark:border-gray-800 pt-16">
+                    <div className="mt-20 border-t border-gray-100 dark:border-gray-800 pt-10">
+                        <CrossShopSynergy />
+                    </div>
+
+                    <div className="mt-16 border-t border-gray-100 dark:border-gray-800 pt-16">
                         <ReviewsSection targetId={product.id as number} targetType="product" />
                     </div>
 
-                    <div className="mt-24">
+                    <div className="mt-20">
                         <h2 className="text-3xl font-serif font-black uppercase italic mb-8 text-center text-gray-900 dark:text-white">Produits Similaires</h2>
                         {similarProducts.length > 0 && (
                             <ProductCarousel title="" products={similarProducts} onPreview={onPreview} onNavigateToProductDetail={onNavigateToProductDetail} />
@@ -211,6 +281,15 @@ export const ProductDetailPage: React.FC<{
                     </div>
                 </div>
             </div>
+
+            {/* Interactive 3D Studio Modal */}
+            {show3DStudio && (
+                <Fitness3DStudio
+                    isModal={true}
+                    onClose={() => setShow3DStudio(false)}
+                    initialMode={isWeightEquipment ? 'barbell' : 'gym'}
+                />
+            )}
         </div>
     );
 };

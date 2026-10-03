@@ -6,7 +6,7 @@ import { ProductCard } from './ProductCard';
 import { ProductListItem } from './ProductListItem';
 import { Squares2X2Icon, Bars3Icon, AdjustmentsHorizontalIcon, XMarkIcon } from './IconComponents';
 import { ProductListSkeleton } from './Skeletons';
-import { ArrowRight, Tag, SlidersHorizontal, Check } from 'lucide-react';
+import { ArrowRight, Tag, SlidersHorizontal, Check, Table, Dumbbell, ShieldCheck } from 'lucide-react';
 
 interface ProductListPageProps {
     categoryName: string;
@@ -37,7 +37,7 @@ export const ProductListPage: React.FC<ProductListPageProps> = ({
 }) => {
     const [initialProducts, setInitialProducts] = useState<Product[]>([]);
     const [sortOrder, setSortOrder] = useState('price-asc');
-    const [viewMode, setViewMode] = useState<'grid-3' | 'grid-4' | 'list'>('grid-4');
+    const [viewMode, setViewMode] = useState<'grid-3' | 'grid-4' | 'list' | 'table'>('grid-4');
     const [isLoading, setIsLoading] = useState(true);
     const [showMobileFilters, setShowMobileFilters] = useState(false);
     
@@ -367,52 +367,124 @@ export const ProductListPage: React.FC<ProductListPageProps> = ({
                                 </div>
 
                                 {/* View Switcher */}
-                                <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1">
+                                <div className="flex items-center bg-slate-100 dark:bg-slate-800 rounded-xl p-1 gap-0.5">
                                     <button 
                                         onClick={() => setViewMode('grid-4')} 
                                         className={`p-1.5 rounded-lg transition-colors ${viewMode === 'grid-4' ? 'bg-white dark:bg-slate-900 text-[#84cc16] shadow-xs' : 'text-slate-400 hover:text-slate-600'}`}
-                                        title="Grille 4"
+                                        title="Vue Grille"
                                     >
                                         <Squares2X2Icon className="w-4 h-4"/>
                                     </button>
                                     <button 
                                         onClick={() => setViewMode('list')} 
                                         className={`p-1.5 rounded-lg transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-slate-900 text-[#84cc16] shadow-xs' : 'text-slate-400 hover:text-slate-600'}`}
-                                        title="Liste"
+                                        title="Vue Liste"
                                     >
                                         <Bars3Icon className="w-4 h-4"/>
+                                    </button>
+                                    <button 
+                                        onClick={() => setViewMode('table')} 
+                                        className={`p-1.5 rounded-lg transition-colors flex items-center gap-1 ${viewMode === 'table' ? 'bg-white dark:bg-slate-900 text-[#84cc16] shadow-xs' : 'text-slate-400 hover:text-slate-600'}`}
+                                        title="Vue Tableau Comparatif Pro"
+                                    >
+                                        <Table className="w-4 h-4"/>
                                     </button>
                                 </div>
                             </div>
                         </div>
 
-                        {/* Product Cards Grid */}
+                        {/* Product Cards Grid or Technical Table */}
                         {isLoading ? (
                             <ProductListSkeleton count={8} />
                         ) : displayedProducts.length > 0 ? (
-                            <div className={
-                                viewMode === 'list'
-                                    ? 'space-y-4'
-                                    : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5'
-                            }>
-                                {displayedProducts.map((product) => (
-                                    <div key={product.id}>
-                                        {viewMode === 'list' ? (
-                                            <ProductListItem 
-                                                product={product} 
-                                                onPreview={onPreview} 
-                                                onNavigateToProductDetail={onNavigateToProductDetail}
-                                            />
-                                        ) : (
-                                            <ProductCard 
-                                                product={product} 
-                                                onPreview={onPreview} 
-                                                onNavigateToProductDetail={onNavigateToProductDetail} 
-                                            />
-                                        )}
+                            viewMode === 'table' ? (
+                                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/80 dark:border-slate-800 overflow-hidden shadow-sm">
+                                    <div className="overflow-x-auto">
+                                        <table className="w-full text-left border-collapse text-xs">
+                                            <thead>
+                                                <tr className="bg-slate-100/80 dark:bg-slate-800/80 border-b border-slate-200 dark:border-slate-800 text-[10px] font-black uppercase text-slate-500 tracking-wider">
+                                                    <th className="py-3.5 px-4">Équipement</th>
+                                                    <th className="py-3.5 px-4">Catégorie</th>
+                                                    <th className="py-3.5 px-4">Capacité / Poids</th>
+                                                    <th className="py-3.5 px-4">Châssis & Matière</th>
+                                                    <th className="py-3.5 px-4">Garantie</th>
+                                                    <th className="py-3.5 px-4 text-right">Prix (DT)</th>
+                                                    <th className="py-3.5 px-4 text-center">Action</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                                                {displayedProducts.map((p) => (
+                                                    <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/50 transition-colors">
+                                                        <td className="py-3 px-4">
+                                                            <div className="flex items-center gap-3">
+                                                                <img 
+                                                                    src={p.imageUrl} 
+                                                                    alt={p.name} 
+                                                                    className="w-12 h-12 object-cover rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-100" 
+                                                                />
+                                                                <div>
+                                                                    <span className="font-bold text-slate-900 dark:text-white block hover:text-[#84cc16] cursor-pointer" onClick={() => onNavigateToProductDetail(p.id)}>
+                                                                        {p.name}
+                                                                    </span>
+                                                                    <span className="text-[10px] text-slate-400 font-bold uppercase">{p.brand}</span>
+                                                                </div>
+                                                            </div>
+                                                        </td>
+                                                        <td className="py-3 px-4 text-slate-600 dark:text-slate-300">
+                                                            {p.category}
+                                                        </td>
+                                                        <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">
+                                                            {p.chargeMaxKg ? `${p.chargeMaxKg} KG Max` : p.poidsKg ? `${p.poidsKg} KG` : 'Standard Pro'}
+                                                        </td>
+                                                        <td className="py-3 px-4 text-slate-600 dark:text-slate-400">
+                                                            {p.matiere || 'Acier Carbone & Fonte'}
+                                                        </td>
+                                                        <td className="py-3 px-4 font-bold text-emerald-600 dark:text-emerald-400">
+                                                            {p.garantieMois ? `${p.garantieMois} Mois` : '24 Mois'}
+                                                        </td>
+                                                        <td className="py-3 px-4 text-right font-mono font-black text-slate-900 dark:text-white text-sm">
+                                                            {p.price.toFixed(3)}
+                                                        </td>
+                                                        <td className="py-3 px-4 text-center">
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => onNavigateToProductDetail(p.id)}
+                                                                className="px-3 py-1.5 bg-[#84cc16] hover:bg-[#72b012] text-black font-black uppercase text-[10px] rounded-lg tracking-wider transition-colors cursor-pointer"
+                                                            >
+                                                                Détails
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))}
+                                            </tbody>
+                                        </table>
                                     </div>
-                                ))}
-                            </div>
+                                </div>
+                            ) : (
+                                <div className={
+                                    viewMode === 'list'
+                                        ? 'space-y-4'
+                                        : 'grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-5'
+                                }>
+                                    {displayedProducts.map((product) => (
+                                        <div key={product.id}>
+                                            {viewMode === 'list' ? (
+                                                <ProductListItem 
+                                                    product={product} 
+                                                    onPreview={onPreview} 
+                                                    onNavigateToProductDetail={onNavigateToProductDetail}
+                                                />
+                                            ) : (
+                                                <ProductCard 
+                                                    product={product} 
+                                                    onPreview={onPreview} 
+                                                    onNavigateToProductDetail={onNavigateToProductDetail} 
+                                                />
+                                            )}
+                                        </div>
+                                    ))}
+                                </div>
+                            )
                         ) : (
                             <div className="flex flex-col items-center justify-center py-24 px-4 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 text-center">
                                 <div className="w-16 h-16 rounded-2xl bg-slate-100 dark:bg-slate-800 flex items-center justify-center mb-4 text-slate-400">

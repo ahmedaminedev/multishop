@@ -115,8 +115,13 @@ export const Header: React.FC<HeaderProps> = ({
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
                 <div className="flex items-center justify-between gap-4 lg:gap-8">
                     
-                    {/* Logo */}
-                    <div className="shrink-0 flex items-center">
+                    {/* Logo with Dynamic Positioning and Drag Offset */}
+                    <div 
+                        className="shrink-0 flex items-center transition-transform duration-100"
+                        style={{
+                            transform: activeLogoConfig?.navbarOffset ? `translateX(${activeLogoConfig.navbarOffset}px)` : undefined
+                        }}
+                    >
                         <a href="#/" className="block">
                             <Logo logoConfig={activeLogoConfig} variant="navbar" />
                         </a>

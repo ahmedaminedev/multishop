@@ -169,6 +169,28 @@ export const api = {
     getAdvertisements: () => apiRequest('/advertisements'),
     updateAdvertisements: (ads: any) => apiRequest('/advertisements', 'POST', ads),
 
+    // Logo & Image Upload (Persisted directly in backend)
+    uploadLogo: async (dataUrlOrBase64: string, dimensions?: { navbarHeight?: number; footerHeight?: number }) => {
+        return apiRequest('/upload', 'POST', {
+            image: dataUrlOrBase64,
+            shop: 'nutrition',
+            isLogo: true,
+            type: 'logo',
+            navbarHeight: dimensions?.navbarHeight,
+            footerHeight: dimensions?.footerHeight
+        });
+    },
+    resetLogo: async () => {
+        return apiRequest('/upload/logo?shop=nutrition', 'DELETE');
+    },
+    uploadImage: async (dataUrlOrBase64: string, filename?: string) => {
+        return apiRequest('/upload', 'POST', {
+            image: dataUrlOrBase64,
+            filename: filename || 'image.png',
+            shop: 'nutrition'
+        });
+    },
+
     // Offers Config
     getOffersConfig: () => apiRequest('/offers-config'),
     updateOffersConfig: (config: any) => apiRequest('/offers-config', 'POST', config),
