@@ -1,6 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import type { Advertisements, Product, Pack, Category, Store, Promotion, Brand, LogoConfig } from '../../types';
 import { Logo } from '../Logo';
+import { Header } from '../Header';
+import { NavBar } from '../NavBar';
 import { HeroSection } from '../HeroSection';
 import { CategoryBar } from '../CategoryBar';
 import { ShopByGoalSection } from '../ShopByGoalSection';
@@ -111,6 +113,7 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
 
     // Interactive Drag listener for navbar logo positioning
     const handleLogoDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        if ('preventDefault' in e) e.preventDefault();
         e.stopPropagation();
         setIsDraggingLogo(true);
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
@@ -124,7 +127,7 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
         const handleMove = (e: MouseEvent | TouchEvent) => {
             const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
             const delta = clientX - dragStartX.current;
-            const newOffset = Math.max(-20, Math.min(350, Math.round(dragStartOffset.current + delta)));
+            const newOffset = Math.max(0, Math.min(1000, Math.round(dragStartOffset.current + delta)));
             setLocalOffset(newOffset);
         };
 
@@ -385,89 +388,43 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
                     }`}
                 >
 
-                    {/* TOP STORE HEADER WITH DRAGGABLE LOGO */}
-                    <div className="w-full bg-white dark:bg-[#0c1422] border-b border-slate-200 dark:border-slate-800 sticky top-0 z-40 shadow-xs">
-                        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 flex items-center justify-between gap-4">
-                            
-                            {/* Draggable Logo */}
-                            <div className="relative flex items-center">
-                                <div 
-                                    onMouseDown={handleLogoDragStart}
-                                    onTouchStart={handleLogoDragStart}
-                                    style={{
-                                        transform: `translateX(${localOffset}px)`,
-                                        cursor: isDraggingLogo ? 'grabbing' : 'grab'
-                                    }}
-                                    className={`relative flex items-center p-1.5 rounded-xl transition-all ${
-                                        isDraggingLogo 
-                                            ? 'ring-2 ring-[#84cc16] bg-[#84cc16]/20 shadow-lg' 
-                                            : 'hover:ring-1 hover:ring-[#84cc16]/70'
-                                    }`}
-                                    title="Glissez horizontalement pour fixer la position du logo dans la Navbar"
-                                >
-                                    <div className="mr-1 text-slate-400 hover:text-[#84cc16] opacity-70 hover:opacity-100 cursor-grab">
-                                        <GripVertical className="w-4 h-4" />
-                                    </div>
-
-                                    <Logo logoConfig={currentLogoConfig} variant="navbar" />
-
-                                    {/* Position tooltip */}
-                                    <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-black/90 text-[#84cc16] font-mono text-[9px] font-bold whitespace-nowrap pointer-events-none transition-opacity shadow-md ${
-                                        isDraggingLogo ? 'opacity-100' : 'opacity-0 hover:opacity-100'
-                                    }`}>
-                                        Position: {localOffset}px (Glisser pour fixer)
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Search bar mock */}
-                            <div className="flex-1 max-w-md mx-4 hidden md:block">
-                                <div className="relative">
-                                    <input 
-                                        type="text" 
-                                        readOnly 
-                                        placeholder="Rechercher un produit, une marque... (Aperçu direct)" 
-                                        className="w-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-full py-2 pl-4 pr-10 text-xs text-slate-500"
-                                    />
-                                    <div className="absolute right-1 top-1 bottom-1 px-3 bg-[#84cc16] text-black font-bold text-xs rounded-full flex items-center">
-                                        <Search className="w-3.5 h-3.5" />
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Quick Navigation Items */}
-                            <div className="flex items-center gap-4 text-xs font-bold text-slate-600 dark:text-slate-300">
-                                <button 
-                                    type="button" 
-                                    onClick={() => setCurrentPage('home')}
-                                    className={`cursor-pointer hover:text-[#84cc16] ${currentPage === 'home' ? 'text-[#84cc16]' : ''}`}
-                                >
-                                    Accueil
-                                </button>
-                                <button 
-                                    type="button" 
-                                    onClick={() => setCurrentPage('products')}
-                                    className={`cursor-pointer hover:text-[#84cc16] ${currentPage === 'products' ? 'text-[#84cc16]' : ''}`}
-                                >
-                                    Musculation
-                                </button>
-                                <button 
-                                    type="button" 
-                                    onClick={() => setCurrentPage('packs')}
-                                    className={`cursor-pointer hover:text-[#84cc16] ${currentPage === 'packs' ? 'text-[#84cc16]' : ''}`}
-                                >
-                                    Packs
-                                </button>
-                                <button 
-                                    type="button" 
-                                    onClick={() => setCurrentPage('promotions')}
-                                    className={`cursor-pointer text-[#84cc16] font-black ${currentPage === 'promotions' ? 'underline' : ''}`}
-                                >
-                                    Promotions
-                                </button>
-                            </div>
-
+                    {/* REAL STORE HEADER WITH DRAGGABLE LOGO */}
+                    <div className="sticky top-0 z-40 shadow-xs relative">
+                        <div className="absolute top-2 right-4 z-50 px-2.5 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-md flex items-center gap-1.5 pointer-events-none">
+                            <MoveHorizontal className="w-3 h-3" />
+                            <span>Glissez le logo librement ({localOffset}px)</span>
                         </div>
+                        <Header 
+                            user={null}
+                            onNavigateToLogin={() => {}}
+                            isLoggedIn={false}
+                            onLogout={() => {}}
+                            onNavigateToFavorites={() => {}}
+                            onNavigateToProfile={() => {}}
+                            onNavigateToOrderHistory={() => {}}
+                            allProducts={products}
+                            allPacks={packs}
+                            allCategories={categories}
+                            onNavigateToCategory={(cat) => { setSelectedCategory(cat); setCurrentPage('products'); }}
+                            onNavigateToProductDetail={() => {}}
+                            onNavigateToCompare={() => {}}
+                            advertisements={advertisements}
+                            logoConfig={currentLogoConfig}
+                            isDraggableLogo={true}
+                            onLogoDragStart={handleLogoDragStart}
+                            isDraggingLogo={isDraggingLogo}
+                        />
+
+                        {/* REAL STORE DARK NAVIGATION BAR */}
+                        <NavBar 
+                            onNavigateHome={() => setCurrentPage('home')}
+                            onNavigateToCategory={(cat) => { setSelectedCategory(cat); setCurrentPage('products'); }}
+                            onNavigateToPacks={() => setCurrentPage('packs')}
+                            onNavigateToPromotions={() => setCurrentPage('promotions')}
+                            onNavigateToBlog={() => {}}
+                            onNavigateToNews={() => {}}
+                            onNavigateToContact={() => setCurrentPage('contact')}
+                        />
                     </div>
 
                     {/* SUB-SITE PAGE RENDERER */}

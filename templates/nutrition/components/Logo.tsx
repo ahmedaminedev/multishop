@@ -49,8 +49,9 @@ export const Logo: React.FC<LogoProps> = ({
                 <img 
                     src={customLogoUrl} 
                     alt={`${textPrimary} ${textSecondary}`} 
-                    style={{ height: `${height}px`, maxHeight: '100%', width: 'auto' }}
-                    className="object-contain group-hover:scale-[1.02] transition-transform duration-200"
+                    draggable={false}
+                    style={{ height: `${height}px`, maxHeight: '100%', width: 'auto', userSelect: 'none' }}
+                    className="object-contain group-hover:scale-[1.02] transition-transform duration-200 pointer-events-none"
                 />
             </div>
         );

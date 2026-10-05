@@ -409,39 +409,39 @@ export const EditorPanel: React.FC<EditorPanelProps> = ({
                             </button>
                             <button
                                 type="button"
-                                onClick={() => updateLogoConfig({ navbarOffset: 80, navbarPosition: 'custom' })}
+                                onClick={() => updateLogoConfig({ navbarOffset: 350, navbarPosition: 'custom' })}
                                 className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
-                                    (logoConfig.navbarOffset || 0) === 80
+                                    (logoConfig.navbarOffset || 0) === 350
                                         ? 'bg-[#84cc16] text-black border-[#84cc16]'
                                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                                 }`}
                             >
-                                ⏺ Décalé (+80px)
+                                ⏺ Centre (+350px)
                             </button>
                             <button
                                 type="button"
-                                onClick={() => updateLogoConfig({ navbarOffset: 180, navbarPosition: 'custom' })}
+                                onClick={() => updateLogoConfig({ navbarOffset: 700, navbarPosition: 'custom' })}
                                 className={`py-1.5 px-2 rounded-xl text-[11px] font-bold border transition-all cursor-pointer ${
-                                    (logoConfig.navbarOffset || 0) === 180
+                                    (logoConfig.navbarOffset || 0) === 700
                                         ? 'bg-[#84cc16] text-black border-[#84cc16]'
                                         : 'bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700'
                                 }`}
                             >
-                                ▶ Plus à Droite (+180px)
+                                ▶ Droite (+700px)
                             </button>
                         </div>
 
                         <input 
                             type="range"
-                            min="-20"
-                            max="350"
+                            min="0"
+                            max="1000"
                             value={logoConfig.navbarOffset || 0}
                             onChange={(e) => updateLogoConfig({ navbarOffset: Number(e.target.value), navbarPosition: 'custom' })}
                             className="w-full accent-[#84cc16] cursor-pointer"
                         />
 
                         <p className="text-[11px] text-slate-500 leading-relaxed">
-                            💡 <strong>Glissement direct :</strong> Vous pouvez glisser ce curseur ou <em>glisser le logo à la souris</em> directement dans l'aperçu de la Navbar ci-contre.
+                            💡 <strong>Glissement libre :</strong> Glissez directement le logo à la souris dans l'aperçu ou en plein écran, ou ajustez ce curseur (de 0 à 1000px).
                         </p>
                     </div>
 

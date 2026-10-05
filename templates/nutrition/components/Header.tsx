@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { User, ShoppingCart, Search, Heart, Scale } from 'lucide-react';
+import { User, ShoppingCart, Search, Heart, Scale, GripVertical } from 'lucide-react';
 import { Logo } from './Logo';
 import { ThemeToggle } from './ThemeToggle';
 import { useCart } from './CartContext';
@@ -16,14 +16,18 @@ interface HeaderProps {
     onNavigateToFavorites: () => void;
     onNavigateToProfile: () => void;
     onNavigateToOrderHistory: () => void;
-    allProducts: Product[];
-    allPacks: Pack[];
-    allCategories: Category[];
+    allProducts?: Product[];
+    allPacks?: Pack[];
+    allCategories?: Category[];
     onNavigateToCategory: (categoryName: string) => void;
     onNavigateToProductDetail: (productId: number) => void;
     onNavigateToCompare: () => void;
     advertisements?: Advertisements;
     logoConfig?: LogoConfig;
+    isDraggableLogo?: boolean;
+    onLogoDragStart?: (e: React.MouseEvent | React.TouchEvent) => void;
+    isDraggingLogo?: boolean;
+    onLogoClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({ 
@@ -34,13 +38,17 @@ export const Header: React.FC<HeaderProps> = ({
     onNavigateToFavorites, 
     onNavigateToProfile,
     onNavigateToOrderHistory,
-    allProducts,
-    allCategories,
+    allProducts = [],
+    allCategories = [],
     onNavigateToCategory,
     onNavigateToProductDetail,
     onNavigateToCompare,
     advertisements,
-    logoConfig
+    logoConfig,
+    isDraggableLogo = false,
+    onLogoDragStart,
+    isDraggingLogo = false,
+    onLogoClick
 }) => {
     const { itemCount, openCart, cartTotal } = useCart();
     const { favoritesCount } = useFavorites();
@@ -74,13 +82,13 @@ export const Header: React.FC<HeaderProps> = ({
             const categoryResults: { name: string }[] = [];
             const foundProductIds = new Set<number>();
 
-            allCategories.forEach(cat => {
+            (allCategories || []).forEach(cat => {
                 if (cat.name && cat.name.toLowerCase().includes(query)) {
                     categoryResults.push({ name: cat.name });
                 }
             });
 
-            allProducts.forEach(product => {
+            (allProducts || []).forEach(product => {
                 if (
                     product.name.toLowerCase().includes(query) ||
                     (product.brand && product.brand.toLowerCase().includes(query)) ||
@@ -116,16 +124,49 @@ export const Header: React.FC<HeaderProps> = ({
                 <div className="flex items-center justify-between gap-4 lg:gap-8">
                     
                     {/* Logo with Dynamic Positioning and Drag Offset */}
-                    <div 
-                        className="shrink-0 flex items-center transition-transform duration-100"
-                        style={{
-                            transform: activeLogoConfig?.navbarOffset ? `translateX(${activeLogoConfig.navbarOffset}px)` : undefined
-                        }}
-                    >
-                        <a href="#/" className="block">
+                    {isDraggableLogo ? (
+                        <div 
+                            onMouseDown={onLogoDragStart}
+                            onTouchStart={onLogoDragStart}
+                            onClick={onLogoClick}
+                            style={{
+                                transform: `translateX(${activeLogoConfig?.navbarOffset || 0}px)`,
+                                cursor: isDraggingLogo ? 'grabbing' : 'grab',
+                                touchAction: 'none',
+                                willChange: 'transform'
+                            }}
+                            className={`relative shrink-0 flex items-center p-1.5 rounded-xl select-none transition-shadow ${
+                                isDraggingLogo 
+                                    ? 'ring-4 ring-[#84cc16] bg-[#84cc16]/25 shadow-2xl z-50 scale-[1.02]' 
+                                    : 'hover:ring-2 hover:ring-[#84cc16]/70 z-40'
+                            }`}
+                            title="Glissez horizontalement pour déplacer librement le logo dans la Navbar"
+                        >
+                            <div className="mr-1.5 text-slate-400 hover:text-[#84cc16] opacity-70 hover:opacity-100 cursor-grab">
+                                <GripVertical className="w-4 h-4 text-[#84cc16]" />
+                            </div>
+
                             <Logo logoConfig={activeLogoConfig} variant="navbar" />
-                        </a>
-                    </div>
+
+                            {/* Floating position indicator */}
+                            <div className={`absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-black/95 text-[#84cc16] font-mono text-[10px] font-black whitespace-nowrap pointer-events-none transition-opacity shadow-xl z-50 border border-[#84cc16]/40 ${
+                                isDraggingLogo ? 'opacity-100 scale-105' : 'opacity-0 hover:opacity-100'
+                            }`}>
+                                Position: {activeLogoConfig?.navbarOffset || 0}px
+                            </div>
+                        </div>
+                    ) : (
+                        <div 
+                            className="shrink-0 flex items-center transition-transform duration-100"
+                            style={{
+                                transform: activeLogoConfig?.navbarOffset ? `translateX(${activeLogoConfig.navbarOffset}px)` : undefined
+                            }}
+                        >
+                            <a href="#/" className="block" onClick={(e) => { if (onLogoClick) { e.preventDefault(); onLogoClick(); } }}>
+                                <Logo logoConfig={activeLogoConfig} variant="navbar" />
+                            </a>
+                        </div>
+                    )}
 
                     {/* Centered Search Bar with Square Green Button */}
                     <div className="flex-1 max-w-2xl mx-auto hidden md:block" ref={searchRef}>

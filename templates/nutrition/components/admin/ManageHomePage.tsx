@@ -4,6 +4,8 @@ import { useToast } from '../ToastContext';
 import { EditorPanel } from './EditorPanel';
 import { api } from '../../utils/api';
 import { Logo } from '../Logo';
+import { Header } from '../Header';
+import { NavBar } from '../NavBar';
 import { HeroSection } from '../HeroSection';
 import { CategoryBar } from '../CategoryBar';
 import { ProductCard } from '../ProductCard';
@@ -24,7 +26,9 @@ interface ManageHomePageProps {
 export const ManageHomePage: React.FC<ManageHomePageProps> = ({ 
     initialAds, 
     onSave, 
-    allProducts = []
+    allProducts = [],
+    allPacks = [],
+    allCategories = []
 }) => {
     const { addToast } = useToast();
 
@@ -104,6 +108,7 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
 
     // Interactive Drag listener for navbar logo positioning
     const handleLogoDragStart = (e: React.MouseEvent | React.TouchEvent) => {
+        if ('preventDefault' in e) e.preventDefault();
         e.stopPropagation();
         setIsDraggingLogo(true);
         const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
@@ -117,7 +122,7 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
         const handleMove = (e: MouseEvent | TouchEvent) => {
             const clientX = 'touches' in e ? e.touches[0].clientX : e.clientX;
             const delta = clientX - dragStartX.current;
-            const newOffset = Math.max(-20, Math.min(350, Math.round(dragStartOffset.current + delta)));
+            const newOffset = Math.max(0, Math.min(1000, Math.round(dragStartOffset.current + delta)));
             
             setAdsConfig(prev => ({
                 ...prev,
@@ -379,7 +384,7 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
                 <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 bg-slate-200/50 dark:bg-[#05070c]">
                     <div className="max-w-6xl mx-auto space-y-6">
 
-                        {/* Interactive Clickable Section 1: Top Navigation Bar Preview with Logo */}
+                        {/* Interactive Clickable Section 1: Real Store Header & NavBar with Draggable Logo */}
                         <div 
                             onClick={() => setActiveSection('logo')}
                             className={`relative rounded-2xl overflow-hidden bg-white dark:bg-slate-900 border-2 transition-all cursor-pointer shadow-sm ${
@@ -388,48 +393,44 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
                                     : 'border-slate-200 dark:border-slate-800 hover:border-slate-400'
                             }`}
                         >
-                            <div className="absolute top-2 right-2 z-20 px-2.5 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-sm flex items-center gap-1.5">
+                            <div className="absolute top-2 right-2 z-50 px-2.5 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-sm flex items-center gap-1.5 pointer-events-none">
                                 <MoveHorizontal className="w-3 h-3" />
                                 <span>Glissez le logo pour fixer sa position ({currentLogoConfig.navbarOffset || 0}px)</span>
                             </div>
 
-                            <div className="px-6 py-3 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between select-none">
-                                {/* Interactive Draggable Logo Container */}
-                                <div 
-                                    onMouseDown={handleLogoDragStart}
-                                    onTouchStart={handleLogoDragStart}
-                                    style={{
-                                        transform: `translateX(${currentLogoConfig.navbarOffset || 0}px)`,
-                                        cursor: isDraggingLogo ? 'grabbing' : 'grab'
-                                    }}
-                                    className={`relative flex items-center p-1 rounded-xl transition-shadow ${
-                                        isDraggingLogo 
-                                            ? 'ring-2 ring-[#84cc16] bg-[#84cc16]/15 shadow-md' 
-                                            : 'hover:ring-1 hover:ring-[#84cc16]/60'
-                                    }`}
-                                    title="Glissez horizontalement pour fixer la position du logo dans la Navbar"
-                                >
-                                    <div className="mr-1 text-slate-400 hover:text-[#84cc16] opacity-60 hover:opacity-100 cursor-grab">
-                                        <GripVertical className="w-4 h-4" />
-                                    </div>
+                            {/* Real Store Header Component */}
+                            <Header 
+                                user={null}
+                                onNavigateToLogin={() => {}}
+                                isLoggedIn={false}
+                                onLogout={() => {}}
+                                onNavigateToFavorites={() => {}}
+                                onNavigateToProfile={() => {}}
+                                onNavigateToOrderHistory={() => {}}
+                                allProducts={allProducts}
+                                allPacks={allPacks || []}
+                                allCategories={allCategories || []}
+                                onNavigateToCategory={() => {}}
+                                onNavigateToProductDetail={() => {}}
+                                onNavigateToCompare={() => {}}
+                                advertisements={adsConfig}
+                                logoConfig={currentLogoConfig}
+                                isDraggableLogo={true}
+                                onLogoDragStart={handleLogoDragStart}
+                                isDraggingLogo={isDraggingLogo}
+                                onLogoClick={() => setActiveSection('logo')}
+                            />
 
-                                    <Logo logoConfig={currentLogoConfig} variant="navbar" />
-
-                                    {/* Floating position indicator */}
-                                    <div className={`absolute -bottom-6 left-1/2 -translate-x-1/2 px-2 py-0.5 rounded bg-black/90 text-white font-mono text-[9px] whitespace-nowrap pointer-events-none transition-opacity ${
-                                        isDraggingLogo ? 'opacity-100' : 'opacity-0 hover:opacity-100'
-                                    }`}>
-                                        Position: {currentLogoConfig.navbarOffset || 0}px
-                                    </div>
-                                </div>
-
-                                <div className="flex items-center gap-3 text-xs text-slate-400 font-semibold pointer-events-none">
-                                    <span>Musculation</span>
-                                    <span>Cardio</span>
-                                    <span>Cross Training</span>
-                                    <span className="text-[#84cc16] font-bold">Promotions</span>
-                                </div>
-                            </div>
+                            {/* Real Store Dark Navigation Bar */}
+                            <NavBar 
+                                onNavigateHome={() => {}}
+                                onNavigateToCategory={() => {}}
+                                onNavigateToPacks={() => {}}
+                                onNavigateToPromotions={() => {}}
+                                onNavigateToBlog={() => {}}
+                                onNavigateToNews={() => {}}
+                                onNavigateToContact={() => {}}
+                            />
                         </div>
 
                         {/* Interactive Clickable Section 2: Hero Section */}
@@ -560,6 +561,8 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
                         adsConfig={adsConfig}
                         onChangeAdsConfig={handleUpdateAdsConfig}
                         allProducts={allProducts}
+                        allCategories={allCategories}
+                        allPacks={allPacks}
                     />
                 </div>
 
@@ -624,6 +627,60 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
                             </button>
                         </div>
 
+                        {/* Quick Logo Position Control */}
+                        <div className="hidden lg:flex items-center gap-2 bg-slate-900 border border-slate-800 px-3 py-1.5 rounded-xl">
+                            <MoveHorizontal className="w-3.5 h-3.5 text-[#84cc16]" />
+                            <span className="text-xs font-bold text-slate-300">Logo:</span>
+                            <span className="font-mono text-xs font-black text-[#84cc16] min-w-[45px]">{currentLogoConfig.navbarOffset || 0}px</span>
+                            <div className="flex items-center gap-1">
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAdsConfig(prev => ({
+                                            ...prev,
+                                            logoConfig: { ...(prev.logoConfig || {}), navbarOffset: 0, navbarPosition: 'left' }
+                                        }));
+                                        setIsDirty(true);
+                                    }}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                                        (currentLogoConfig.navbarOffset || 0) === 0 ? 'bg-[#84cc16] text-black' : 'bg-slate-800 text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                    0px
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAdsConfig(prev => ({
+                                            ...prev,
+                                            logoConfig: { ...(prev.logoConfig || {}), navbarOffset: 350, navbarPosition: 'custom' }
+                                        }));
+                                        setIsDirty(true);
+                                    }}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                                        (currentLogoConfig.navbarOffset || 0) === 350 ? 'bg-[#84cc16] text-black' : 'bg-slate-800 text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                    350px
+                                </button>
+                                <button
+                                    type="button"
+                                    onClick={() => {
+                                        setAdsConfig(prev => ({
+                                            ...prev,
+                                            logoConfig: { ...(prev.logoConfig || {}), navbarOffset: 700, navbarPosition: 'custom' }
+                                        }));
+                                        setIsDirty(true);
+                                    }}
+                                    className={`px-2 py-0.5 rounded text-[10px] font-bold cursor-pointer transition-colors ${
+                                        (currentLogoConfig.navbarOffset || 0) === 700 ? 'bg-[#84cc16] text-black' : 'bg-slate-800 text-slate-300 hover:text-white'
+                                    }`}
+                                >
+                                    700px
+                                </button>
+                            </div>
+                        </div>
+
                         {/* Actions */}
                         <div className="flex items-center gap-3">
                             <button
@@ -659,21 +716,42 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
                                         : 'w-full min-h-screen'
                             }`}
                         >
-                            {/* Live Navbar with Logo */}
-                            <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-white dark:bg-slate-900 sticky top-0 z-30 shadow-xs">
-                                <div 
-                                    className="flex items-center transition-transform"
-                                    style={{ transform: currentLogoConfig.navbarOffset ? `translateX(${currentLogoConfig.navbarOffset}px)` : undefined }}
-                                >
-                                    <Logo logoConfig={currentLogoConfig} variant="navbar" />
+                            {/* Live Store Header & NavBar with Draggable Logo */}
+                            <div className="relative">
+                                <div className="absolute top-2 right-4 z-50 px-2.5 py-1 bg-[#84cc16] text-black text-[10px] font-black uppercase rounded-lg shadow-md flex items-center gap-1.5 pointer-events-none">
+                                    <MoveHorizontal className="w-3 h-3" />
+                                    <span>Glissez le logo librement ({currentLogoConfig.navbarOffset || 0}px)</span>
                                 </div>
-                                <div className="hidden md:flex items-center gap-6 text-xs font-bold text-slate-600 dark:text-slate-300">
-                                    <span>Musculation</span>
-                                    <span>Cardio</span>
-                                    <span>Cross Training</span>
-                                    <span>Haltères</span>
-                                    <span className="text-[#84cc16] font-black">Promotions</span>
-                                </div>
+                                <Header 
+                                    user={null}
+                                    onNavigateToLogin={() => {}}
+                                    isLoggedIn={false}
+                                    onLogout={() => {}}
+                                    onNavigateToFavorites={() => {}}
+                                    onNavigateToProfile={() => {}}
+                                    onNavigateToOrderHistory={() => {}}
+                                    allProducts={allProducts}
+                                    allPacks={allPacks || []}
+                                    allCategories={allCategories || []}
+                                    onNavigateToCategory={() => {}}
+                                    onNavigateToProductDetail={() => {}}
+                                    onNavigateToCompare={() => {}}
+                                    advertisements={adsConfig}
+                                    logoConfig={currentLogoConfig}
+                                    isDraggableLogo={true}
+                                    onLogoDragStart={handleLogoDragStart}
+                                    isDraggingLogo={isDraggingLogo}
+                                    onLogoClick={() => setActiveSection('logo')}
+                                />
+                                <NavBar 
+                                    onNavigateHome={() => {}}
+                                    onNavigateToCategory={() => {}}
+                                    onNavigateToPacks={() => {}}
+                                    onNavigateToPromotions={() => {}}
+                                    onNavigateToBlog={() => {}}
+                                    onNavigateToNews={() => {}}
+                                    onNavigateToContact={() => {}}
+                                />
                             </div>
 
                             {/* Hero */}
@@ -700,7 +778,7 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
 
                                 <div className="grid grid-cols-1 xl:grid-cols-12 gap-5 items-stretch">
                                     <div className="xl:col-span-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                                        {bestsellers.map((product: any) => (
+                                        {bestsellersPreview.map((product: any) => (
                                             <ProductCard key={product.id} product={product} onNavigateToProductDetail={() => {}} />
                                         ))}
                                     </div>

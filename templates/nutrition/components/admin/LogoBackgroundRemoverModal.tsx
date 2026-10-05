@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { XMarkIcon } from './IconComponents';
+import { XMarkIcon } from '../IconComponents';
 import { Wand2, Sliders, Check, RotateCcw, Pipette, Eye, Loader2, Sparkles, AlertCircle } from 'lucide-react';
 
 interface LogoBackgroundRemoverModalProps {
