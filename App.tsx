@@ -5,6 +5,13 @@ import { UnifiedAuthModal } from './src/components/UnifiedAuthModal';
 import { MultiShopClientAuth } from './src/components/MultiShopClientAuth';
 import { GlobalMultiShopBackoffice } from './src/components/admin/GlobalMultiShopBackoffice';
 import { DedicatedFilialeBackoffice } from './src/components/admin/DedicatedFilialeBackoffice';
+import { ShopMaintenanceScreen } from './src/components/ShopMaintenanceScreen';
+import {
+  getCachedSiteVisibility,
+  isSiteInMaintenanceInFrontOffice,
+  isSiteHiddenInFrontOffice,
+  SiteVisibilityMap
+} from './src/utils/siteVisibility';
 
 // Lazy load each shop application template
 const ParaShopApp = React.lazy(() => import('./templates/para/App'));
@@ -51,9 +58,18 @@ export const App: React.FC = () => {
   // Single Unified User State (SSO across all 4 shops & backoffice)
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
   const [isClientAuthRoute, setIsClientAuthRoute] = useState<boolean>(() => {
     return window.location.hash.startsWith('#/login') || window.location.hash.startsWith('#/register');
   });
+
+  useEffect(() => {
+    const handleVis = (e: any) => {
+      if (e.detail) setSiteVisibility(e.detail);
+    };
+    window.addEventListener('site-visibility-changed', handleVis);
+    return () => window.removeEventListener('site-visibility-changed', handleVis);
+  }, []);
 
   useEffect(() => {
     const handleHash = () => {
@@ -295,23 +311,31 @@ export const App: React.FC = () => {
                 />
               )}
 
-              {/* Active Storefront */}
+              {/* Active Storefront or Maintenance Screen */}
               <main className="flex-1 w-full relative">
-                <Suspense
-                  fallback={
-                    <div className="flex flex-col items-center justify-center min-h-[70vh] bg-slate-50 dark:bg-slate-900 gap-4">
-                      <div className="w-12 h-12 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
-                      <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
-                        Chargement de la boutique...
-                      </p>
-                    </div>
-                  }
-                >
-                  {currentShop === 'para' && <ParaShopApp key="para-app" />}
-                  {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
-                  {currentShop === 'cosmetic' && <CosmeticShopApp key="cosmetic-app" />}
-                  {currentShop === 'electro' && <ElectroShopApp key="electro-app" />}
-                </Suspense>
+                {isSiteInMaintenanceInFrontOffice(currentShop, siteVisibility) ? (
+                  <ShopMaintenanceScreen
+                    currentShop={currentShop}
+                    onSwitchShop={handleSwitchShop}
+                    siteVisibility={siteVisibility}
+                  />
+                ) : (
+                  <Suspense
+                    fallback={
+                      <div className="flex flex-col items-center justify-center min-h-[70vh] bg-slate-50 dark:bg-slate-900 gap-4">
+                        <div className="w-12 h-12 border-4 border-slate-300 border-t-indigo-600 rounded-full animate-spin"></div>
+                        <p className="text-sm font-semibold text-slate-600 dark:text-slate-300">
+                          Chargement de la boutique...
+                        </p>
+                      </div>
+                    }
+                  >
+                    {currentShop === 'para' && <ParaShopApp key="para-app" />}
+                    {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
+                    {currentShop === 'cosmetic' && <CosmeticShopApp key="cosmetic-app" />}
+                    {currentShop === 'electro' && <ElectroShopApp key="electro-app" />}
+                  </Suspense>
+                )}
               </main>
             </>
           )}

@@ -1,7 +1,14 @@
 import React from 'react';
-import { Phone, Mail, Store, LayoutDashboard, ChevronRight, User, ShieldCheck } from 'lucide-react';
+import { Phone, Mail, Store, LayoutDashboard, ChevronRight, User, ShieldCheck, Wrench } from 'lucide-react';
 import { FilialeId } from '../models/ProductFiliale';
 import { MultiShopLogo } from './admin/MultiShopLogo';
+import { 
+  getCachedSiteVisibility, 
+  fetchSiteVisibility, 
+  isSiteHiddenInFrontOffice, 
+  isSiteInMaintenanceInFrontOffice, 
+  SiteVisibilityMap 
+} from '../utils/siteVisibility';
 
 export interface MultiShopStoreConfig {
   id: FilialeId;
@@ -71,6 +78,28 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
   onGoToLogin,
   onGoToRegister
 }) => {
+  // Listen to real-time site visibility changes
+  const [siteVisibility, setSiteVisibility] = React.useState<SiteVisibilityMap>(getCachedSiteVisibility);
+
+  React.useEffect(() => {
+    fetchSiteVisibility().then(setSiteVisibility);
+    const handleVis = (e: any) => {
+      if (e.detail) setSiteVisibility(e.detail);
+    };
+    window.addEventListener('site-visibility-changed', handleVis);
+    return () => window.removeEventListener('site-visibility-changed', handleVis);
+  }, []);
+
+  // If current shop is hidden from front-office, automatically switch to first visible shop
+  React.useEffect(() => {
+    if (isSiteHiddenInFrontOffice(currentShop, siteVisibility)) {
+      const firstVisible = MULTISHOP_STORES.find(s => !isSiteHiddenInFrontOffice(s.id, siteVisibility));
+      if (firstVisible) {
+        onSwitchShop(firstVisible.id);
+      }
+    }
+  }, [currentShop, siteVisibility, onSwitchShop]);
+
   const currentStore = MULTISHOP_STORES.find(s => s.id === currentShop) || MULTISHOP_STORES[0];
   const navContainerRef = React.useRef<HTMLDivElement>(null);
 
@@ -145,31 +174,44 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
               </div>
             </div>
 
-            {/* Center: Switcher between the 4 sub-shops (Proportionate, fluid, 0 overflow) */}
+            {/* Center: Switcher between the sub-shops (Filters out shops that are hidden in Front-Office) */}
             <div className="flex items-center justify-center flex-1 max-w-xl mx-1 sm:mx-2 min-w-0">
               <div className="w-full flex items-center justify-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-900/90 p-1 sm:p-1.5 rounded-xl border border-slate-200/90 dark:border-slate-800">
-                {MULTISHOP_STORES.map((shop) => {
-                  const isCurrent = shop.id === currentShop;
-                  return (
-                    <button
-                      key={shop.id}
-                      type="button"
-                      onClick={() => onSwitchShop(shop.id)}
-                      className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-0 ${
-                        isCurrent
-                          ? 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
-                          : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
-                      }`}
-                      title={`${shop.name} : ${shop.tagline}`}
-                    >
-                      <span className="text-sm sm:text-base shrink-0">{shop.icon}</span>
-                      <span className="truncate text-[11px] sm:text-xs font-extrabold">{shop.tabLabel}</span>
-                      {isCurrent && (
-                        <span className="w-1.5 h-1.5 rounded-full bg-white ml-0.5 animate-pulse hidden md:inline-block shrink-0"></span>
-                      )}
-                    </button>
-                  );
-                })}
+                {(() => {
+                  const visibleStores = MULTISHOP_STORES.filter(s => !isSiteHiddenInFrontOffice(s.id, siteVisibility));
+                  const storesToRender = visibleStores.length > 0 ? visibleStores : MULTISHOP_STORES;
+
+                  return storesToRender.map((shop) => {
+                    const isCurrent = shop.id === currentShop;
+                    const inMaintenance = isSiteInMaintenanceInFrontOffice(shop.id, siteVisibility);
+
+                    return (
+                      <button
+                        key={shop.id}
+                        type="button"
+                        onClick={() => onSwitchShop(shop.id)}
+                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-0 ${
+                          isCurrent
+                            ? inMaintenance
+                              ? 'bg-amber-600 text-white shadow-sm shadow-amber-500/30'
+                              : 'bg-blue-600 text-white shadow-sm shadow-blue-500/30'
+                            : 'text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white hover:bg-white dark:hover:bg-slate-800'
+                        }`}
+                        title={`${shop.name} : ${inMaintenance ? '⚠️ Boutique en maintenance' : shop.tagline}`}
+                      >
+                        <span className="text-sm sm:text-base shrink-0">{shop.icon}</span>
+                        <span className="truncate text-[11px] sm:text-xs font-extrabold">{shop.tabLabel}</span>
+                        {inMaintenance ? (
+                          <span className="text-[9px] bg-amber-400 text-amber-950 font-black px-1 rounded uppercase tracking-wider shrink-0 hidden md:inline">
+                            Maint.
+                          </span>
+                        ) : isCurrent ? (
+                          <span className="w-1.5 h-1.5 rounded-full bg-white ml-0.5 animate-pulse hidden md:inline-block shrink-0"></span>
+                        ) : null}
+                      </button>
+                    );
+                  });
+                })()}
               </div>
             </div>
 

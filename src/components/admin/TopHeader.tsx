@@ -1,7 +1,15 @@
-import React, { useState } from 'react';
-import { Store, Bell, ChevronDown, Check, Menu, Globe } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Store, Bell, ChevronDown, Check, Menu, Globe, EyeOff, Wrench } from 'lucide-react';
 import { FilialeId } from '../../models/ProductFiliale';
 import { ShopContextId } from './SidebarNav';
+import {
+  getCachedSiteVisibility,
+  isSiteHiddenInBackOffice,
+  isSiteInMaintenanceInBackOffice,
+  isSiteHiddenInFrontOffice,
+  isSiteInMaintenanceInFrontOffice,
+  SiteVisibilityMap
+} from '../../utils/siteVisibility';
 
 interface TopHeaderProps {
   activeShop: ShopContextId;
@@ -26,8 +34,17 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 }) => {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const [isShopDropdownOpen, setIsShopDropdownOpen] = useState(false);
+  const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
 
-  const shopOptions: { id: ShopContextId; label: string; icon: string; badge: string; color: string }[] = [
+  useEffect(() => {
+    const handleVis = (e: any) => {
+      if (e.detail) setSiteVisibility(e.detail);
+    };
+    window.addEventListener('site-visibility-changed', handleVis);
+    return () => window.removeEventListener('site-visibility-changed', handleVis);
+  }, []);
+
+  const allShopOptions: { id: ShopContextId; label: string; icon: string; badge: string; color: string }[] = [
     { id: 'all', label: 'Toutes les boutiques (Consolidé)', icon: '🌐', badge: 'GROUPE HQ', color: 'text-blue-600' },
     { id: 'para', label: 'PharmaShop (Parapharmacie)', icon: '🌿', badge: 'FILIALE 1', color: 'text-emerald-600' },
     { id: 'nutrition', label: 'Fitness Shop (Équipements & Muscu)', icon: '🏋️‍♂️', badge: 'FILIALE 2', color: 'text-lime-600' },
@@ -35,7 +52,20 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     { id: 'electro', label: 'Electro Shop (Tech & Maison)', icon: '🔌', badge: 'FILIALE 4', color: 'text-blue-600' },
   ];
 
-  const currentShop = shopOptions.find(s => s.id === activeShop) || shopOptions[0];
+  // User Requirement 2: Filter out sites that are hidden in Backoffice (Disparition de la console d'administration)
+  const visibleShopOptions = allShopOptions.filter(opt => {
+    if (opt.id === 'all') return true;
+    return !isSiteHiddenInBackOffice(opt.id, siteVisibility);
+  });
+
+  // If current active shop was hidden from Backoffice, fall back to 'all'
+  useEffect(() => {
+    if (activeShop !== 'all' && isSiteHiddenInBackOffice(activeShop, siteVisibility)) {
+      onSelectShop('all');
+    }
+  }, [activeShop, siteVisibility, onSelectShop]);
+
+  const currentShop = visibleShopOptions.find(s => s.id === activeShop) || visibleShopOptions[0] || allShopOptions[0];
 
   return (
     <header className="bg-white border-b border-slate-100 px-3.5 sm:px-6 py-2.5 sm:py-3 flex items-center justify-between gap-3 sticky top-0 z-30 shadow-[0_1px_3px_rgba(0,0,0,0.02)]">
@@ -99,8 +129,11 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
             </div>
 
             <div className="space-y-1">
-              {shopOptions.map((opt) => {
+              {visibleShopOptions.map((opt) => {
                 const isSelected = activeShop === opt.id;
+                const inMaintenance = opt.id !== 'all' && isSiteInMaintenanceInBackOffice(opt.id, siteVisibility);
+                const hiddenInFront = opt.id !== 'all' && isSiteHiddenInFrontOffice(opt.id, siteVisibility);
+
                 return (
                   <button
                     key={opt.id}
@@ -118,7 +151,19 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
                     <div className="flex items-center gap-2.5">
                       <span className="text-xl">{opt.icon}</span>
                       <div>
-                        <p className="leading-tight">{opt.label}</p>
+                        <div className="flex items-center gap-1.5">
+                          <p className="leading-tight">{opt.label}</p>
+                          {inMaintenance && (
+                            <span className="text-[9px] bg-amber-100 text-amber-800 font-bold px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                              <Wrench className="w-2.5 h-2.5" /> Maint.
+                            </span>
+                          )}
+                          {hiddenInFront && (
+                            <span className="text-[9px] bg-rose-100 text-rose-800 font-bold px-1.5 py-0.2 rounded flex items-center gap-0.5">
+                              <EyeOff className="w-2.5 h-2.5" /> Masqué Front
+                            </span>
+                          )}
+                        </div>
                         <span className="text-[9px] font-mono text-slate-400 font-normal uppercase">
                           {opt.badge}
                         </span>
@@ -138,7 +183,16 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         {/* Open Storefront */}
         <button
           type="button"
-          onClick={() => onGoToStorefront(activeShop === 'all' ? 'para' : (activeShop as FilialeId))}
+          onClick={() => {
+            let target: FilialeId = activeShop === 'all' ? 'para' : (activeShop as FilialeId);
+            if (isSiteHiddenInFrontOffice(target, siteVisibility)) {
+              const firstVisible = (['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[]).find(
+                id => !isSiteHiddenInFrontOffice(id, siteVisibility)
+              );
+              if (firstVisible) target = firstVisible;
+            }
+            onGoToStorefront(target);
+          }}
           className="bg-emerald-500 hover:bg-emerald-600 text-white font-bold text-xs px-2.5 py-1.5 sm:px-3.5 sm:py-2 rounded-xl shadow-xs flex items-center gap-1.5 transition-all cursor-pointer hover:shadow whitespace-nowrap"
           title="Ouvrir la vitrine publique"
         >

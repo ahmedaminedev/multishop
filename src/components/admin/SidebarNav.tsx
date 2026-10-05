@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   LayoutDashboard,
   ShoppingCart,
@@ -16,14 +16,29 @@ import {
   MessageSquare,
   Globe,
   ChevronRight,
-  X
+  ChevronDown,
+  X,
+  Sparkles,
+  Building2,
+  Compass,
+  EyeOff,
+  Wrench
 } from 'lucide-react';
 import { MultiShopLogo } from './MultiShopLogo';
+import { 
+  getCachedSiteVisibility, 
+  isSiteHiddenInBackOffice, 
+  isSiteInMaintenanceInBackOffice,
+  SiteVisibilityMap 
+} from '../../utils/siteVisibility';
 
 export type SidebarMenuItem =
   | 'dashboard'
   | 'orders'
   | 'products'
+  | 'sources'
+  | 'future-products'
+  | 'suppliers'
   | 'promotions'
   | 'stores'
   | 'messages'
@@ -67,11 +82,35 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   isMobileOpen = false,
   onCloseMobile
 }) => {
+  // Listen to site visibility changes
+  const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
+  useEffect(() => {
+    const handleVis = (e: any) => {
+      if (e.detail) setSiteVisibility(e.detail);
+    };
+    window.addEventListener('site-visibility-changed', handleVis);
+    return () => window.removeEventListener('site-visibility-changed', handleVis);
+  }, []);
+
+  // User Requirement 1: Hide "Modules par boutique" content by default, only reveal upon click!
+  const isContextualActive = ['categories', 'brands', 'packs', 'home', 'chat'].includes(currentMenu);
+  const [isModulesOpen, setIsModulesOpen] = useState(isContextualActive);
+
+  // Automatically expand if user switches into a contextual menu
+  useEffect(() => {
+    if (isContextualActive) {
+      setIsModulesOpen(true);
+    }
+  }, [currentMenu, isContextualActive]);
+
   // 1. Group-wide transversal navigation items
   const globalMenuItems = [
     { id: 'dashboard' as SidebarMenuItem, label: 'Tableau de bord', icon: LayoutDashboard },
     { id: 'orders' as SidebarMenuItem, label: 'Commandes', icon: ShoppingCart, badge: ordersBadge },
-    { id: 'products' as SidebarMenuItem, label: 'Produits', icon: Package },
+    { id: 'products' as SidebarMenuItem, label: 'Catalogue & Stock', icon: Package },
+    { id: 'sources' as SidebarMenuItem, label: 'Sources de Veille', icon: Compass },
+    { id: 'future-products' as SidebarMenuItem, label: 'Futurs Produits', icon: Sparkles },
+    { id: 'suppliers' as SidebarMenuItem, label: 'Fournisseurs & Stock', icon: Building2 },
     { id: 'promotions' as SidebarMenuItem, label: 'Promotions', icon: Rocket },
     { id: 'stores' as SidebarMenuItem, label: 'Stores', icon: Store },
     { id: 'messages' as SidebarMenuItem, label: 'Messages', icon: Mail, badge: messagesBadge },
@@ -95,6 +134,8 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   };
 
   const currentShopInfo = SHOP_CONFIGS[activeShop] || SHOP_CONFIGS.all;
+  const isCurrentShopHidden = activeShop !== 'all' && isSiteHiddenInBackOffice(activeShop, siteVisibility);
+  const isCurrentShopMaintenance = activeShop !== 'all' && isSiteInMaintenanceInBackOffice(activeShop, siteVisibility);
 
   const navContent = (
     <div className="flex flex-col h-full justify-between">
@@ -118,9 +159,21 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           <div className="flex items-center gap-2.5 min-w-0">
             <span className="text-xl shrink-0">{currentShopInfo.icon}</span>
             <div className="min-w-0">
-              <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-tight">
-                {activeShop === 'all' ? 'Contexte Actif' : 'Boutique Active'}
-              </p>
+              <div className="flex items-center gap-1.5">
+                <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400 leading-tight">
+                  {activeShop === 'all' ? 'Contexte Actif' : 'Boutique Active'}
+                </p>
+                {isCurrentShopHidden && (
+                  <span className="text-[9px] bg-red-100 text-red-700 px-1 rounded font-bold flex items-center gap-0.5">
+                    <EyeOff className="w-2.5 h-2.5" /> Masqué
+                  </span>
+                )}
+                {isCurrentShopMaintenance && (
+                  <span className="text-[9px] bg-amber-100 text-amber-800 px-1 rounded font-bold flex items-center gap-0.5">
+                    <Wrench className="w-2.5 h-2.5" /> Maint.
+                  </span>
+                )}
+              </div>
               <p className={`text-xs font-black truncate ${currentShopInfo.color}`}>
                 {currentShopInfo.name}
               </p>
@@ -175,43 +228,70 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
           </nav>
         </div>
 
-        {/* SECTION 2: CONTEXTUAL STORE MODULES */}
+        {/* SECTION 2: CONTEXTUAL STORE MODULES (COLLAPSIBLE ON CLICK - USER REQUIREMENT 1) */}
         <div className="pt-2 border-t border-slate-100">
-          <div className="flex items-center justify-between px-3 mb-2">
-            <p className="text-[10px] font-extrabold text-slate-400 uppercase tracking-wider">
-              {activeShop === 'all' ? 'Modules par Boutique' : `Modules ${currentShopInfo.name}`}
-            </p>
-            {activeShop === 'all' && (
-              <span className="text-[9px] bg-slate-100 text-slate-500 font-semibold px-1.5 py-0.5 rounded">
-                Contextuel
+          <button
+            type="button"
+            onClick={() => setIsModulesOpen(prev => !prev)}
+            className={`w-full flex items-center justify-between px-3 py-2.5 rounded-xl text-left transition-all cursor-pointer group ${
+              isModulesOpen
+                ? 'bg-slate-100/90 text-slate-900 shadow-2xs'
+                : 'hover:bg-slate-50 text-slate-600'
+            }`}
+            title="Cliquer pour afficher ou masquer les modules spécifiques à la boutique"
+          >
+            <div className="flex items-center gap-2 min-w-0">
+              <span className={`p-1 rounded-md transition-colors ${
+                isModulesOpen ? 'bg-blue-100 text-blue-700' : 'bg-slate-100 text-slate-400 group-hover:text-slate-700'
+              }`}>
+                {isModulesOpen ? <ChevronDown className="w-3.5 h-3.5" /> : <ChevronRight className="w-3.5 h-3.5" />}
               </span>
-            )}
-          </div>
+              <div>
+                <p className="text-[10px] font-extrabold uppercase tracking-wider truncate">
+                  {activeShop === 'all' ? 'Modules par Boutique' : `Modules ${currentShopInfo.name}`}
+                </p>
+                <p className="text-[9px] text-slate-400 font-normal">
+                  {isModulesOpen ? '5 modules affichés' : 'Masqué (Cliquer pour voir)'}
+                </p>
+              </div>
+            </div>
 
-          <nav className="flex flex-col gap-1">
-            {contextualMenuItems.map((item) => {
-              const Icon = item.icon;
-              const isActive = currentMenu === item.id;
-              return (
-                <button
-                  key={item.id}
-                  type="button"
-                  onClick={() => handleItemClick(item.id)}
-                  className={`flex items-center justify-between px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-left cursor-pointer ${
-                    isActive
-                      ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
-                    <span>{item.label}</span>
-                  </div>
-                  <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-white/80' : 'text-slate-300'}`} />
-                </button>
-              );
-            })}
-          </nav>
+            <span className={`text-[9px] font-bold px-2 py-0.5 rounded-md transition-colors shrink-0 ${
+              isModulesOpen
+                ? 'bg-blue-600 text-white'
+                : 'bg-slate-200/70 text-slate-600 group-hover:bg-blue-50 group-hover:text-blue-700'
+            }`}>
+              {isModulesOpen ? 'Fermer' : 'Afficher'}
+            </span>
+          </button>
+
+          {/* Collapsible Content: ONLY rendered when clicked */}
+          {isModulesOpen && (
+            <nav className="flex flex-col gap-1 mt-1 pl-1 animate-fadeIn">
+              {contextualMenuItems.map((item) => {
+                const Icon = item.icon;
+                const isActive = currentMenu === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => handleItemClick(item.id)}
+                    className={`flex items-center justify-between px-3.5 py-2 rounded-xl text-xs sm:text-sm font-medium transition-all text-left cursor-pointer ${
+                      isActive
+                        ? 'bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold shadow-xs'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+                    }`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Icon className={`w-4 h-4 ${isActive ? 'text-white' : 'text-slate-400'}`} />
+                      <span>{item.label}</span>
+                    </div>
+                    <ChevronRight className={`w-3.5 h-3.5 ${isActive ? 'text-white/80' : 'text-slate-300'}`} />
+                  </button>
+                );
+              })}
+            </nav>
+          )}
         </div>
       </div>
 

@@ -56,6 +56,8 @@ export class Produit {
   promo?: boolean;
   description?: string;
   quantity: number;
+  quantité_enstock: number;
+  existe_dans_boutique: boolean;
   rating?: number;
   reviewsCount?: number;
   specifications?: { name: string; value: string }[];
@@ -75,7 +77,9 @@ export class Produit {
     this.parentCategory = data.parentCategory;
     this.promo = data.promo || false;
     this.description = data.description || '';
-    this.quantity = typeof data.quantity === 'number' ? data.quantity : 10;
+    this.quantité_enstock = typeof data.quantité_enstock === 'number' ? data.quantité_enstock : (typeof data.quantity === 'number' ? data.quantity : 10);
+    this.quantity = this.quantité_enstock;
+    this.existe_dans_boutique = data.existe_dans_boutique !== undefined ? Boolean(data.existe_dans_boutique) : true;
     this.rating = data.rating || 4.5;
     this.reviewsCount = data.reviewsCount || 12;
     this.specifications = data.specifications || [];
@@ -83,6 +87,137 @@ export class Produit {
     this.dateAdded = data.dateAdded || new Date().toISOString();
   }
 }
+
+/**
+ * Type de vente pour les sources de produit
+ */
+export type TypeVenteSource = 'engros' | 'detail' | 'les_deux';
+
+/**
+ * Classe SourceProduit : pour tracer l'origine de prospection (Instagram, TikTok, Facebook, grossiste...)
+ */
+export class SourceProduit {
+  id: string;
+  nom: string;
+  lien: string;
+  numero?: string;
+  localisation?: string;
+  type_vente: TypeVenteSource;
+  notes?: string;
+  dateCreation: string;
+
+  constructor(data: Partial<SourceProduit>) {
+    this.id = data.id || `src-${Date.now()}`;
+    this.nom = data.nom || '';
+    this.lien = data.lien || '';
+    this.numero = data.numero || '';
+    this.localisation = data.localisation || '';
+    this.type_vente = data.type_vente || 'les_deux';
+    this.notes = data.notes || '';
+    this.dateCreation = data.dateCreation || new Date().toISOString();
+  }
+}
+
+/**
+ * Statut d'un Futur Produit en cours de prospection
+ */
+export type StatutFutureProduit = 'en_prospection' | 'converti_en_stock' | 'abandonne';
+
+/**
+ * Classe FutureProduit : produit repéré chez une source, pas encore en stock
+ */
+export class FutureProduit {
+  id: string;
+  nom: string;
+  image?: string;
+  lien?: string;
+  prix_source: number;
+  quantite?: number;
+  quantite_enstock?: number;
+  sourceId: string;
+  sourceNom?: string;
+  site: string; // 'fitnessshop' | 'parashop' | 'cosmetic' | 'electro' | 'autre'
+  is_futur_site: boolean;
+  futur_site?: string;
+  categorie: string;
+  statut: StatutFutureProduit;
+  notes?: string;
+  dateCreation: string;
+
+  constructor(data: Partial<FutureProduit>) {
+    this.id = data.id || `fut-${Date.now()}`;
+    this.nom = data.nom || '';
+    this.image = data.image || '';
+    this.lien = data.lien || '';
+    this.prix_source = data.prix_source || 0;
+    this.quantite = data.quantite ?? data.quantite_enstock ?? 10;
+    this.quantite_enstock = this.quantite;
+    this.sourceId = data.sourceId || '';
+    this.sourceNom = data.sourceNom || '';
+    this.site = data.site || 'fitnessshop';
+    this.is_futur_site = Boolean(data.is_futur_site);
+    this.futur_site = data.futur_site || '';
+    this.categorie = data.categorie || '';
+    this.statut = data.statut || 'en_prospection';
+    this.notes = data.notes || '';
+    this.dateCreation = data.dateCreation || new Date().toISOString();
+  }
+}
+
+/**
+ * Article dans l'historique d'approvisionnement d'un fournisseur
+ */
+export interface ItemAchatFournisseur {
+  productId?: number | string;
+  futureProductId?: string;
+  nom: string;
+  quantite: number;
+  prixAchat?: number;
+  site: string;
+  siteName?: string;
+  image?: string;
+  notes?: string;
+}
+
+/**
+ * Historique d'une réception de stock chez un fournisseur
+ */
+export interface AchatFournisseur {
+  id: string;
+  date: string;
+  type: 'produit_existant' | 'future_produit';
+  items: ItemAchatFournisseur[];
+  montantTotal?: number;
+  notes?: string;
+}
+
+/**
+ * Classe Fournisseur : pour gérer les partenaires et l'historique des achats
+ */
+export class Fournisseur {
+  id: string;
+  nom: string;
+  localisation: string;
+  lien: string;
+  image: string;
+  telephone?: string;
+  notes?: string;
+  historique_achats: AchatFournisseur[];
+  dateCreation: string;
+
+  constructor(data: Partial<Fournisseur>) {
+    this.id = data.id || `frn-${Date.now()}`;
+    this.nom = data.nom || '';
+    this.localisation = data.localisation || '';
+    this.lien = data.lien || '';
+    this.image = data.image || 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=300';
+    this.telephone = data.telephone || '';
+    this.notes = data.notes || '';
+    this.historique_achats = data.historique_achats || [];
+    this.dateCreation = data.dateCreation || new Date().toISOString();
+  }
+}
+
 
 /**
  * Classe abstraite ProduitFiliale qui hérite de Produit

@@ -7,7 +7,19 @@ import { useToast } from '../ToastContext';
 
 export const ProductFormModal: React.FC<{ isOpen: boolean; onClose: () => void; onSave: (d: Omit<Product, 'id'>) => void; product: Product | null; categories: Category[]; brands?: Brand[] }> = ({ isOpen, onClose, onSave, product, categories, brands = [] }) => {
     const { addToast } = useToast();
-    const [formData, setFormData] = useState({ name: '', brand: '', oldPrice: 0, discount: 0, images: [] as string[], category: '', description: '', quantity: 0, specifications: [] as {name:string, value:string}[] });
+    const [formData, setFormData] = useState({
+        name: '',
+        brand: '',
+        oldPrice: 0,
+        discount: 0,
+        images: [] as string[],
+        category: '',
+        description: '',
+        quantity: 0,
+        quantité_enstock: 0,
+        existe_dans_boutique: true,
+        specifications: [] as {name:string, value:string}[]
+    });
 
     useEffect(() => {
         if (product) {
@@ -19,22 +31,36 @@ export const ProductFormModal: React.FC<{ isOpen: boolean; onClose: () => void; 
                 images: product.images || [],
                 category: product.category || '',
                 description: product.description || '',
-                quantity: product.quantity || 0,
+                quantity: (product as any).quantité_enstock ?? product.quantity ?? 0,
+                quantité_enstock: (product as any).quantité_enstock ?? product.quantity ?? 0,
+                existe_dans_boutique: (product as any).existe_dans_boutique !== false,
                 specifications: product.specifications || []
             });
         }
-        else setFormData({ name: '', brand: '', oldPrice: 0, discount: 0, images: [], category: '', description: '', quantity: 0, specifications: [] });
+        else setFormData({ name: '', brand: '', oldPrice: 0, discount: 0, images: [], category: '', description: '', quantity: 10, quantité_enstock: 10, existe_dans_boutique: true, specifications: [] });
     }, [product]);
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
         const { name, value, type } = e.target;
-        setFormData(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
+        if (type === 'checkbox') {
+            const target = e.target as HTMLInputElement;
+            setFormData(prev => ({ ...prev, [name]: target.checked }));
+        } else {
+            setFormData(prev => ({ ...prev, [name]: type === 'number' ? parseFloat(value) || 0 : value }));
+        }
     };
 
     const handleSubmit = (e: React.FormEvent) => {
         e.preventDefault();
         if (!formData.name || !formData.category) return addToast("Champs requis manquants", "error");
-        onSave({ ...formData, imageUrl: formData.images[0] || '', price: formData.oldPrice * (1 - (formData.discount/100)) });
+        onSave({
+            ...formData,
+            imageUrl: formData.images[0] || '',
+            price: formData.oldPrice * (1 - (formData.discount/100)),
+            quantité_enstock: formData.quantité_enstock ?? formData.quantity ?? 0,
+            quantity: formData.quantité_enstock ?? formData.quantity ?? 0,
+            existe_dans_boutique: Boolean(formData.existe_dans_boutique)
+        } as any);
         onClose();
     };
 
@@ -92,8 +118,28 @@ export const ProductFormModal: React.FC<{ isOpen: boolean; onClose: () => void; 
                                 </div>
                                 <div>
                                     <label className="block text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-3 ml-2">Unités Stock</label>
-                                    <input name="quantity" type="number" value={formData.quantity} onChange={handleChange} className="w-full h-16 bg-slate-50 border-none rounded-2xl px-8 font-bold text-slate-900" />
+                                    <input name="quantity" type="number" value={formData.quantity} onChange={(e) => {
+                                        const v = parseFloat(e.target.value) || 0;
+                                        setFormData(prev => ({ ...prev, quantity: v, quantité_enstock: v }));
+                                    }} className="w-full h-16 bg-slate-50 border-none rounded-2xl px-8 font-bold text-slate-900" />
                                 </div>
+                            </div>
+
+                            <div className="p-5 bg-slate-50 rounded-2xl border border-slate-100 flex items-center justify-between">
+                                <div>
+                                    <span className="font-black text-xs text-slate-900 block uppercase tracking-wider">Publication en Boutique (existe_dans_boutique)</span>
+                                    <span className="text-[11px] text-slate-500 font-medium">Cochez cette case pour rendre ce soin visible et achetable par les clients finaux sur PharmaShop</span>
+                                </div>
+                                <label className="relative inline-flex items-center cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        name="existe_dans_boutique"
+                                        checked={Boolean(formData.existe_dans_boutique)}
+                                        onChange={handleChange}
+                                        className="sr-only peer"
+                                    />
+                                    <div className="w-11 h-6 bg-slate-200 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-brand-primary"></div>
+                                </label>
                             </div>
 
                             <div>

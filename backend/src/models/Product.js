@@ -16,6 +16,8 @@ const ProductSchema = new mongoose.Schema({
   material: String,
   description: String,
   quantity: { type: Number, required: true, default: 0 },
+  quantité_enstock: { type: Number, default: 0 },
+  existe_dans_boutique: { type: Boolean, default: false },
   // Flexible structure for specs
   specifications: [{
     name: String,

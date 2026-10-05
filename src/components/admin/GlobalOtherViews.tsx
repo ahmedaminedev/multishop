@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Rocket,
   Store,
@@ -11,9 +11,27 @@ import {
   Phone,
   CheckCircle2,
   Shield,
-  CreditCard
+  CreditCard,
+  EyeOff,
+  Eye,
+  Wrench,
+  ShieldAlert,
+  Check,
+  RefreshCw,
+  Globe,
+  Layout,
+  Laptop,
+  AlertTriangle
 } from 'lucide-react';
 import { SidebarMenuItem } from './SidebarNav';
+import {
+  getCachedSiteVisibility,
+  fetchSiteVisibility,
+  saveSiteVisibility,
+  SiteVisibilityMap,
+  VisibilityScope,
+  VisibilityMode
+} from '../../utils/siteVisibility';
 
 interface GlobalOtherViewsProps {
   currentMenu: SidebarMenuItem;
@@ -358,22 +376,337 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
     );
   }
 
-  // Settings
+  // Settings View with Site Visibility & Availability Section (User Requirement 2)
+  const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
+  const [isSavingVisibility, setIsSavingVisibility] = useState(false);
+  const [visibilitySuccessMsg, setVisibilitySuccessMsg] = useState<string | null>(null);
+
+  useEffect(() => {
+    fetchSiteVisibility().then(setSiteVisibility);
+    const handleVis = (e: any) => {
+      if (e.detail) setSiteVisibility(e.detail);
+    };
+    window.addEventListener('site-visibility-changed', handleVis);
+    return () => window.removeEventListener('site-visibility-changed', handleVis);
+  }, []);
+
+  const handleUpdateSiteConfig = (siteId: string, partial: Partial<SiteVisibilityMap[string]>) => {
+    setSiteVisibility(prev => {
+      const updated = {
+        ...prev,
+        [siteId]: {
+          ...prev[siteId],
+          ...partial
+        }
+      };
+      // Immediate broadcast and persistence so TopHeader and FrontOffice update instantaneously
+      saveSiteVisibility(updated);
+      return updated;
+    });
+  };
+
+  const handleSaveAllVisibility = async () => {
+    setIsSavingVisibility(true);
+    setVisibilitySuccessMsg(null);
+    try {
+      await saveSiteVisibility(siteVisibility);
+      setVisibilitySuccessMsg('Visibilité des boutiques mise à jour avec succès et synchronisée sur tout le réseau MultiShop !');
+      setTimeout(() => setVisibilitySuccessMsg(null), 3000);
+    } catch {
+      // error handled
+    } finally {
+      setIsSavingVisibility(false);
+    }
+  };
+
+  const STORE_ITEMS = [
+    { id: 'para', name: 'PharmaShop', icon: '🌿', tagline: 'Santé, Phytothérapie & Soins Bio', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+    { id: 'nutrition', name: 'Fitness Shop', icon: '🏋️‍♂️', tagline: 'Équipements de Musculation & Fitness', color: 'text-lime-700 bg-lime-50 border-lime-200' },
+    { id: 'cosmetic', name: 'Cosmetics Shop', icon: '💄', tagline: 'Soins, Beauté & Parfumerie Luxe', color: 'text-rose-700 bg-rose-50 border-rose-200' },
+    { id: 'electro', name: 'Electro Shop', icon: '🔌', tagline: 'High-Tech & Électroménager', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  ];
+
   return (
-    <div className="space-y-6 animate-fadeIn">
+    <div className="space-y-8 animate-fadeIn max-w-5xl pb-10">
+      {/* Header */}
       <div>
         <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-          PARAMÈTRES DU SYSTÈME <span className="text-blue-600">MULTISHOP</span>
+          PARAMÈTRES DU SYSTÈME & <span className="text-blue-600">GESTION DES SITES</span>
         </h2>
         <p className="text-xs text-slate-500 font-medium">
-          Configuration générale du réseau, devises et passerelles de paiement
+          Contrôlez la visibilité, le masquage ou le passage en maintenance de chaque boutique sur le front-office et/ou le back-office
         </p>
       </div>
 
-      <div className="bg-white border border-slate-100 rounded-2xl p-6 shadow-xs space-y-4 max-w-2xl">
+      {/* FEEDBACK SUCCESS ALERT */}
+      {visibilitySuccessMsg && (
+        <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-900 text-xs font-bold flex items-center gap-2 animate-fadeIn shadow-xs">
+          <Check className="w-4 h-4 text-emerald-600 shrink-0" />
+          <span>{visibilitySuccessMsg}</span>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* 🚀 SECTION VISIBILITÉ & DISPONIBILITÉ DES SITES (EXIGENCE UTILISATEUR 2)  */}
+      {/* ========================================================================= */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-xl">🌐</span>
+              <h3 className="font-black text-base text-slate-900 uppercase tracking-tight">
+                Visibilité & Disponibilité des Boutiques du Réseau
+              </h3>
+            </div>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Cochez <em>"Cacher le site"</em> pour définir précisément où et comment masquer chaque filiale (Front-office, Back-office, ou les deux; Cacher tout ou Maintenance).
+            </p>
+          </div>
+
+          <button
+            type="button"
+            disabled={isSavingVisibility}
+            onClick={handleSaveAllVisibility}
+            className="px-5 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-md transition-all active:scale-95 cursor-pointer flex items-center gap-2 self-start sm:self-auto shrink-0"
+          >
+            {isSavingVisibility ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+            <span>{isSavingVisibility ? 'Enregistrement...' : 'Enregistrer la Visibilité'}</span>
+          </button>
+        </div>
+
+        {/* Sites List */}
+        <div className="grid grid-cols-1 gap-5">
+          {STORE_ITEMS.map((store) => {
+            const config = siteVisibility[store.id] || {
+              siteId: store.id,
+              is_hidden: false,
+              scope: 'frontoffice',
+              mode: 'cacher_tout',
+              maintenance_message: `Boutique ${store.name} temporairement en maintenance.`
+            };
+
+            const isHidden = Boolean(config.is_hidden);
+
+            return (
+              <div
+                key={store.id}
+                className={`rounded-2xl border-2 transition-all p-5 ${
+                  isHidden
+                    ? config.mode === 'maintenance'
+                      ? 'bg-amber-50/40 border-amber-300'
+                      : 'bg-red-50/30 border-red-300'
+                    : 'bg-slate-50/60 border-slate-200 hover:border-slate-300'
+                }`}
+              >
+                {/* Store Top Bar */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80">
+                  <div className="flex items-center gap-3">
+                    <span className="text-2xl p-2 rounded-xl bg-white border border-slate-200/80 shadow-xs shrink-0">
+                      {store.icon}
+                    </span>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <h4 className="font-black text-sm text-slate-900">{store.name}</h4>
+                        <span className="text-[10px] font-mono px-2 py-0.5 rounded-md bg-white border border-slate-200 text-slate-500 font-semibold">
+                          ID: {store.id}
+                        </span>
+                      </div>
+                      <p className="text-xs text-slate-500">{store.tagline}</p>
+                    </div>
+                  </div>
+
+                  {/* Status Badge */}
+                  <div className="flex items-center gap-2">
+                    {!isHidden ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-800 border border-emerald-200 flex items-center gap-1.5">
+                        <Eye className="w-3.5 h-3.5 text-emerald-600" />
+                        <span>En Ligne (Visible Partout)</span>
+                      </span>
+                    ) : config.mode === 'maintenance' ? (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200 flex items-center gap-1.5">
+                        <Wrench className="w-3.5 h-3.5 text-amber-600" />
+                        <span>Mode Maintenance ({config.scope === 'les_deux' ? 'Front & Back' : config.scope})</span>
+                      </span>
+                    ) : (
+                      <span className="px-3 py-1 rounded-full text-xs font-bold bg-red-100 text-red-800 border border-red-200 flex items-center gap-1.5">
+                        <EyeOff className="w-3.5 h-3.5 text-red-600" />
+                        <span>Masqué Totalement ({config.scope === 'les_deux' ? 'Front & Back' : config.scope})</span>
+                      </span>
+                    )}
+                  </div>
+                </div>
+
+                {/* Main Checkbox: Cacher le site */}
+                <div className="pt-3">
+                  <label className="flex items-center gap-3 cursor-pointer select-none">
+                    <input
+                      type="checkbox"
+                      checked={isHidden}
+                      onChange={(e) => handleUpdateSiteConfig(store.id, { is_hidden: e.target.checked })}
+                      className="w-5 h-5 rounded-lg text-red-600 focus:ring-red-500 cursor-pointer border-slate-300"
+                    />
+                    <div>
+                      <span className="font-extrabold text-slate-900 text-xs sm:text-sm">
+                        Cacher le site / Restreindre la visibilité
+                      </span>
+                      <p className="text-[11px] text-slate-500">
+                        Activez cette case pour masquer cette boutique ou la basculer en mode maintenance technique
+                      </p>
+                    </div>
+                  </label>
+
+                  {/* WHEN CHECKED: REVEAL SCOPE & MODE OPTIONS */}
+                  {isHidden && (
+                    <div className="mt-4 pt-4 border-t border-slate-200/80 space-y-4 animate-fadeIn pl-2 sm:pl-7">
+                      
+                      {/* 1. Scope: Back-office, Front-office ou Les deux */}
+                      <div>
+                        <label className="block text-slate-800 font-bold text-xs mb-2">
+                          1. Périmètre d'application (Où cacher ?) :
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                          {[
+                            { id: 'frontoffice' as VisibilityScope, label: 'Front-Office (Clients)', desc: 'Masquer de la barre de navigation publique et de la vitrine client', icon: Laptop },
+                            { id: 'backoffice' as VisibilityScope, label: 'Back-Office (Admin)', desc: 'Masquer des sélecteurs de boutiques de l\'administration', icon: Layout },
+                            { id: 'les_deux' as VisibilityScope, label: 'Les Deux (Front & Back)', desc: 'Masquer totalement sur toute la plateforme', icon: Globe },
+                          ].map((sc) => {
+                            const isSelected = config.scope === sc.id;
+                            const ScIcon = sc.icon;
+                            return (
+                              <label
+                                key={sc.id}
+                                className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                                  isSelected
+                                    ? 'bg-blue-50 border-blue-500 text-blue-900 shadow-xs'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <div className="flex items-center gap-1.5 font-bold text-xs">
+                                    <ScIcon className="w-3.5 h-3.5 text-blue-600" />
+                                    <span>{sc.label}</span>
+                                  </div>
+                                  <input
+                                    type="radio"
+                                    name={`scope_${store.id}`}
+                                    value={sc.id}
+                                    checked={isSelected}
+                                    onChange={() => handleUpdateSiteConfig(store.id, { scope: sc.id })}
+                                    className="text-blue-600 focus:ring-blue-500"
+                                  />
+                                </div>
+                                <p className="text-[10px] text-slate-500 leading-snug">{sc.desc}</p>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 2. Mode: Cacher tout ou Maintenance */}
+                      <div>
+                        <label className="block text-slate-800 font-bold text-xs mb-2">
+                          2. Mode de restriction :
+                        </label>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          {[
+                            { 
+                              id: 'cacher_tout' as VisibilityMode, 
+                              label: 'Cacher tout (Disparition totale)', 
+                              desc: 'Le site disparaît complètement de la barre de navigation. Les visiteurs sont redirigés vers une autre boutique active.',
+                              badge: 'Disparition de la Nav Bar',
+                              color: 'text-red-700 bg-red-50 border-red-200' 
+                            },
+                            { 
+                              id: 'maintenance' as VisibilityMode, 
+                              label: 'Maintenance (Page dédiée)', 
+                              desc: 'Le site affiche une page professionnelle de maintenance technique informant les visiteurs du réapprovisionnement.',
+                              badge: 'Écran de Maintenance',
+                              color: 'text-amber-700 bg-amber-50 border-amber-200' 
+                            }
+                          ].map((md) => {
+                            const isSelected = config.mode === md.id;
+                            return (
+                              <label
+                                key={md.id}
+                                className={`p-3 rounded-xl border cursor-pointer transition-all flex flex-col justify-between ${
+                                  isSelected
+                                    ? md.id === 'maintenance'
+                                      ? 'bg-amber-50/80 border-amber-500 text-amber-950 shadow-xs'
+                                      : 'bg-red-50/80 border-red-500 text-red-950 shadow-xs'
+                                    : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50'
+                                }`}
+                              >
+                                <div className="flex items-center justify-between mb-1">
+                                  <span className="font-black text-xs">{md.label}</span>
+                                  <input
+                                    type="radio"
+                                    name={`mode_${store.id}`}
+                                    value={md.id}
+                                    checked={isSelected}
+                                    onChange={() => handleUpdateSiteConfig(store.id, { mode: md.id })}
+                                    className="text-slate-900 focus:ring-slate-500"
+                                  />
+                                </div>
+                                <p className="text-[10px] text-slate-500 leading-snug">{md.desc}</p>
+                              </label>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* 3. Maintenance Message Input (if mode === 'maintenance') */}
+                      {config.mode === 'maintenance' && (
+                        <div className="p-3 bg-white rounded-xl border border-amber-200 space-y-1.5 animate-fadeIn">
+                          <label className="block text-slate-800 font-bold text-xs flex items-center gap-1.5">
+                            <Wrench className="w-3.5 h-3.5 text-amber-600" />
+                            <span>Message de maintenance affiché aux clients :</span>
+                          </label>
+                          <textarea
+                            rows={2}
+                            value={config.maintenance_message || ''}
+                            onChange={(e) => handleUpdateSiteConfig(store.id, { maintenance_message: e.target.value })}
+                            placeholder="Message d'information pour les clients..."
+                            className="w-full px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs focus:ring-2 focus:ring-amber-500"
+                          />
+                        </div>
+                      )}
+
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        {/* Bottom Save Reminder */}
+        <div className="pt-3 border-t border-slate-100 flex items-center justify-between gap-3">
+          <p className="text-xs text-slate-500">
+            💡 Les modifications s'appliquent immédiatement à la navigation publique et à la console d'administration.
+          </p>
+          <button
+            type="button"
+            disabled={isSavingVisibility}
+            onClick={handleSaveAllVisibility}
+            className="px-5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-bold text-xs shadow-xs cursor-pointer flex items-center gap-1.5"
+          >
+            {isSavingVisibility ? <RefreshCw className="w-3.5 h-3.5 animate-spin" /> : <Check className="w-3.5 h-3.5" />}
+            <span>Enregistrer la Visibilité</span>
+          </button>
+        </div>
+      </div>
+
+      {/* ========================================================================= */}
+      {/* SECTION PARAMÈTRES GÉNÉRAUX CLASSIQUES (DEVISE, TVA, ETC.)               */}
+      {/* ========================================================================= */}
+      <div className="bg-white border border-slate-200/90 rounded-3xl p-6 sm:p-7 shadow-xs space-y-4">
+        <h3 className="font-black text-sm text-slate-900 uppercase tracking-tight pb-3 border-b border-slate-100">
+          Paramètres Financiers & Réseau
+        </h3>
+
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <p className="font-bold text-slate-900 text-xs">Devise Principale</p>
+            <p className="font-bold text-slate-900 text-xs">Devise Principale du Groupe</p>
             <p className="text-[11px] text-slate-400">Dinar Tunisien (DT / TND)</p>
           </div>
           <span className="px-3 py-1 bg-slate-100 text-slate-700 font-mono font-bold rounded-lg text-xs">DT</span>
@@ -381,7 +714,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
 
         <div className="flex items-center justify-between pb-3 border-b border-slate-100">
           <div>
-            <p className="font-bold text-slate-900 text-xs">TVA par Défaut</p>
+            <p className="font-bold text-slate-900 text-xs">Taux de TVA par Défaut</p>
             <p className="text-[11px] text-slate-400">Appliquée aux produits des filiales</p>
           </div>
           <span className="px-3 py-1 bg-slate-100 text-slate-700 font-mono font-bold rounded-lg text-xs">19 %</span>

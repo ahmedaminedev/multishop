@@ -1,13 +1,21 @@
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
-import { FilialeId } from '../../models/ProductFiliale';
+import { FilialeId, SourceProduit, FutureProduit, Fournisseur } from '../../models/ProductFiliale';
 import { SidebarNav, SidebarMenuItem, ShopContextId } from './SidebarNav';
 import { TopHeader } from './TopHeader';
 import { ConsolidatedDashboardView } from './ConsolidatedDashboardView';
 import { GlobalOrdersView } from './GlobalOrdersView';
 import { GlobalProductsView } from './GlobalProductsView';
 import { GlobalOtherViews } from './GlobalOtherViews';
+import { SourcesView } from './SourcesView';
+import { FutureProductsView } from './FutureProductsView';
+import { SuppliersView } from './SuppliersView';
 import { MultiShopBackofficeLogin } from './MultiShopBackofficeLogin';
 import { ArrowLeft, ExternalLink, Plus, RefreshCw, ShoppingCart, Package, Layers, Sparkles } from 'lucide-react';
+import {
+  getCachedSiteVisibility,
+  isSiteHiddenInBackOffice,
+  SiteVisibilityMap
+} from '../../utils/siteVisibility';
 
 // Context providers for sub-backoffices
 import { ThemeProvider as ParaThemeProvider } from '@/templates/para/components/ThemeContext';
@@ -114,6 +122,27 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   const [currentMenu, setCurrentMenu] = useState<SidebarMenuItem>('dashboard');
   const [contextualShopOverride, setContextualShopOverride] = useState<FilialeId>('para');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
+  const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
+
+  useEffect(() => {
+    const handleVis = (e: any) => {
+      if (e.detail) setSiteVisibility(e.detail);
+    };
+    window.addEventListener('site-visibility-changed', handleVis);
+    return () => window.removeEventListener('site-visibility-changed', handleVis);
+  }, []);
+
+  // If current contextual shop was hidden from Backoffice, switch to first visible
+  useEffect(() => {
+    if (activeShop === 'all' && isSiteHiddenInBackOffice(contextualShopOverride, siteVisibility)) {
+      const firstAvailable = (['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[]).find(
+        fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)
+      );
+      if (firstAvailable) {
+        setContextualShopOverride(firstAvailable);
+      }
+    }
+  }, [contextualShopOverride, siteVisibility, activeShop]);
 
   // Sync external initialShop prop
   useEffect(() => {
@@ -139,6 +168,10 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   const [stats, setStats] = useState<any>(null);
   const [allProducts, setAllProducts] = useState<any[]>([]);
   const [allOrders, setAllOrders] = useState<any[]>([]);
+  const [sources, setSources] = useState<SourceProduit[]>([]);
+  const [futureProducts, setFutureProducts] = useState<FutureProduit[]>([]);
+  const [suppliers, setSuppliers] = useState<Fournisseur[]>([]);
+  const [targetFutureProductForRestock, setTargetFutureProductForRestock] = useState<FutureProduit | null>(null);
   const [loading, setLoading] = useState(true);
 
   // Filiale data cache for sub-admin pages
@@ -152,15 +185,21 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   const fetchGlobalData = async () => {
     setLoading(true);
     try {
-      const [statsRes, productsRes, ordersRes] = await Promise.all([
+      const [statsRes, productsRes, ordersRes, sourcesRes, futureRes, suppliersRes] = await Promise.all([
         fetch('/api/global/stats').then(r => r.json()).catch(() => null),
         fetch('/api/global/products').then(r => r.json()).catch(() => []),
-        fetch('/api/global/orders').then(r => r.json()).catch(() => [])
+        fetch('/api/global/orders').then(r => r.json()).catch(() => []),
+        fetch('/api/sources').then(r => r.json()).catch(() => []),
+        fetch('/api/future-products').then(r => r.json()).catch(() => []),
+        fetch('/api/suppliers').then(r => r.json()).catch(() => [])
       ]);
 
       if (statsRes) setStats(statsRes);
       if (Array.isArray(productsRes)) setAllProducts(productsRes);
       if (Array.isArray(ordersRes)) setAllOrders(ordersRes);
+      if (Array.isArray(sourcesRes)) setSources(sourcesRes);
+      if (Array.isArray(futureRes)) setFutureProducts(futureRes);
+      if (Array.isArray(suppliersRes)) setSuppliers(suppliersRes);
     } catch (err) {
       console.error('Error fetching global stats:', err);
     } finally {
@@ -260,6 +299,133 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       console.error('Error saving product:', err);
     }
   };
+
+  const handleSaveSource = async (source: SourceProduit) => {
+    try {
+      const isEdit = sources.some(s => s.id === source.id);
+      const url = isEdit ? `/api/sources/${source.id}` : '/api/sources';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(source)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setSources(prev => isEdit ? prev.map(s => s.id === saved.id ? saved : s) : [saved, ...prev]);
+      }
+    } catch (err) {
+      console.error('Error saving source:', err);
+    }
+  };
+
+  const handleDeleteSource = async (id: string) => {
+    try {
+      const res = await fetch(`/api/sources/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSources(prev => prev.filter(s => s.id !== id));
+      }
+    } catch (err) {
+      console.error('Error deleting source:', err);
+    }
+  };
+
+  const handleQuickAddSource = async (source: SourceProduit): Promise<SourceProduit> => {
+    const res = await fetch('/api/sources', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(source)
+    });
+    const saved = await res.json();
+    setSources(prev => [saved, ...prev]);
+    return saved;
+  };
+
+  const handleSaveFutureProduct = async (fp: FutureProduit) => {
+    try {
+      const isEdit = futureProducts.some(f => f.id === fp.id);
+      const url = isEdit ? `/api/future-products/${fp.id}` : '/api/future-products';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fp)
+      });
+      if (res.ok) {
+        const saved = await res.json();
+        setFutureProducts(prev => isEdit ? prev.map(f => f.id === saved.id ? saved : f) : [saved, ...prev]);
+      }
+    } catch (err) {
+      console.error('Error saving future product:', err);
+    }
+  };
+
+  const handleDeleteFutureProduct = async (id: string) => {
+    try {
+      const res = await fetch(`/api/future-products/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setFutureProducts(prev => prev.filter(f => f.id !== id));
+      }
+    } catch (err) {
+      console.error('Error deleting future product:', err);
+    }
+  };
+
+  const handleSaveSupplier = async (supplier: any): Promise<any> => {
+    try {
+      const isEdit = suppliers.some(s => s.id === supplier.id);
+      const url = isEdit ? `/api/suppliers/${supplier.id}` : '/api/suppliers';
+      const method = isEdit ? 'PUT' : 'POST';
+      const res = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(supplier)
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Erreur lors de l\'enregistrement du fournisseur.');
+      }
+      setSuppliers(prev => isEdit ? prev.map(s => s.id === data.id ? data : s) : [data, ...prev]);
+      if (supplier.reception || data.receptionMessage) {
+        await fetchGlobalData();
+      }
+      return data;
+    } catch (err: any) {
+      console.error('Error saving supplier:', err);
+      throw err;
+    }
+  };
+
+  const handleDeleteSupplier = async (id: string) => {
+    try {
+      const res = await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setSuppliers(prev => prev.filter(s => s.id !== id));
+      }
+    } catch (err) {
+      console.error('Error deleting supplier:', err);
+    }
+  };
+
+  const handleExecuteRestock = async (supplierId: string, payload: any) => {
+    const res = await fetch(`/api/suppliers/${supplierId}/receptions`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!res.ok) {
+      throw new Error(data.message || data.error || 'Erreur lors de la réception');
+    }
+    await fetchGlobalData();
+    return data;
+  };
+
+  const handleOpenRestockWithFuture = (fp: FutureProduit) => {
+    setTargetFutureProductForRestock(fp);
+    setCurrentMenu('suppliers');
+  };
+
 
   // If login view is active, render the exact MultiShop Backoffice login screen
   if (showLoginView) {
@@ -476,6 +642,49 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             />
           )}
 
+          {/* CASE 3.1: SOURCES DE VEILLE */}
+          {currentMenu === 'sources' && (
+            <SourcesView
+              sources={sources}
+              onSaveSource={handleSaveSource}
+              onDeleteSource={handleDeleteSource}
+              onCreateFutureProductForSource={() => {
+                setCurrentMenu('future-products');
+              }}
+              futureProductsCountBySource={
+                futureProducts.reduce((acc, fp) => {
+                  acc[fp.sourceId] = (acc[fp.sourceId] || 0) + 1;
+                  return acc;
+                }, {} as Record<string, number>)
+              }
+            />
+          )}
+
+          {/* CASE 3.2: FUTURS PRODUITS */}
+          {currentMenu === 'future-products' && (
+            <FutureProductsView
+              futureProducts={futureProducts}
+              sources={sources}
+              onSaveFutureProduct={handleSaveFutureProduct}
+              onDeleteFutureProduct={handleDeleteFutureProduct}
+              onQuickAddSource={handleQuickAddSource}
+              onOpenRestockWithFuture={handleOpenRestockWithFuture}
+            />
+          )}
+
+          {/* CASE 3.3: FOURNISSEURS & APPROVISIONNEMENT */}
+          {currentMenu === 'suppliers' && (
+            <SuppliersView
+              suppliers={suppliers}
+              products={allProducts}
+              futureProducts={futureProducts}
+              onSaveSupplier={handleSaveSupplier}
+              onDeleteSupplier={handleDeleteSupplier}
+              onExecuteRestock={handleExecuteRestock}
+              initialTargetFutureProduct={targetFutureProductForRestock}
+            />
+          )}
+
           {/* CASE 4: OTHER GLOBAL TRANSVERSAL MODULES */}
           {['promotions', 'stores', 'messages', 'users', 'reports', 'settings'].includes(currentMenu) && (
             <GlobalOtherViews
@@ -506,7 +715,9 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar">
-                    {(['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[]).map((fKey) => {
+                    {((['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[])
+                      .filter(fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)))
+                      .map((fKey) => {
                       const fMeta = BOUTIQUES_META[fKey];
                       const isSelected = targetBoutiqueKey === fKey;
                       return (
