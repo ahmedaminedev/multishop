@@ -68,7 +68,9 @@ export const fetchSiteVisibility = async (): Promise<SiteVisibilityMap> => {
     if (res.ok) {
       const data = await res.json();
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-      window.dispatchEvent(new CustomEvent('site-visibility-changed', { detail: data }));
+      setTimeout(() => {
+        window.dispatchEvent(new CustomEvent('site-visibility-changed', { detail: data }));
+      }, 0);
       return { ...DEFAULT_SITE_VISIBILITY, ...data };
     }
   } catch {
@@ -83,7 +85,9 @@ export const fetchSiteVisibility = async (): Promise<SiteVisibilityMap> => {
 export const saveSiteVisibility = async (newConfig: SiteVisibilityMap): Promise<SiteVisibilityMap> => {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(newConfig));
-    window.dispatchEvent(new CustomEvent('site-visibility-changed', { detail: newConfig }));
+    setTimeout(() => {
+      window.dispatchEvent(new CustomEvent('site-visibility-changed', { detail: newConfig }));
+    }, 0);
 
     const res = await fetch('/api/site-visibility', {
       method: 'POST',

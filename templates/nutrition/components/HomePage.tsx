@@ -285,11 +285,6 @@ export const HomePage: React.FC<HomePageProps> = ({
                 </section>
             )}
 
-            {/* 4.1 Cross-Shop Synergy with other filiales */}
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full pb-8">
-                <CrossShopSynergy />
-            </div>
-
         </div>
     );
 };

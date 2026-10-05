@@ -265,10 +265,6 @@ export const ProductDetailPage: React.FC<{
                         </div>
                     </div>
 
-                    <div className="mt-20 border-t border-gray-100 dark:border-gray-800 pt-10">
-                        <CrossShopSynergy />
-                    </div>
-
                     <div className="mt-16 border-t border-gray-100 dark:border-gray-800 pt-16">
                         <ReviewsSection targetId={product.id as number} targetType="product" />
                     </div>
