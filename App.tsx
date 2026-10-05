@@ -190,6 +190,17 @@ export const App: React.FC = () => {
       };
       document.title = titles[currentShop] || 'MultiShop Network';
     }
+
+    // Dynamic Canonical URL synchronization
+    try {
+      let canonical = document.querySelector('link[rel="canonical"]') as HTMLLinkElement | null;
+      if (!canonical) {
+        canonical = document.createElement('link');
+        canonical.rel = 'canonical';
+        document.head.appendChild(canonical);
+      }
+      canonical.href = window.location.href;
+    } catch {}
   }, [currentShop, appMode, backofficeScope]);
 
   const handleSwitchShop = async (newShopId: FilialeId) => {

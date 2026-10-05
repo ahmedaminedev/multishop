@@ -138,7 +138,7 @@ const AppContent: React.FC = () => {
                 if (id) { setSelectedPackId(Number(id)); setCurrentPage('pack-detail'); window.scrollTo(0, 0); }
             } else if (path === 'blog') { setCurrentPage('blog'); window.scrollTo(0, 0); }
             else if (path === 'contact') { setCurrentPage('contact'); window.scrollTo(0, 0); }
-            else if (path === 'stores') { setCurrentPage('stores'); window.scrollTo(0, 0); }
+            else if (path === 'stores') { window.location.hash = '#/'; }
             else if (path === 'compare') { setCurrentPage('compare'); window.scrollTo(0, 0); }
             else if (path === 'favorites') { setCurrentPage('favorites'); window.scrollTo(0, 0); }
             else if (path === 'profile') setCurrentPage('profile');
@@ -364,7 +364,6 @@ const AppContent: React.FC = () => {
                         {currentPage === 'checkout' && <CheckoutPage onNavigateHome={navigateToHome} onOrderComplete={handleOrderComplete} onNavigateToPaymentGateway={() => {}} stores={stores} />}
                         {currentPage === 'order-history' && <OrderHistoryPage orders={orders} onNavigateHome={navigateToHome} onNavigateToProfile={navigateToProfile} onNavigateToOrderDetail={navigateToOrderDetail} />}
                         {currentPage === 'order-detail' && selectedOrderId && <OrderDetailPage order={orders.find(o => o.id === selectedOrderId) || orders[0]} allProducts={products} onNavigateHome={navigateToHome} onNavigateToOrderHistory={navigateToOrderHistory} onNavigateToProductDetail={navigateToProductDetail} />}
-                        {currentPage === 'stores' && <StoresPage onNavigateHome={navigateToHome} stores={stores} />}
                         {currentPage === 'compare' && <ComparePage onNavigateHome={navigateToHome} />}
                         {currentPage === 'favorites' && <FavoritesPage onNavigateHome={navigateToHome} onPreview={setPreviewProduct} allProducts={products} onNavigateToProductDetail={navigateToProductDetail} />}
                         {currentPage === 'privacy-policy' && <PrivacyPolicyPage onNavigateHome={navigateToHome} />}

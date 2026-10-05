@@ -19,7 +19,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToPrivacy, onNavigateT
                         <h3 className="text-lg font-semibold mb-4">Informations</h3>
                         <ul className="space-y-2 text-sm">
                             <li><a href="#" className="text-gray-400 hover:text-white">Qui sommes-nous ?</a></li>
-                            <li><a href="#" className="text-gray-400 hover:text-white">Nos magasins</a></li>
                             <li><a href="#" className="text-gray-400 hover:text-white">Conditions de vente</a></li>
                             <li>
                                 <a 

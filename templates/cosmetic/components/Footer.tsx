@@ -21,7 +21,6 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToPrivacy, onNavigateT
                     <div>
                         <h3 className="text-lg font-serif font-bold text-gray-900 dark:text-white mb-6">Navigation</h3>
                         <ul className="space-y-3 text-sm font-light">
-                            <li><a href="#" className="text-gray-600 hover:text-rose-600 dark:text-gray-400 dark:hover:text-white transition-colors">Nos Magasins</a></li>
                             <li><a href="#" className="text-gray-600 hover:text-rose-600 dark:text-gray-400 dark:hover:text-white transition-colors">Le Blog</a></li>
                             <li><a href="#" className="text-gray-600 hover:text-rose-600 dark:text-gray-400 dark:hover:text-white transition-colors">Conditions Générales</a></li>
                             <li>

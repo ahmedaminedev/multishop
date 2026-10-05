@@ -56,6 +56,55 @@ function multishopProductionPlugin() {
           next();
         }
       });
+    },
+    transformIndexHtml(html, ctx) {
+      const req = ctx?.req;
+      const url = ctx?.originalUrl || req?.originalUrl || req?.url || '/';
+      
+      let shop = 'para';
+      if (url.includes('shop=nutrition')) shop = 'nutrition';
+      else if (url.includes('shop=cosmetic')) shop = 'cosmetic';
+      else if (url.includes('shop=electro')) shop = 'electro';
+
+      const shopMeta: Record<string, { title: string; desc: string; image: string }> = {
+        para: {
+          title: 'PharmaShop | Parapharmacie & Soins Bio Tunisie',
+          desc: 'Compléments alimentaires, micronutrition, phytothérapie et soins certifiés. Livraison express en Tunisie.',
+          image: '/favicon.svg'
+        },
+        nutrition: {
+          title: 'Fitness Shop | Nutrition Sportive & Équipements Fitness Tunisie',
+          desc: 'Whey isolate, créatine, barres protéinées et matériel de musculation professionnel.',
+          image: '/src/assets/images/hero_fitness_athlete_1790951685544.jpg'
+        },
+        cosmetic: {
+          title: 'Cosmetics Shop | Beauté, Rituels & Soins Visage Tunisie',
+          desc: 'Cosmétique haute tolérance, parfumerie fine, sérums anti-âge et maquillage haut de gamme.',
+          image: '/favicon.svg'
+        },
+        electro: {
+          title: 'Electro Shop | High-Tech & Petit Électroménager Tunisie',
+          desc: 'Smartphones, TV 4K, robots culinaires et son haute-fidélité garantis 24 mois.',
+          image: '/favicon.svg'
+        }
+      };
+
+      const meta = shopMeta[shop] || shopMeta.para;
+      let resHtml = html;
+
+      resHtml = resHtml.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);
+      resHtml = resHtml.replace(/<meta name="title" content=".*?" \/>/, `<meta name="title" content="${meta.title}" />`);
+      resHtml = resHtml.replace(/<meta name="description" content=".*?" \/>/, `<meta name="description" content="${meta.desc}" />`);
+
+      resHtml = resHtml.replace(/<meta property="og:title" content=".*?" \/>/, `<meta property="og:title" content="${meta.title}" />`);
+      resHtml = resHtml.replace(/<meta property="og:description" content=".*?" \/>/, `<meta property="og:description" content="${meta.desc}" />`);
+      resHtml = resHtml.replace(/<meta property="og:image" content=".*?" \/>/, `<meta property="og:image" content="${meta.image}" />`);
+
+      resHtml = resHtml.replace(/<meta name="twitter:title" content=".*?" \/>/, `<meta name="twitter:title" content="${meta.title}" />`);
+      resHtml = resHtml.replace(/<meta name="twitter:description" content=".*?" \/>/, `<meta name="twitter:description" content="${meta.desc}" />`);
+      resHtml = resHtml.replace(/<meta name="twitter:image" content=".*?" \/>/, `<meta name="twitter:image" content="${meta.image}" />`);
+
+      return resHtml;
     }
   };
 }

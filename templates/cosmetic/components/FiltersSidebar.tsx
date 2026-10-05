@@ -151,41 +151,6 @@ export const FiltersSidebar: React.FC<FiltersSidebarProps> = ({ products, filter
                             </div>
                         </FilterAccordion>
                     )}
-
-                    {/* Materials/Features Section - Checkbox List Style */}
-                    {materials.length > 0 && (
-                        <FilterAccordion title="Spécificités" isOpenDefault={false}>
-                            <div className="space-y-3">
-                                {materials.map(material => {
-                                    const isSelected = filters.materials.includes(material.name);
-                                    return (
-                                        <label key={material.name} className="flex items-center cursor-pointer group">
-                                            <div className={`
-                                                w-5 h-5 rounded border flex items-center justify-center transition-all duration-200 mr-3
-                                                ${isSelected 
-                                                    ? 'bg-rose-600 border-rose-600 shadow-sm' 
-                                                    : 'bg-white dark:bg-gray-900 border-gray-300 dark:border-gray-600 group-hover:border-rose-400'}
-                                            `}>
-                                                <input
-                                                    type="checkbox"
-                                                    className="hidden"
-                                                    checked={isSelected}
-                                                    onChange={() => handleMaterialChange(material.name)}
-                                                />
-                                                {isSelected && <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="3"><path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" /></svg>}
-                                            </div>
-                                            <span className={`text-sm transition-colors ${isSelected ? 'font-bold text-gray-900 dark:text-white' : 'text-gray-600 dark:text-gray-400 group-hover:text-rose-500'}`}>
-                                                {material.name}
-                                            </span>
-                                            <span className="ml-auto text-xs text-gray-400">
-                                                {material.count}
-                                            </span>
-                                        </label>
-                                    );
-                                })}
-                            </div>
-                        </FilterAccordion>
-                    )}
                 </div>
             </div>
         </aside>

@@ -104,7 +104,6 @@ export const Footer: React.FC<FooterProps> = ({
                         </h4>
                         <ul className="space-y-2.5 text-xs font-semibold text-slate-600">
                             <li><a href="#/contact" className="hover:text-[#4d7c0f] hover:translate-x-0.5 transition-all inline-block">Contact & Devis</a></li>
-                            <li><a href="#/stores" className="hover:text-[#4d7c0f] hover:translate-x-0.5 transition-all inline-block">Nos Showrooms</a></li>
                             <li><a href="#/promotions" className="hover:text-[#4d7c0f] hover:translate-x-0.5 transition-all inline-block">Offres & Promos</a></li>
                             <li><a href="#/order-history" className="hover:text-[#4d7c0f] hover:translate-x-0.5 transition-all inline-block">Suivi Commande</a></li>
                             <li><a href="#/privacy-policy" onClick={(e) => { e.preventDefault(); onNavigateToPrivacy?.(); }} className="hover:text-[#4d7c0f] hover:translate-x-0.5 transition-all inline-block">Confidentialité</a></li>

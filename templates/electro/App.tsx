@@ -216,7 +216,7 @@ const AppContent: React.FC = () => {
     const navigateToCheckout = () => setCurrentPage('checkout');
     const navigateToOrderHistory = () => setCurrentPage('order-history');
     const navigateToOrderDetail = (id: string) => { setSelectedOrderId(id); setCurrentPage('order-detail'); };
-    const navigateToStores = () => setCurrentPage('stores');
+    const navigateToStores = () => navigateToHome();
     const navigateToCompare = () => setCurrentPage('compare');
     const navigateToFavorites = () => setCurrentPage('favorites');
     const navigateToAdmin = () => setCurrentPage('admin');
@@ -469,9 +469,6 @@ const AppContent: React.FC = () => {
                                 onNavigateToOrderHistory={navigateToOrderHistory}
                                 onNavigateToProductDetail={navigateToProductDetail}
                             />
-                        )}
-                        {currentPage === 'stores' && (
-                            <StoresPage onNavigateHome={navigateToHome} stores={stores} />
                         )}
                         {currentPage === 'compare' && (
                             <ComparePage onNavigateHome={navigateToHome} />

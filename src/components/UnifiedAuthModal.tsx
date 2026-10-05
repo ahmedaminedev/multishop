@@ -21,16 +21,31 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   currentShop = 'para',
   onSwitchShop
 }) => {
+  React.useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [isOpen, onClose]);
+
   if (!isOpen) return null;
 
   // If user is already logged in, show user account profile popup
   if (currentUser) {
     return (
-      <div className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+      <div 
+        role="dialog"
+        aria-modal="true"
+        aria-label="Profil utilisateur MultiShop"
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+      >
         <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 relative border border-slate-100">
           <button
             onClick={onClose}
             type="button"
+            aria-label="Fermer la fenêtre"
             className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 text-xl font-bold p-1 leading-none cursor-pointer"
           >
             ✕

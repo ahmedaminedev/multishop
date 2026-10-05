@@ -127,89 +127,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
 };
 
 /* ========================================================================= */
-/* 2. STORES SUB-VIEW                                                        */
-/* ========================================================================= */
-interface StoresSubViewProps {
-  filterShop: string;
-  onFilterShopChange: (shopId: string) => void;
-  shopTabs: ShopTab[];
-}
-
-const StoresSubView: React.FC<StoresSubViewProps> = ({
-  filterShop,
-  onFilterShopChange,
-  shopTabs
-}) => {
-  const storesList = [
-    { name: 'MultiShop Flagship Tunis Centre', address: 'Avenue Habib Bourguiba, Tunis', phone: '+216 71 100 200', branches: ['PharmaShop', 'Cosmetics', 'Electro'], scope: ['para', 'cosmetic', 'electro'] },
-    { name: 'MultiShop Megastore Sousse', address: 'Boulevard 14 Janvier, Sousse', phone: '+216 73 200 300', branches: ['Fitness Shop', 'Electro'], scope: ['nutrition', 'electro'] },
-    { name: 'MultiShop Point de Vente Sfax', address: 'Route de Téniour, Sfax', phone: '+216 74 300 400', branches: ['PharmaShop', 'Cosmetics'], scope: ['para', 'cosmetic'] },
-    { name: 'MultiShop Nabeul Cap Bon', address: 'Avenue Habib Thameur, Nabeul', phone: '+216 72 400 500', branches: ['Toutes Filiales'], scope: ['para', 'nutrition', 'cosmetic', 'electro'] }
-  ];
-
-  const filteredStores = storesList.filter(st => filterShop === 'all' || st.scope.includes(filterShop));
-
-  return (
-    <div className="space-y-6 animate-fadeIn">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-xl font-black text-slate-900 uppercase tracking-tight">
-            RÉSEAU DES MAGASINS <span className="text-blue-600">EN TUNISIE</span>
-          </h2>
-          <p className="text-xs text-slate-500 font-medium">
-            Points de vente physiques, retrait click & collect et stocks régionaux
-          </p>
-        </div>
-
-        <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl border border-slate-200/80 overflow-x-auto no-scrollbar">
-          {shopTabs.map((st) => (
-            <button
-              key={st.id}
-              type="button"
-              onClick={() => onFilterShopChange(st.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                filterShop === st.id ? 'bg-blue-600 text-white shadow-xs' : 'text-slate-600 hover:text-slate-900 hover:bg-white'
-              }`}
-            >
-              <span>{st.icon}</span>
-              <span>{st.label}</span>
-            </button>
-          ))}
-        </div>
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-        {filteredStores.map((store, i) => (
-          <div key={i} className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs space-y-3">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center">
-                <MapPin className="w-5 h-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-slate-900 text-sm">{store.name}</h3>
-                <p className="text-xs text-slate-500">{store.address}</p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-1.5 pt-1">
-              {store.branches.map((b, bi) => (
-                <span key={bi} className="text-[10px] bg-slate-100 text-slate-700 px-2 py-0.5 rounded-md font-semibold">
-                  {b}
-                </span>
-              ))}
-            </div>
-            <div className="pt-2 border-t border-slate-100 flex items-center justify-between text-xs">
-              <span className="text-slate-500 flex items-center gap-1"><Phone className="w-3 h-3 text-slate-400" /> {store.phone}</span>
-              <span className="text-emerald-700 bg-emerald-50 px-2.5 py-0.5 rounded-full text-[10px] font-bold">Ouvert 8h30 - 19h30</span>
-            </div>
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-};
-
-/* ========================================================================= */
-/* 3. MESSAGES SUB-VIEW                                                      */
+/* 2. MESSAGES SUB-VIEW                                                      */
 /* ========================================================================= */
 interface MessagesSubViewProps {
   filterShop: string;
@@ -813,16 +731,6 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
   if (currentMenu === 'promotions') {
     return (
       <PromotionsSubView
-        filterShop={filterShop}
-        onFilterShopChange={handleFilterShopChange}
-        shopTabs={shopTabs}
-      />
-    );
-  }
-
-  if (currentMenu === 'stores') {
-    return (
-      <StoresSubView
         filterShop={filterShop}
         onFilterShopChange={handleFilterShopChange}
         shopTabs={shopTabs}

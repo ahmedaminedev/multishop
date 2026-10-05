@@ -7,6 +7,7 @@ import { useFavorites } from './FavoritesContext';
 import { PlusIcon, MinusIcon, CartIcon, HeartIcon, DeliveryTruckIcon, GuaranteeIcon, SecurePaymentIcon } from './IconComponents';
 import { ProductCarousel } from './ProductCarousel';
 import { ProductGallery } from './ProductGallery';
+import { SEO } from './SEO';
 
 interface ProductDetailPageProps {
     product: Product;
@@ -68,6 +69,19 @@ export const ProductDetailPage: React.FC<ProductDetailPageProps> = ({ product, a
 
     return (
         <div className="bg-gray-100 dark:bg-gray-950">
+            <SEO 
+                title={product.name} 
+                description={product.description} 
+                image={product.imageUrl} 
+                type="product" 
+                productData={{
+                    price: product.price,
+                    currency: 'TND',
+                    availability: isOutOfStock ? 'OutOfStock' : 'InStock',
+                    brand: product.brand,
+                    category: product.category
+                }}
+            />
             <div className="max-w-screen-2xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
                 <Breadcrumb items={[{ name: 'Accueil', onClick: onNavigateHome }, { name: product.category }, { name: product.name }]} />
 

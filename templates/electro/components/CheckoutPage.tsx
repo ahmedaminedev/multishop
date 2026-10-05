@@ -454,26 +454,6 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onNavigateHome, onOr
                                     icon={<DeliveryTruckIcon className="w-5 h-5" />}
                                     price={cartTotal >= 300 ? 'gratuit' : '7.000 DT'}
                                 />
-                                
-                                {pickupStores.length > 0 && (
-                                    <div className="mt-4">
-                                        <h3 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-3 ml-1">Retrait en magasin (Gratuit)</h3>
-                                        <div className="space-y-3">
-                                            {pickupStores.map(store => (
-                                                <ShippingOptionCard 
-                                                    key={store.id}
-                                                    id={`store-${store.id}`} 
-                                                    title={`Retrait en magasin - ${store.city}`} 
-                                                    description={`${store.address} | ${store.openingHours}`}
-                                                    selectedOption={shippingOption} 
-                                                    onSelect={setShippingOption}
-                                                    icon={<StorefrontIcon className="w-5 h-5" />}
-                                                    price="gratuit"
-                                                />
-                                            ))}
-                                        </div>
-                                    </div>
-                                )}
                             </div>
                              <div className="flex justify-end mt-6"><button onClick={() => handleNext(3)} className="bg-red-600 text-white font-semibold py-2.5 px-6 rounded-md hover:bg-red-700 transition-colors">Continuer</button></div>
                         </CheckoutStep>

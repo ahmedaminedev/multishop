@@ -112,7 +112,6 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
     { id: 'future-products' as SidebarMenuItem, label: 'Futurs Produits', icon: Sparkles },
     { id: 'suppliers' as SidebarMenuItem, label: 'Fournisseurs & Stock', icon: Building2 },
     { id: 'promotions' as SidebarMenuItem, label: 'Promotions', icon: Rocket },
-    { id: 'stores' as SidebarMenuItem, label: 'Stores', icon: Store },
     { id: 'messages' as SidebarMenuItem, label: 'Messages', icon: Mail, badge: messagesBadge },
     { id: 'users' as SidebarMenuItem, label: 'Utilisateurs', icon: Users },
     { id: 'reports' as SidebarMenuItem, label: 'Rapports', icon: BarChart3 },

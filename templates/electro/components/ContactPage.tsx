@@ -147,19 +147,7 @@ export const ContactPage: React.FC<ContactPageProps> = ({ onNavigateHome, stores
                             <div className="space-y-4">
                                <InfoCard icon={<PhoneIcon className="w-6 h-6"/>} title="Appelez-nous" content={<a href="tel:+216-55-263-522" className="hover:text-red-500 dark:hover:text-red-400 transition-colors">+216 55 263 522</a>} />
                                <InfoCard icon={<MailIcon className="w-6 h-6"/>} title="Envoyez un e-mail" content={<a href="mailto:contact@electroshop.com" className="hover:text-red-500 dark:hover:text-red-400 transition-colors">contact@electroshop.com</a>} />
-                               
-                               <h4 className="font-semibold text-gray-900 dark:text-gray-100 mt-6 mb-2 border-b dark:border-gray-700 pb-2">Visitez nos magasins</h4>
-                               <div className="max-h-64 overflow-y-auto space-y-3 pr-2 custom-scrollbar">
-                                   {stores.map(store => (
-                                       <div key={store.id} className="flex items-start gap-3 text-sm">
-                                           <LocationIcon className="w-5 h-5 text-red-500 flex-shrink-0 mt-0.5" />
-                                           <div>
-                                               <span className="font-bold text-gray-800 dark:text-gray-200">{store.name}</span>
-                                               <p className="text-gray-600 dark:text-gray-400 text-xs">{store.address}, {store.city}</p>
-                                           </div>
-                                       </div>
-                                   ))}
-                               </div>
+                               <InfoCard icon={<LocationIcon className="w-6 h-6"/>} title="Boutique 100% E-Commerce" content={<span>Livraison sécurisée express à domicile partout en Tunisie (24/48h)</span>} />
                             </div>
                         </div>
                         <div className="bg-white dark:bg-gray-800 p-8 rounded-2xl shadow-xl">

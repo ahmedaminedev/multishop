@@ -190,6 +190,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                         key={shop.id}
                         type="button"
                         onClick={() => onSwitchShop(shop.id)}
+                        aria-label={`Accéder à la boutique ${shop.name}`}
                         className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-0 ${
                           isCurrent
                             ? inMaintenance
@@ -222,6 +223,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                 <button
                   type="button"
                   onClick={onGoToBackoffice}
+                  aria-label="Accéder au backoffice d'administration du groupe"
                   className="bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-xs px-2.5 sm:px-3.5 py-2 rounded-lg shadow-sm flex items-center gap-1.5 transition-all cursor-pointer hover:shadow-md"
                   title="Accéder au Backoffice Administrateur Général"
                 >
@@ -236,6 +238,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                 <button
                   type="button"
                   onClick={onOpenAuthModal}
+                  aria-label="Gérer mon compte client MultiShop"
                   className="flex items-center gap-2 p-1 sm:p-1.5 pl-2 sm:pl-2.5 pr-2 sm:pr-3 rounded-lg bg-slate-50 dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors border border-slate-200 dark:border-slate-800 cursor-pointer shadow-xs"
                   title={`Connecté: ${currentUser.email} (${currentUser.role === 'ADMIN' ? 'Administrateur' : 'Client'})`}
                 >
@@ -259,6 +262,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                       if (onGoToLogin) onGoToLogin();
                       else onOpenAuthModal();
                     }}
+                    aria-label="Se connecter à votre compte MultiShop"
                     className="flex items-center gap-1.5 px-3 py-2 rounded-lg bg-slate-900 hover:bg-slate-800 text-white text-xs font-extrabold transition-all shadow-xs cursor-pointer"
                     title="Se connecter au compte unique MultiShop"
                   >
@@ -271,6 +275,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                       if (onGoToRegister) onGoToRegister();
                       else onOpenAuthModal();
                     }}
+                    aria-label="Créer un nouveau compte client MultiShop"
                     className="hidden md:flex items-center gap-1 px-3 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white text-xs font-extrabold transition-all shadow-sm cursor-pointer"
                     title="Créer un compte client MultiShop"
                   >

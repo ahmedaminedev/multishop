@@ -52,7 +52,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigateToPrivacy, onNavigateT
                             <li><a href="#" className="hover:text-brand-secondary transition-all">Suivre ma Cure</a></li>
                             <li><a href="#" className="hover:text-brand-secondary transition-all">Conseil Personnalisé</a></li>
                             <li><a href="#/privacy-policy" onClick={(e) => {e.preventDefault(); onNavigateToPrivacy?.()}} className="hover:text-brand-secondary transition-all">Données & Vie Privée</a></li>
-                            <li><a href="#" className="hover:text-brand-secondary transition-all">Points de Retrait</a></li>
+                            <li><a href="#" className="hover:text-brand-secondary transition-all">Livraison Express 24/48h</a></li>
                         </ul>
                     </div>
 

@@ -175,8 +175,7 @@ const AppContent: React.FC = () => {
                 setCurrentPage('contact');
                 window.scrollTo(0, 0);
             } else if (path === 'stores') {
-                setCurrentPage('stores');
-                window.scrollTo(0, 0);
+                window.location.hash = '#/';
             } else if (path === 'compare') {
                 setCurrentPage('compare');
                 window.scrollTo(0, 0);
@@ -631,9 +630,6 @@ const AppContent: React.FC = () => {
                                 onNavigateToOrderHistory={navigateToOrderHistory}
                                 onNavigateToProductDetail={navigateToProductDetail}
                             />
-                        )}
-                        {currentPage === 'stores' && (
-                            <StoresPage onNavigateHome={navigateToHome} stores={stores} />
                         )}
                         {currentPage === 'compare' && (
                             <ComparePage onNavigateHome={navigateToHome} />

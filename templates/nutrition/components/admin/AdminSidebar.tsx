@@ -91,7 +91,6 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActiv
         { id: 'orders', label: 'Logistique', icon: <UsersIcon /> },
         { id: 'messages', label: 'Transmissions', icon: <InboxIcon /> },
         { id: 'promotions', label: 'Codes Promo', icon: <SparklesIcon /> },
-        { id: 'stores', label: 'Bases / Magasins', icon: <StorefrontIcon /> },
     ];
 
     return (

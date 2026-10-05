@@ -185,7 +185,6 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
                 <th className="py-3 px-4">Prix Public</th>
                 <th className="py-3 px-4">Quantité en Stock</th>
                 <th className="py-3 px-4">Visibilité Boutique</th>
-                <th className="py-3 px-4">Spécificités</th>
                 <th className="py-3 px-4 text-right">Actions</th>
               </tr>
             </thead>
@@ -267,22 +266,6 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
                           <span>📦</span>
                           <span>Hors boutique (À valider)</span>
                         </span>
-                      )}
-                    </td>
-
-                    {/* Filiale Specific Attributes */}
-                    <td className="py-3 px-4 text-[11px] text-slate-600">
-                      {prod.filialeType === FilialeType.PRODUIT_MYSHOPS_ELECTRO && (
-                        <p><span className="text-slate-400">Garantie :</span> <strong className="text-blue-600">{prod.garantieMois || 24} mois</strong> • {prod.puissanceWatts || '1200W'}</p>
-                      )}
-                      {prod.filialeType === FilialeType.PRODUIT_MYSHOPS_NUTRITION && (
-                        <p><span className="text-slate-400">Saveur :</span> <strong className="text-amber-600">{prod.goutSaveur || 'Chocolat'}</strong></p>
-                      )}
-                      {prod.filialeType === FilialeType.PRODUIT_MYSHOPS_COSMETIQUE && (
-                        <p><span className="text-slate-400">Teinte :</span> <strong className="text-rose-600">{prod.teinte || 'Naturel'}</strong></p>
-                      )}
-                      {prod.filialeType === FilialeType.PRODUIT_MYSHOPS_PARA && (
-                        <p><span className="text-slate-400">Posologie :</span> <strong className="text-emerald-600">{prod.posologie || '1-2 / jour'}</strong></p>
                       )}
                     </td>
 
