@@ -47,6 +47,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
     { id: 'nutrition', label: 'Fitness Shop', icon: '⚡' },
     { id: 'cosmetic', label: 'Cosmetics', icon: '💄' },
     { id: 'electro', label: 'Electro', icon: '🔌' },
+    { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
   ];
 
   return (
@@ -58,7 +59,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
             GESTION DES COMMANDES <span className="text-blue-600">CENTRALISÉES</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Visualisez et traitez les commandes clients de PharmaShop, Fitness Shop, Cosmetics et Electro Shop
+            Visualisez et traitez les commandes clients de PharmaShop, Fitness Shop, Cosmetics Shop, Electro Shop et YoupiShop
           </p>
         </div>
 
@@ -159,6 +160,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
                         {order.filialeKey === 'nutrition' && '⚡ Fitness Shop'}
                         {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
                         {order.filialeKey === 'electro' && '🔌 Electro Shop'}
+                        {order.filialeKey === 'youpi' && '🧸 YoupiShop'}
                       </span>
                     </td>
                     <td className="py-3 px-4">

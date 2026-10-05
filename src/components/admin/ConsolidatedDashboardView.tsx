@@ -82,6 +82,19 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
       badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
       iconBg: 'bg-blue-50 text-blue-500',
       statColor: 'text-blue-600'
+    },
+    {
+      key: 'youpi' as BackofficeTab,
+      name: 'YoupiShop',
+      subtitle: "Jeux d'Enfants & Jouets",
+      enumType: 'produit_myshops_youpi',
+      icon: '🧸',
+      revenue: stats?.filiales?.youpi?.revenue ?? 480,
+      orders: stats?.filiales?.youpi?.ordersCount ?? 2,
+      articles: stats?.filiales?.youpi?.productsCount ?? 18,
+      badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
+      iconBg: 'bg-amber-50 text-amber-600',
+      statColor: 'text-amber-600'
     }
   ];
 

@@ -65,6 +65,7 @@ function multishopProductionPlugin() {
       if (url.includes('shop=nutrition')) shop = 'nutrition';
       else if (url.includes('shop=cosmetic')) shop = 'cosmetic';
       else if (url.includes('shop=electro')) shop = 'electro';
+      else if (url.includes('shop=youpi')) shop = 'youpi';
 
       const shopMeta: Record<string, { title: string; desc: string; image: string }> = {
         para: {
@@ -86,6 +87,11 @@ function multishopProductionPlugin() {
           title: 'Electro Shop | High-Tech & Petit Électroménager Tunisie',
           desc: 'Smartphones, TV 4K, robots culinaires et son haute-fidélité garantis 24 mois.',
           image: '/favicon.svg'
+        },
+        youpi: {
+          title: "YoupiShop | Jeux d'Enfants & Jouets d'Éveil Tunisie",
+          desc: "Des milliers de jouets pour faire rêver vos enfants à tous les âges. Livraison 24/48h partout en Tunisie.",
+          image: '/src/assets/images/hero_youpishop_toys_1791240036994.jpg'
         }
       };
 

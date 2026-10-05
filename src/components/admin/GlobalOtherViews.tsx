@@ -67,6 +67,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
     { id: '3', title: 'Duo Beauté & Soin Visage', desc: '1 Masque régénérant offert pour 2 crèmes achetées.', scope: 'cosmetic', code: 'GLOW50', uses: 38, exp: '20 Oct 2026', badge: 'OFFRE BEAUTÉ', badgeColor: 'text-rose-600 bg-rose-50 border-rose-200' },
     { id: '4', title: 'Remise Tech Électro', desc: '-10% sur tout le rayon petit électroménager cuisine.', scope: 'electro', code: 'ELECTRO10', uses: 19, exp: '01 Déc 2026', badge: 'TECH DEAL', badgeColor: 'text-blue-600 bg-blue-50 border-blue-200' },
     { id: '5', title: 'Immunité & Phytothérapie', desc: '-20% sur la gamme compléments alimentaires Bio.', scope: 'para', code: 'PHYTO20', uses: 45, exp: '30 Nov 2026', badge: 'SANTÉ BIO', badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+    { id: '6', title: 'Offre Anniversaire Enfants & Jouets', desc: '-10% sur tous les jeux d\'éveil, Lego et coffrets avec le code YOUPI10', scope: 'youpi', code: 'YOUPI10', uses: 28, exp: '31 Déc 2026', badge: 'JEUX & JOUETS', badgeColor: 'text-amber-700 bg-amber-50 border-amber-200' },
   ];
 
   const filteredPromos = allPromos.filter(p => filterShop === 'all' || p.scope === 'all' || p.scope === filterShop);
@@ -79,7 +80,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
             CAMPAGNES & PROMOTIONS <span className="text-blue-600">GROUPE</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Gérez les offres spéciales, remises flash et codes promos pour les 4 boutiques
+            Gérez les offres spéciales, remises flash et codes promos pour les 5 boutiques du réseau
           </p>
         </div>
 
@@ -144,7 +145,8 @@ const MessagesSubView: React.FC<MessagesSubViewProps> = ({
     { id: '1', author: 'Mehdi Ben Salah', email: 'mehdi.bensalah@gmail.com', shop: '⚡ Fitness Shop', shopKey: 'nutrition', text: 'Bonjour, quel est le délai de livraison pour la Whey Isolate sur Sousse ?', time: 'Il y a 2h' },
     { id: '2', author: 'Sonia Triki', email: 'sonia.triki@yahoo.fr', shop: '💄 Cosmetics', shopKey: 'cosmetic', text: 'Le sérum à l\'acide hyaluronique convient-il aux peaux très sensibles ?', time: 'Hier' },
     { id: '3', author: 'Khaled Mansouri', email: 'khaled.m@gmail.com', shop: '🔌 Electro', shopKey: 'electro', text: 'La machine à café expresso est-elle garantie 2 ans avec facture ?', time: 'Il y a 2 jours' },
-    { id: '4', author: 'Amina Cherif', email: 'amina.cherif@outlook.com', shop: '🌿 PharmaShop', shopKey: 'para', text: 'Est-il possible de préparer une commande click & collect pour cet après-midi ?', time: 'Il y a 3 jours' }
+    { id: '4', author: 'Amina Cherif', email: 'amina.cherif@outlook.com', shop: '🌿 PharmaShop', shopKey: 'para', text: 'Est-il possible de préparer une commande click & collect pour cet après-midi ?', time: 'Il y a 3 jours' },
+    { id: '5', author: 'Inès Trabelsi', email: 'ines.trabelsi@gmail.com', shop: '🧸 YoupiShop', shopKey: 'youpi', text: 'Bonjour, avez-vous le pack Montessori et la boîte de briques 850 pièces en stock immédiat ?', time: 'Il y a 4h' }
   ];
 
   const filteredMessages = allMessages.filter(m => filterShop === 'all' || m.shopKey === filterShop);
@@ -240,6 +242,13 @@ const UsersSubView: React.FC = () => {
               <td className="py-3 px-4 text-slate-600">PharmaShop</td>
               <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
             </tr>
+            <tr>
+              <td className="py-3 px-4 font-bold text-slate-900">Responsable YoupiShop</td>
+              <td className="py-3 px-4 text-slate-600">youpi@multishop.tn</td>
+              <td className="py-3 px-4"><span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold text-[10px]">Gestionnaire</span></td>
+              <td className="py-3 px-4 text-slate-600">YoupiShop</td>
+              <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
+            </tr>
           </tbody>
         </table>
       </div>
@@ -255,6 +264,53 @@ interface ReportsSubViewProps {
 }
 
 const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
+  const filialesList = [
+    {
+      key: 'electro',
+      name: 'Electro Shop',
+      icon: '🔌',
+      barColor: 'bg-blue-600',
+      textColor: 'text-blue-600',
+      revenue: stats?.filiales?.electro?.revenue ?? 3931
+    },
+    {
+      key: 'youpi',
+      name: 'YoupiShop',
+      icon: '🧸',
+      barColor: 'bg-amber-500',
+      textColor: 'text-amber-600',
+      revenue: stats?.filiales?.youpi?.revenue ?? 228
+    },
+    {
+      key: 'nutrition',
+      name: 'Fitness Shop',
+      icon: '⚡',
+      barColor: 'bg-lime-500',
+      textColor: 'text-lime-600',
+      revenue: stats?.filiales?.nutrition?.revenue ?? 289
+    },
+    {
+      key: 'cosmetic',
+      name: 'Cosmetics Shop',
+      icon: '💄',
+      barColor: 'bg-rose-500',
+      textColor: 'text-rose-600',
+      revenue: stats?.filiales?.cosmetic?.revenue ?? 289
+    },
+    {
+      key: 'para',
+      name: 'PharmaShop',
+      icon: '🌿',
+      barColor: 'bg-emerald-500',
+      textColor: 'text-emerald-600',
+      revenue: stats?.filiales?.para?.revenue ?? 0
+    }
+  ];
+
+  const totalRev = filialesList.reduce((acc, f) => acc + f.revenue, 0) || 1;
+  const totalOrdersCount = stats?.totalOrders ?? (stats?.filiales ? Object.values(stats.filiales).reduce((sum: number, f: any) => sum + (f.ordersCount || 0), 0) : 7);
+  const avgBasket = totalOrdersCount > 0 ? (totalRev / totalOrdersCount).toFixed(1) : '0';
+
   return (
     <div className="space-y-6 animate-fadeIn">
       <div>
@@ -262,7 +318,7 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
           RAPPORTS & ANALYTICS <span className="text-blue-600">GROUPE</span>
         </h2>
         <p className="text-xs text-slate-500 font-medium">
-          Répartition des revenus consolidés par boutique et indicateurs clés
+          Répartition des revenus consolidés par boutique et indicateurs clés en temps réel
         </p>
       </div>
 
@@ -270,45 +326,20 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
         <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs space-y-4">
           <h3 className="font-bold text-sm text-slate-900 uppercase">Part de CA par Filiale</h3>
           <div className="space-y-3 text-xs">
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-semibold text-slate-700">🔌 Electro Shop (3 931 DT)</span>
-                <span className="font-bold text-blue-600">87.2%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-blue-600 h-full rounded-full" style={{ width: '87.2%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-semibold text-slate-700">⚡ Fitness Shop (289 DT)</span>
-                <span className="font-bold text-amber-600">6.4%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-amber-500 h-full rounded-full" style={{ width: '6.4%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-semibold text-slate-700">💄 Cosmetics Shop (289 DT)</span>
-                <span className="font-bold text-rose-600">6.4%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-rose-500 h-full rounded-full" style={{ width: '6.4%' }}></div>
-              </div>
-            </div>
-
-            <div>
-              <div className="flex justify-between mb-1">
-                <span className="font-semibold text-slate-700">🌿 PharmaShop (0 DT)</span>
-                <span className="font-bold text-emerald-600">0%</span>
-              </div>
-              <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
-                <div className="bg-emerald-500 h-full rounded-full" style={{ width: '1%' }}></div>
-              </div>
-            </div>
+            {filialesList.map(item => {
+              const pct = ((item.revenue / totalRev) * 100).toFixed(1);
+              return (
+                <div key={item.key}>
+                  <div className="flex justify-between mb-1">
+                    <span className="font-semibold text-slate-700">{item.icon} {item.name} ({item.revenue.toLocaleString()} DT)</span>
+                    <span className={`font-bold ${item.textColor}`}>{pct}%</span>
+                  </div>
+                  <div className="w-full bg-slate-100 h-2 rounded-full overflow-hidden">
+                    <div className={`${item.barColor} h-full rounded-full transition-all duration-500`} style={{ width: `${Math.max(Number(pct), 1)}%` }}></div>
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
 
@@ -316,8 +347,14 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
           <h3 className="font-bold text-sm text-slate-900 uppercase">Performance Moyenne Panier</h3>
           <div className="p-4 bg-blue-50 rounded-xl space-y-1">
             <p className="text-xs text-blue-600 font-bold uppercase tracking-wider">Panier Moyen Groupe</p>
-            <p className="text-2xl font-black text-slate-900">901.8 DT</p>
-            <p className="text-[11px] text-slate-500">Calculé sur l'ensemble des 5 commandes finalisées</p>
+            <p className="text-2xl font-black text-slate-900">{avgBasket} DT</p>
+            <p className="text-[11px] text-slate-500">Calculé sur l'ensemble des {totalOrdersCount} commandes consolidées</p>
+          </div>
+
+          <div className="p-4 bg-slate-50 rounded-xl space-y-1">
+            <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Chiffre d'Affaires Global</p>
+            <p className="text-2xl font-black text-slate-900">{totalRev.toLocaleString()} DT</p>
+            <p className="text-[11px] text-slate-500">Totalité des 5 filiales (Pharma, Fitness, Cosmetic, Electro, Youpi)</p>
           </div>
         </div>
       </div>
@@ -333,6 +370,7 @@ const STORE_ITEMS = [
   { id: 'nutrition', name: 'Fitness Shop', icon: '🏋️‍♂️', tagline: 'Équipements de Musculation & Fitness', color: 'text-lime-700 bg-lime-50 border-lime-200' },
   { id: 'cosmetic', name: 'Cosmetics Shop', icon: '💄', tagline: 'Soins, Beauté & Parfumerie Luxe', color: 'text-rose-700 bg-rose-50 border-rose-200' },
   { id: 'electro', name: 'Electro Shop', icon: '🔌', tagline: 'High-Tech & Électroménager', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  { id: 'youpi', name: 'YoupiShop', icon: '🧸', tagline: "Jeux d'Enfants & Jouets Éducatifs", color: 'text-amber-700 bg-amber-50 border-amber-200' },
 ];
 
 const SettingsSubView: React.FC = () => {
@@ -723,9 +761,10 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
   const shopTabs: ShopTab[] = [
     { id: 'all', label: 'Toutes', icon: '🌐' },
     { id: 'para', label: 'Pharma', icon: '🌿' },
-    { id: 'nutrition', label: 'Nutrition', icon: '⚡' },
+    { id: 'nutrition', label: 'Fitness', icon: '⚡' },
     { id: 'cosmetic', label: 'Cosmetic', icon: '💄' },
     { id: 'electro', label: 'Electro', icon: '🔌' },
+    { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
   ];
 
   if (currentMenu === 'promotions') {

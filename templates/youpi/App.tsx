@@ -6,7 +6,6 @@ import { FavoritesProvider } from './components/FavoritesContext';
 import { CompareProvider } from './components/CompareContext';
 import { Header } from './components/Header';
 import { HeroSection } from './components/HeroSection';
-import { CategoryShowcase } from './components/CategoryShowcase';
 import { ProductGridSection } from './components/ProductGridSection';
 import { ProductPreviewModal } from './components/ProductPreviewModal';
 import { CartSidebar } from './components/CartSidebar';
@@ -21,7 +20,10 @@ import { Product, Pack, Store, BlogPost } from './types';
 // Default initial data for YoupiShop
 import initialData from './data/initialData';
 
-export const YoupiShopApp: React.FC = () => {
+export const YoupiShopApp: React.FC<{
+  onOpenAuthModal?: () => void;
+  currentUser?: any;
+}> = ({ onOpenAuthModal, currentUser }) => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout'>('home');
   const [products, setProducts] = useState<Product[]>(initialData.allProducts as any);
   const [packs] = useState<Pack[]>(initialData.packs as any);
@@ -51,17 +53,8 @@ export const YoupiShopApp: React.FC = () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleExploreCategory = (categorySlug?: string) => {
-    if (categorySlug) {
-      const match = products.find(p => p.category.toLowerCase().includes(categorySlug.replace('-', ' ')));
-      if (match) {
-        setSelectedCategory(match.category);
-      } else {
-        setSelectedCategory('all');
-      }
-    } else {
-      setSelectedCategory('all');
-    }
+  const handleCategorySelect = (category: string) => {
+    setSelectedCategory(category);
     setCurrentView('catalog');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -74,28 +67,26 @@ export const YoupiShopApp: React.FC = () => {
             <CompareProvider>
               <div className="min-h-screen flex flex-col bg-white dark:bg-slate-950 text-slate-900 dark:text-slate-100 font-sans selection:bg-amber-500 selection:text-white">
                 
-                {/* 1. Header (Top Bar Contract) */}
+                {/* 1. Header (Exact Match to Capture Screenshot) */}
                 <Header
                   onNavigate={handleNavigate}
                   currentView={currentView}
                   searchQuery={searchQuery}
                   onSearchChange={setSearchQuery}
+                  onSelectCategory={handleCategorySelect}
+                  onOpenAuthModal={onOpenAuthModal}
+                  currentUser={currentUser}
                 />
 
                 {/* 2. Main View Routing */}
                 <main className="flex-1">
                   
-                  {/* HOME VIEW */}
+                  {/* HOME VIEW: Hero Banner + Trust Badges + 8 Pastel Category Cards + Playful Ribbon + Catalog */}
                   {currentView === 'home' && (
                     <>
-                      <HeroSection onExplore={handleExploreCategory} />
-                      <CategoryShowcase
-                        onSelectCategory={(cat) => {
-                          setSelectedCategory(cat);
-                          setCurrentView('catalog');
-                          window.scrollTo({ top: 0, behavior: 'smooth' });
-                        }}
-                        selectedCategory={selectedCategory}
+                      <HeroSection
+                        onExplore={() => handleNavigate('catalog')}
+                        onSelectCategory={handleCategorySelect}
                       />
                       <ProductGridSection
                         products={products}
@@ -145,7 +136,7 @@ export const YoupiShopApp: React.FC = () => {
 
                 {/* 4. Sliding Cart Drawer */}
                 <CartSidebar
-                  onProceedToCheckout={() => setCurrentView('checkout')}
+                  onProceedToCheckout={() => handleNavigate('checkout')}
                 />
 
                 {/* 5. Support Messaging Chatbox ("Boîte messagerie qui convient") */}

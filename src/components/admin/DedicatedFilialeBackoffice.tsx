@@ -249,7 +249,7 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
     }));
   };
 
-  const filialeKeys: FilialeId[] = ['para', 'nutrition', 'cosmetic', 'electro'];
+  const filialeKeys: FilialeId[] = ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'];
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans w-full">

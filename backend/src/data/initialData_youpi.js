@@ -272,6 +272,8 @@ const sampleOrders = [
     {
         id: 'CMD-YOUPI-101',
         orderNumber: 'CMD-YOUPI-101',
+        customerName: 'Ines Ben Salem',
+        customerEmail: 'ines.bensalem@gmail.com',
         customer: {
             name: 'Ines Ben Salem',
             email: 'ines.bensalem@gmail.com',
@@ -287,14 +289,17 @@ const sampleOrders = [
                 imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
             }
         ],
+        total: 89,
         totalAmount: 89,
         paymentMethod: 'Paiement à la livraison (Espèces)',
-        status: 'livré',
+        status: 'Livrée',
         date: '2026-03-28'
     },
     {
         id: 'CMD-YOUPI-102',
         orderNumber: 'CMD-YOUPI-102',
+        customerName: 'Mehdi Trabelsi',
+        customerEmail: 'mehdi.trabelsi@yahoo.fr',
         customer: {
             name: 'Mehdi Trabelsi',
             email: 'mehdi.trabelsi@yahoo.fr',
@@ -310,9 +315,10 @@ const sampleOrders = [
                 imageUrl: '/src/assets/images/category_youpi_lego_1791240056376.jpg'
             }
         ],
+        total: 139,
         totalAmount: 139,
         paymentMethod: 'Paiement à la livraison (Espèces)',
-        status: 'expédié',
+        status: 'Expédiée',
         date: '2026-04-01'
     }
 ];

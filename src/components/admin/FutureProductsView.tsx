@@ -42,6 +42,14 @@ const DEFAULT_CATEGORIES_BY_SITE: Record<string, string[]> = {
     'Petit Électroménager',
     'Smartphones & Accessoires',
     'Gaming & TV'
+  ],
+  youpi: [
+    'Éveil & Bébé',
+    'Construction & Lego',
+    'Jeux de Société',
+    'Puzzles',
+    'Éducatifs',
+    'Plein Air & Véhicules'
   ]
 };
 
@@ -49,7 +57,8 @@ const SITE_OPTIONS = [
   { id: 'fitnessshop', label: 'Fitness Shop (Équipements & Muscu)', filialeKey: 'nutrition', color: 'text-lime-700 bg-lime-50 border-lime-200' },
   { id: 'parashop', label: 'PharmaShop (Parapharmacie & Bio)', filialeKey: 'para', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
   { id: 'cosmetic', label: 'Cosmetics Shop (Beauté & Luxe)', filialeKey: 'cosmetic', color: 'text-rose-700 bg-rose-50 border-rose-200' },
-  { id: 'electro', label: 'Electro Shop (High-Tech & Maison)', filialeKey: 'electro', color: 'text-blue-700 bg-blue-50 border-blue-200' }
+  { id: 'electro', label: 'Electro Shop (High-Tech & Maison)', filialeKey: 'electro', color: 'text-blue-700 bg-blue-50 border-blue-200' },
+  { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', filialeKey: 'youpi', color: 'text-amber-700 bg-amber-50 border-amber-200' }
 ];
 
 export const FutureProductsView: React.FC<FutureProductsViewProps> = ({

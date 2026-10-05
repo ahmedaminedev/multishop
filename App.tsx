@@ -182,7 +182,8 @@ export const App: React.FC = () => {
           para: 'PharmaShop | Administration Dédiée',
           nutrition: 'Fitness Shop | Administration Dédiée',
           cosmetic: 'Cosmetics Shop | Administration Dédiée',
-          electro: 'Electro Shop | Administration Dédiée'
+          electro: 'Electro Shop | Administration Dédiée',
+          youpi: 'YoupiShop | Administration Dédiée'
         };
         document.title = titles[backofficeScope] || 'MultiShop Backoffice';
       }
@@ -191,7 +192,8 @@ export const App: React.FC = () => {
         para: 'PharmaShop | Parapharmacie & Soins Bio',
         nutrition: 'Fitness Shop | Équipements de Musculation & Fitness Pro',
         cosmetic: 'Cosmetics Shop | Beauté, Soins & Luxe',
-        electro: 'Electro Shop | High-Tech & Électroménager'
+        electro: 'Electro Shop | High-Tech & Électroménager',
+        youpi: "YoupiShop | Jouets d'Éveil & Jeux d'Enfants"
       };
       document.title = titles[currentShop] || 'MultiShop Network';
     }
@@ -227,7 +229,7 @@ export const App: React.FC = () => {
     window.location.hash = '#/';
   };
 
-  const VALID_FILIALES: FilialeId[] = ['para', 'nutrition', 'cosmetic', 'electro'];
+  const VALID_FILIALES: FilialeId[] = ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'];
 
   const handleGoToStorefront = (shopId?: any) => {
     if (typeof shopId === 'string' && VALID_FILIALES.includes(shopId as FilialeId)) {

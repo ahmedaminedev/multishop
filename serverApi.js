@@ -18,7 +18,8 @@ export let siteVisibilityData = {
   para: { siteId: 'para', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🌿 PharmaShop est temporairement en maintenance technique. Notre équipe prépare de nouveaux produits.' },
   nutrition: { siteId: 'nutrition', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🏋️‍♂️ Fitness Shop est temporairement en maintenance technique pour réapprovisionnement.' },
   cosmetic: { siteId: 'cosmetic', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '💄 Cosmetics Shop est en maintenance technique. Réouverture imminente.' },
-  electro: { siteId: 'electro', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🔌 Electro Shop est temporairement en maintenance pour mise à jour de notre catalogue.' }
+  electro: { siteId: 'electro', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🔌 Electro Shop est temporairement en maintenance pour mise à jour de notre catalogue.' },
+  youpi: { siteId: 'youpi', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🧸 YoupiShop est en maintenance pour préparer de nouveaux jeux et jouets d\'éveil.' }
 };
 
 // Sourcing: Sources de prospection (Instagram, TikTok, Facebook, grossistes, etc.)

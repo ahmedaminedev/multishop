@@ -11,6 +11,8 @@ import {
   SiteVisibilityMap
 } from '../../utils/siteVisibility';
 
+export type BackofficeTab = 'all' | 'para' | 'nutrition' | 'cosmetic' | 'electro' | 'youpi';
+
 interface TopHeaderProps {
   activeShop: ShopContextId;
   onSelectShop: (shop: ShopContextId) => void;

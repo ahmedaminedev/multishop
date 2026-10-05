@@ -943,6 +943,48 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </SubAdminErrorBoundary>
                 )}
 
+                {/* 5. YoupiShop Sub-Pages */}
+                {targetBoutiqueKey === 'youpi' && (
+                  <SubAdminErrorBoundary filialeName="YoupiShop" onBackToHq={() => setCurrentMenu('dashboard')}>
+                    <YoupiThemeProvider>
+                      <YoupiToastProvider>
+                        <YoupiCartProvider>
+                          <YoupiFavoritesProvider>
+                            <YoupiCompareProvider>
+                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module YoupiShop...</div>}>
+                                <YoupiAdminPage
+                                  hideSidebar={true}
+                                  forcedPage={currentMenu as any}
+                                  onNavigateHome={() => onGoToStorefront('youpi')}
+                                  onLogout={onLogout}
+                                  productsData={filialeData.youpi.products}
+                                  setProductsData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, products: typeof data === 'function' ? data(prev.youpi.products) : data } }))}
+                                  categoriesData={filialeData.youpi.categories}
+                                  setCategoriesData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, categories: typeof data === 'function' ? data(prev.youpi.categories) : data } }))}
+                                  packsData={filialeData.youpi.packs}
+                                  setPacksData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, packs: typeof data === 'function' ? data(prev.youpi.packs) : data } }))}
+                                  ordersData={filialeData.youpi.orders}
+                                  setOrdersData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, orders: typeof data === 'function' ? data(prev.youpi.orders) : data } }))}
+                                  messagesData={filialeData.youpi.messages}
+                                  setMessagesData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, messages: typeof data === 'function' ? data(prev.youpi.messages) : data } }))}
+                                  advertisementsData={filialeData.youpi.ads}
+                                  setAdvertisementsData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, ads: typeof data === 'function' ? data(prev.youpi.ads) : data } }))}
+                                  promotionsData={filialeData.youpi.promos}
+                                  setPromotionsData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, promos: typeof data === 'function' ? data(prev.youpi.promos) : data } }))}
+                                  storesData={filialeData.youpi.stores}
+                                  setStoresData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, stores: typeof data === 'function' ? data(prev.youpi.stores) : data } }))}
+                                  brandsData={filialeData.youpi.brands}
+                                  setBrandsData={(data) => setFilialeData(prev => ({ ...prev, youpi: { ...prev.youpi, brands: typeof data === 'function' ? data(prev.youpi.brands) : data } }))}
+                                />
+                              </Suspense>
+                            </YoupiCompareProvider>
+                          </YoupiFavoritesProvider>
+                        </YoupiCartProvider>
+                      </YoupiToastProvider>
+                    </YoupiThemeProvider>
+                  </SubAdminErrorBoundary>
+                )}
+
               </div>
             </div>
           )}
