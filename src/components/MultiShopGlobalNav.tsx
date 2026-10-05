@@ -56,6 +56,15 @@ export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
     badge: 'High-Tech',
     icon: '🔌',
     enumType: 'produit_myshops_electro'
+  },
+  {
+    id: 'youpi',
+    name: 'YoupiShop',
+    tabLabel: 'YoupiShop',
+    tagline: 'Jeux d\'Éveil & Jouets d\'Enfant',
+    badge: 'Jeux & Jouets',
+    icon: '🧸',
+    enumType: 'produit_myshops_youpi'
   }
 ];
 

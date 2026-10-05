@@ -18,6 +18,7 @@ const ParaShopApp = React.lazy(() => import('./templates/para/App'));
 const NutritionShopApp = React.lazy(() => import('./templates/nutrition/App'));
 const CosmeticShopApp = React.lazy(() => import('./templates/cosmetic/App'));
 const ElectroShopApp = React.lazy(() => import('./templates/electro/App'));
+const YoupiShopApp = React.lazy(() => import('./templates/youpi/App'));
 
 export type AppMode = 'backoffice' | 'frontoffice';
 export type BackofficeScope = 'hq' | FilialeId;
@@ -39,23 +40,24 @@ export const App: React.FC = () => {
     if (hash.startsWith('#/admin/nutrition')) return 'nutrition';
     if (hash.startsWith('#/admin/cosmetic')) return 'cosmetic';
     if (hash.startsWith('#/admin/electro')) return 'electro';
+    if (hash.startsWith('#/admin/youpi')) return 'youpi';
     return 'hq';
   });
 
   const [currentShop, setCurrentShop] = useState<FilialeId>(() => {
     const params = new URLSearchParams(window.location.search);
     const shopParam = params.get('shop') as FilialeId;
-    if (shopParam && ['para', 'nutrition', 'cosmetic', 'electro'].includes(shopParam)) {
+    if (shopParam && ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(shopParam)) {
       return shopParam;
     }
     const saved = localStorage.getItem('multishop_active_shop') as FilialeId;
-    if (saved && ['para', 'nutrition', 'cosmetic', 'electro'].includes(saved)) {
+    if (saved && ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(saved)) {
       return saved;
     }
     return 'para';
   });
 
-  // Single Unified User State (SSO across all 4 shops & backoffice)
+  // Single Unified User State (SSO across all 5 shops & backoffice)
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
@@ -87,6 +89,9 @@ export const App: React.FC = () => {
       } else if (hash.startsWith('#/admin/electro')) {
         setAppMode('backoffice');
         setBackofficeScope('electro');
+      } else if (hash.startsWith('#/admin/youpi')) {
+        setAppMode('backoffice');
+        setBackofficeScope('youpi');
       } else if (hash === '#/admin' || hash === '#/admin/hq') {
         setAppMode('backoffice');
         setBackofficeScope('hq');
@@ -345,6 +350,7 @@ export const App: React.FC = () => {
                     {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
                     {currentShop === 'cosmetic' && <CosmeticShopApp key="cosmetic-app" />}
                     {currentShop === 'electro' && <ElectroShopApp key="electro-app" />}
+                    {currentShop === 'youpi' && <YoupiShopApp key="youpi-app" />}
                   </Suspense>
                 )}
               </main>

@@ -39,6 +39,13 @@ export const DEFAULT_SITE_VISIBILITY: SiteVisibilityMap = {
     scope: 'frontoffice',
     mode: 'cacher_tout',
     maintenance_message: '🔌 Electro Shop effectue une maintenance de son infrastructure. Retour très bientôt.'
+  },
+  youpi: {
+    siteId: 'youpi',
+    is_hidden: false,
+    scope: 'frontoffice',
+    mode: 'cacher_tout',
+    maintenance_message: '🧸 YoupiShop prépare actuellement ses nouveaux jeux et jouets d\'enfants. Retour en ligne très vite !'
   }
 };
 

@@ -43,6 +43,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedSupplierForDetails, setSelectedSupplierForDetails] = useState<Fournisseur | null>(null);
+  const [supplierDetailTab, setSupplierDetailTab] = useState<'products' | 'receptions'>('products');
   
   // Create / Edit Supplier Modal State (with integrated product restock selection)
   const [editingSupplier, setEditingSupplier] = useState<Partial<Fournisseur> | null>(null);
@@ -451,6 +452,26 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       {supplier.notes}
                     </p>
                   )}
+
+                  {/* Summary of linked catalogue products */}
+                  {(() => {
+                    const linkedProducts = products.filter(p => p.fournisseurId === supplier.id || (p.fournisseurNom && p.fournisseurNom.toLowerCase() === supplier.nom.toLowerCase()));
+                    return (
+                      <div 
+                        onClick={() => {
+                          setSelectedSupplierForDetails(supplier);
+                          setSupplierDetailTab('products');
+                        }}
+                        className="bg-blue-50/70 hover:bg-blue-100/70 border border-blue-200/80 p-2.5 rounded-xl flex items-center justify-between text-[11px] cursor-pointer transition-colors"
+                      >
+                        <span className="text-blue-900 font-bold flex items-center gap-1.5">
+                          <Package className="w-3.5 h-3.5 text-blue-600" />
+                          <span>{linkedProducts.length} article{linkedProducts.length > 1 ? 's' : ''} catalogue associé{linkedProducts.length > 1 ? 's' : ''}</span>
+                        </span>
+                        <span className="text-blue-600 font-bold text-[10px]">Voir fiches →</span>
+                      </div>
+                    );
+                  })()}
 
                   {/* Summary of purchase history */}
                   <div className="bg-emerald-50/60 border border-emerald-100 p-2.5 rounded-xl flex items-center justify-between text-[11px]">
@@ -1552,82 +1573,185 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* 📜 MODAL HISTORIQUE D'ACHAT DU FOURNISSEUR                                */}
+      {/* 📜 MODAL DÉTAILS FOURNISSEUR (PRODUITS LIÉS + HISTORIQUE D'ACHAT)         */}
       {/* ========================================================================= */}
-      {selectedSupplierForDetails && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-6 text-slate-900 max-h-[85vh] flex flex-col overflow-hidden">
-            <div className="flex justify-between items-start pb-3 border-b border-slate-100">
-              <div>
-                <h3 className="font-bold text-base text-slate-900">
-                  Historique d'approvisionnement : {selectedSupplierForDetails.nom}
-                </h3>
-                <p className="text-xs text-slate-500">
-                  {selectedSupplierForDetails.historique_achats?.length || 0} réception(s) de marchandises enregistrée(s)
-                </p>
-              </div>
-              <button
-                type="button"
-                onClick={() => setSelectedSupplierForDetails(null)}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer text-sm font-bold"
-              >
-                ✕
-              </button>
-            </div>
+      {selectedSupplierForDetails && (() => {
+        const linkedProds = products.filter(p => p.fournisseurId === selectedSupplierForDetails.id || (p.fournisseurNom && p.fournisseurNom.toLowerCase() === selectedSupplierForDetails.nom.toLowerCase()));
+        const histAchats = selectedSupplierForDetails.historique_achats || [];
 
-            <div className="flex-1 overflow-y-auto py-4 space-y-3">
-              {(!selectedSupplierForDetails.historique_achats || selectedSupplierForDetails.historique_achats.length === 0) ? (
-                <div className="text-center py-10 text-slate-400 text-xs">
-                  Aucun historique d'achat enregistré pour ce fournisseur pour le moment.
+        return (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
+            <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-6 text-slate-900 max-h-[85vh] flex flex-col overflow-hidden">
+              <div className="flex justify-between items-start pb-3 border-b border-slate-100">
+                <div className="flex items-center gap-3">
+                  <img
+                    src={selectedSupplierForDetails.image || 'https://images.unsplash.com/photo-1578575437130-527eed3abbec?q=80&w=300'}
+                    alt={selectedSupplierForDetails.nom}
+                    className="w-12 h-12 rounded-2xl object-cover border border-slate-100 shadow-xs"
+                  />
+                  <div>
+                    <h3 className="font-bold text-base text-slate-900">
+                      {selectedSupplierForDetails.nom}
+                    </h3>
+                    <p className="text-xs text-slate-500">
+                      {selectedSupplierForDetails.localisation || 'Tunisie'} {selectedSupplierForDetails.telephone ? `• ${selectedSupplierForDetails.telephone}` : ''}
+                    </p>
+                  </div>
                 </div>
-              ) : (
-                selectedSupplierForDetails.historique_achats.map((achat, idx) => (
-                  <div key={achat.id || idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
-                    <div className="flex items-center justify-between text-xs font-bold">
-                      <span className="flex items-center gap-1.5 text-slate-800">
-                        <Calendar className="w-3.5 h-3.5 text-emerald-600" />
-                        <span>Réception du {achat.date}</span>
-                      </span>
-                      <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
-                        {achat.type === 'produit_existant' ? 'Produits Existants' : 'Futurs Produits Convertis'}
-                      </span>
-                    </div>
+                <button
+                  type="button"
+                  onClick={() => setSelectedSupplierForDetails(null)}
+                  className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center cursor-pointer text-sm font-bold"
+                >
+                  ✕
+                </button>
+              </div>
 
-                    <div className="divide-y divide-slate-200/60 pt-1 text-xs">
-                      {achat.items?.map((item, i) => (
-                        <div key={i} className="py-1.5 flex items-center justify-between text-[11px]">
-                          <span className="font-semibold text-slate-700">
-                            • {item.nom} ({item.siteName || item.site})
+              {/* Navigation Tabs inside Modal */}
+              <div className="flex items-center gap-2 pt-3 pb-2 border-b border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setSupplierDetailTab('products')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    supplierDetailTab === 'products'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <Package className="w-3.5 h-3.5" />
+                  <span>Articles Catalogue ({linkedProds.length})</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSupplierDetailTab('receptions')}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl font-bold text-xs transition-all cursor-pointer ${
+                    supplierDetailTab === 'receptions'
+                      ? 'bg-blue-600 text-white shadow-xs'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                  }`}
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Historique des Réceptions ({histAchats.length})</span>
+                </button>
+              </div>
+
+              {/* Tab 1: Linked Catalogue Products */}
+              {supplierDetailTab === 'products' && (
+                <div className="flex-1 overflow-y-auto py-4 space-y-2.5">
+                  {linkedProds.length === 0 ? (
+                    <div className="text-center py-12 text-slate-400 text-xs space-y-2">
+                      <Package className="w-8 h-8 mx-auto text-slate-300" />
+                      <p className="font-semibold text-slate-600">Aucun produit du catalogue n'est encore rattaché à ce fournisseur</p>
+                      <p className="text-[11px] text-slate-400">
+                        Dans l'onglet "Catalogue & Stock", éditez un produit ou créez-en un nouveau et sélectionnez "{selectedSupplierForDetails.nom}".
+                      </p>
+                    </div>
+                  ) : (
+                    linkedProds.map((prod) => {
+                      const stockQty = prod.quantité_enstock ?? prod.quantity ?? 0;
+                      return (
+                        <div
+                          key={`${prod.filialeKey}-${prod.id}`}
+                          className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 border border-slate-200/80 hover:bg-slate-100/70 transition-colors"
+                        >
+                          <div className="flex items-center gap-3">
+                            <img
+                              src={prod.imageUrl || prod.images?.[0] || 'https://picsum.photos/400/400'}
+                              alt={prod.name}
+                              className="w-10 h-10 rounded-xl object-cover bg-white border border-slate-100 shadow-2xs"
+                            />
+                            <div>
+                              <p className="font-bold text-slate-900 text-xs line-clamp-1">{prod.name}</p>
+                              <div className="flex items-center gap-2 mt-0.5">
+                                <span className="text-[10px] font-bold text-slate-500 uppercase">{prod.filialeName || prod.filialeKey}</span>
+                                <span className="text-slate-300">•</span>
+                                <span className="text-[10px] text-slate-400">{prod.category}</span>
+                              </div>
+                            </div>
+                          </div>
+
+                          <div className="flex items-center gap-3 shrink-0">
+                            <div className="text-right">
+                              <span className="font-black text-slate-900 text-xs block">{prod.price} DT</span>
+                              <span className={`text-[10px] font-bold ${stockQty > 5 ? 'text-emerald-700' : 'text-amber-700'}`}>
+                                {stockQty} en stock
+                              </span>
+                            </div>
+
+                            {prod.existe_dans_boutique !== false ? (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-emerald-100 text-emerald-800">
+                                En boutique
+                              </span>
+                            ) : (
+                              <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-100 text-amber-800">
+                                Hors boutique
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })
+                  )}
+                </div>
+              )}
+
+              {/* Tab 2: Purchase & Stock Reception History */}
+              {supplierDetailTab === 'receptions' && (
+                <div className="flex-1 overflow-y-auto py-4 space-y-3">
+                  {histAchats.length === 0 ? (
+                    <div className="text-center py-10 text-slate-400 text-xs">
+                      Aucun historique d'achat ou de réception enregistré pour ce fournisseur pour le moment.
+                    </div>
+                  ) : (
+                    histAchats.map((achat, idx) => (
+                      <div key={achat.id || idx} className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200/80 space-y-2">
+                        <div className="flex items-center justify-between text-xs font-bold">
+                          <span className="flex items-center gap-1.5 text-slate-800">
+                            <Calendar className="w-3.5 h-3.5 text-emerald-600" />
+                            <span>Réception du {achat.date}</span>
                           </span>
-                          <span className="font-bold text-slate-900">
-                            +{item.quantite} unités {item.prixAchat ? `à ${item.prixAchat} DT` : ''}
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">
+                            {achat.type === 'produit_existant' ? 'Produits Existants' : 'Futurs Produits Convertis'}
                           </span>
                         </div>
-                      ))}
-                    </div>
 
-                    {achat.notes && (
-                      <p className="text-[11px] text-slate-500 italic pt-1 border-t border-slate-200/60">
-                        Note : {achat.notes}
-                      </p>
-                    )}
-                  </div>
-                ))
+                        <div className="divide-y divide-slate-200/60 pt-1 text-xs">
+                          {achat.items?.map((item, i) => (
+                            <div key={i} className="py-1.5 flex items-center justify-between text-[11px]">
+                              <span className="font-semibold text-slate-700">
+                                • {item.nom} ({item.siteName || item.site})
+                              </span>
+                              <span className="font-bold text-slate-900">
+                                +{item.quantite} unités {item.prixAchat ? `à ${item.prixAchat} DT` : ''}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+
+                        {achat.notes && (
+                          <p className="text-[11px] text-slate-500 italic pt-1 border-t border-slate-200/60">
+                            Note : {achat.notes}
+                          </p>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </div>
               )}
-            </div>
 
-            <div className="pt-3 border-t border-slate-100 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setSelectedSupplierForDetails(null)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
-              >
-                Fermer
-              </button>
+              <div className="pt-3 border-t border-slate-100 flex justify-end">
+                <button
+                  type="button"
+                  onClick={() => setSelectedSupplierForDetails(null)}
+                  className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl text-xs cursor-pointer"
+                >
+                  Fermer
+                </button>
+              </div>
             </div>
           </div>
-        </div>
-      )}
+        );
+      })()}
     </div>
   );
 };

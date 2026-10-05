@@ -27,11 +27,18 @@ import { CartProvider as ElectroCartProvider } from '@/templates/electro/compone
 import { FavoritesProvider as ElectroFavoritesProvider } from '@/templates/electro/components/FavoritesContext';
 import { CompareProvider as ElectroCompareProvider } from '@/templates/electro/components/CompareContext';
 
+import { ThemeProvider as YoupiThemeProvider } from '@/templates/youpi/components/ThemeContext';
+import { ToastProvider as YoupiToastProvider } from '@/templates/youpi/components/ToastContext';
+import { CartProvider as YoupiCartProvider } from '@/templates/youpi/components/CartContext';
+import { FavoritesProvider as YoupiFavoritesProvider } from '@/templates/youpi/components/FavoritesContext';
+import { CompareProvider as YoupiCompareProvider } from '@/templates/youpi/components/CompareContext';
+
 // Lazy loaded sub-backoffices
 const ParaAdminPage = React.lazy(() => import('@/templates/para/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const NutritionAdminPage = React.lazy(() => import('@/templates/nutrition/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const CosmeticAdminPage = React.lazy(() => import('@/templates/cosmetic/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const ElectroAdminPage = React.lazy(() => import('@/templates/electro/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const YoupiAdminPage = React.lazy(() => import('@/templates/youpi/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 export interface FilialeMeta {
   id: FilialeId;
@@ -84,6 +91,16 @@ export const FILIALES_CONFIG: Record<FilialeId, FilialeMeta> = {
     colorName: 'blue',
     badgeClass: 'bg-blue-50 text-blue-800 border-blue-200',
     headerAccent: 'text-blue-700'
+  },
+  youpi: {
+    id: 'youpi',
+    name: 'YoupiShop',
+    subtitle: "Jeux d'Enfants & Jouets",
+    tagline: "Jeux d'éveil, Lego, Jeux de société & Plein air • produit_myshops_youpi",
+    icon: '🧸',
+    colorName: 'amber',
+    badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
+    headerAccent: 'text-amber-700'
   }
 };
 
@@ -104,7 +121,7 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
   currentUser,
   onLogout
 }) => {
-  const safeShopId: FilialeId = (typeof filialeId === 'string' && ['para', 'nutrition', 'cosmetic', 'electro'].includes(filialeId as FilialeId))
+  const safeShopId: FilialeId = (typeof filialeId === 'string' && ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(filialeId as FilialeId))
     ? (filialeId as FilialeId)
     : 'para';
   const meta = FILIALES_CONFIG[safeShopId] || FILIALES_CONFIG.para;
@@ -518,6 +535,41 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
                   </ElectroCartProvider>
                 </ElectroToastProvider>
               </ElectroThemeProvider>
+            )}
+
+            {safeShopId === 'youpi' && (
+              <YoupiThemeProvider>
+                <YoupiToastProvider>
+                  <YoupiCartProvider>
+                    <YoupiFavoritesProvider>
+                      <YoupiCompareProvider>
+                        <YoupiAdminPage
+                          onNavigateHome={() => onGoToStorefront('youpi')}
+                          onLogout={onLogout}
+                          productsData={data.products}
+                          setProductsData={setProductsData}
+                          categoriesData={data.categories}
+                          setCategoriesData={setCategoriesData}
+                          packsData={data.packs}
+                          setPacksData={setPacksData}
+                          ordersData={data.orders}
+                          setOrdersData={setOrdersData}
+                          messagesData={data.messages}
+                          setMessagesData={setMessagesData}
+                          advertisementsData={data.ads}
+                          setAdvertisementsData={setAdvertisementsData}
+                          promotionsData={data.promos}
+                          setPromotionsData={setPromotionsData}
+                          storesData={data.stores}
+                          setStoresData={setStoresData}
+                          brandsData={data.brands}
+                          setBrandsData={setBrandsData}
+                        />
+                      </YoupiCompareProvider>
+                    </YoupiFavoritesProvider>
+                  </YoupiCartProvider>
+                </YoupiToastProvider>
+              </YoupiThemeProvider>
             )}
           </Suspense>
         )}

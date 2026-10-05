@@ -7,10 +7,11 @@ export enum FilialeType {
   PRODUIT_MYSHOPS_ELECTRO = 'produit_myshops_electro',
   PRODUIT_MYSHOPS_NUTRITION = 'produit_myshops_nutrition',
   PRODUIT_MYSHOPS_COSMETIQUE = 'produit_myshops_cosmetique',
-  PRODUIT_MYSHOPS_PARA = 'produit_myshops_para'
+  PRODUIT_MYSHOPS_PARA = 'produit_myshops_para',
+  PRODUIT_MYSHOPS_YOUPI = 'produit_myshops_youpi'
 }
 
-export type FilialeId = 'electro' | 'nutrition' | 'cosmetic' | 'para';
+export type FilialeId = 'electro' | 'nutrition' | 'cosmetic' | 'para' | 'youpi';
 
 export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; badgeColor: string; icon: string }> = {
   [FilialeType.PRODUIT_MYSHOPS_ELECTRO]: {
@@ -36,6 +37,12 @@ export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; 
     name: 'PharmaShop',
     badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300',
     icon: '🌿'
+  },
+  [FilialeType.PRODUIT_MYSHOPS_YOUPI]: {
+    id: 'youpi',
+    name: 'YoupiShop',
+    badgeColor: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300',
+    icon: '🧸'
   }
 };
 
@@ -58,6 +65,8 @@ export class Produit {
   quantity: number;
   quantité_enstock: number;
   existe_dans_boutique: boolean;
+  fournisseurId?: string;
+  fournisseurNom?: string;
   rating?: number;
   reviewsCount?: number;
   specifications?: { name: string; value: string }[];
@@ -80,6 +89,8 @@ export class Produit {
     this.quantité_enstock = typeof data.quantité_enstock === 'number' ? data.quantité_enstock : (typeof data.quantity === 'number' ? data.quantity : 10);
     this.quantity = this.quantité_enstock;
     this.existe_dans_boutique = data.existe_dans_boutique !== undefined ? Boolean(data.existe_dans_boutique) : true;
+    this.fournisseurId = data.fournisseurId;
+    this.fournisseurNom = data.fournisseurNom;
     this.rating = data.rating || 4.5;
     this.reviewsCount = data.reviewsCount || 12;
     this.specifications = data.specifications || [];
@@ -362,6 +373,36 @@ export class ProduitPara extends ProduitFiliale {
 }
 
 /**
+ * Filiale Jeux d'enfant, Jouets & Éveil (YoupiShop)
+ */
+export class ProduitYoupi extends ProduitFiliale {
+  trancheAge: string;
+  materiauPrincipal: string;
+  normeSecurite: string;
+  nbJoueurs?: string;
+  pilesRequises: boolean;
+
+  constructor(data: any) {
+    super(data, FilialeType.PRODUIT_MYSHOPS_YOUPI, 'YoupiShop');
+    this.trancheAge = data.trancheAge || '3 - 8 ans';
+    this.materiauPrincipal = data.materiauPrincipal || 'Bois naturel certifié FSC & Plastique sans BPA';
+    this.normeSecurite = data.normeSecurite || 'Conforme normes CE & EN-71';
+    this.nbJoueurs = data.nbJoueurs || '1 à 4 joueurs';
+    this.pilesRequises = data.pilesRequises !== undefined ? data.pilesRequises : false;
+  }
+
+  getSpecificAttributes() {
+    return {
+      'Tranche d\'âge recommandée': this.trancheAge,
+      'Matériaux': this.materiauPrincipal,
+      'Normes de sécurité': this.normeSecurite,
+      'Nombre de joueurs': this.nbJoueurs,
+      'Piles requises': this.pilesRequises ? 'Oui (Incluses ou non)' : 'Non (Mécanique / Éveil manuel)'
+    };
+  }
+}
+
+/**
  * Factory pour instancier la bonne sous-classe selon le filialeType
  */
 export function createProduitFiliale(data: any, defaultFilialeType?: FilialeType): ProduitFiliale {
@@ -374,6 +415,8 @@ export function createProduitFiliale(data: any, defaultFilialeType?: FilialeType
       return new ProduitNutrition(data);
     case FilialeType.PRODUIT_MYSHOPS_COSMETIQUE:
       return new ProduitCosmetique(data);
+    case FilialeType.PRODUIT_MYSHOPS_YOUPI:
+      return new ProduitYoupi(data);
     case FilialeType.PRODUIT_MYSHOPS_PARA:
     default:
       return new ProduitPara(data);

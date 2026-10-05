@@ -42,11 +42,18 @@ import { CartProvider as ElectroCartProvider } from '@/templates/electro/compone
 import { FavoritesProvider as ElectroFavoritesProvider } from '@/templates/electro/components/FavoritesContext';
 import { CompareProvider as ElectroCompareProvider } from '@/templates/electro/components/CompareContext';
 
+import { ThemeProvider as YoupiThemeProvider } from '@/templates/youpi/components/ThemeContext';
+import { ToastProvider as YoupiToastProvider } from '@/templates/youpi/components/ToastContext';
+import { CartProvider as YoupiCartProvider } from '@/templates/youpi/components/CartContext';
+import { FavoritesProvider as YoupiFavoritesProvider } from '@/templates/youpi/components/FavoritesContext';
+import { CompareProvider as YoupiCompareProvider } from '@/templates/youpi/components/CompareContext';
+
 // Lazy loaded sub-backoffices (used with hideSidebar=true for contextual pages)
 const ParaAdminPage = React.lazy(() => import('@/templates/para/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const NutritionAdminPage = React.lazy(() => import('@/templates/nutrition/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const CosmeticAdminPage = React.lazy(() => import('@/templates/cosmetic/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const ElectroAdminPage = React.lazy(() => import('@/templates/electro/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const YoupiAdminPage = React.lazy(() => import('@/templates/youpi/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 class SubAdminErrorBoundary extends React.Component<{ filialeName: string; onBackToHq: () => void; children: React.ReactNode }, { hasError: boolean; error: any }> {
   constructor(props: any) {
@@ -95,7 +102,8 @@ const BOUTIQUES_META: Record<string, { name: string; icon: string; subtitle: str
   para: { name: 'PharmaShop', icon: '🌿', subtitle: 'Parapharmacie, Phytothérapie & Soins Bio', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
   nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', subtitle: 'Équipements de Musculation, Cardio & Fitness', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   cosmetic: { name: 'Cosmetics Shop', icon: '💄', subtitle: 'Beauté, Cosmétique & Parfumerie de Luxe', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
-  electro: { name: 'Electro Shop', icon: '🔌', subtitle: 'Électroménager, Multimédia & High-Tech', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' }
+  electro: { name: 'Electro Shop', icon: '🔌', subtitle: 'Électroménager, Multimédia & High-Tech', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
+  youpi: { name: 'YoupiShop', icon: '🧸', subtitle: "Jeux d'Enfants, Jouets & Éveil", color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
 };
 
 export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
@@ -180,6 +188,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     nutrition: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
     cosmetic: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
     electro: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
+    youpi: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
   });
 
   const fetchGlobalData = async () => {
@@ -244,7 +253,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   useEffect(() => {
     fetchGlobalData();
     // Preload all filiales data in background for instant responsiveness
-    ['para', 'nutrition', 'cosmetic', 'electro'].forEach(loadFilialeData);
+    ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].forEach(loadFilialeData);
   }, []);
 
   const handleSelectShop = (shop: ShopContextId) => {
@@ -283,20 +292,43 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
   const handleSaveProduct = async (product: any) => {
     try {
-      const res = await fetch(`/api/products/${product.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'x-shop-id': product.filialeKey || 'para'
-        },
-        body: JSON.stringify(product)
-      });
+      const isExisting = allProducts.some(p => p.id === product.id);
+      let res;
+      if (isExisting) {
+        res = await fetch(`/api/global/products/${product.id}`, {
+          method: 'PUT',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-shop-id': product.filialeKey || 'para'
+          },
+          body: JSON.stringify(product)
+        });
+      } else {
+        res = await fetch('/api/global/products', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-shop-id': product.filialeKey || 'para'
+          },
+          body: JSON.stringify(product)
+        });
+      }
       if (res.ok) {
-        const updated = await res.json();
-        setAllProducts(prev => prev.map(p => p.id === updated.id ? { ...p, ...updated } : p));
+        const saved = await res.json();
+        setAllProducts(prev => {
+          const idx = prev.findIndex(p => p.id === saved.id);
+          if (idx !== -1) {
+            const next = [...prev];
+            next[idx] = { ...next[idx], ...saved };
+            return next;
+          }
+          return [saved, ...prev];
+        });
+        return saved;
       }
     } catch (err) {
       console.error('Error saving product:', err);
+      throw err;
     }
   };
 
@@ -637,6 +669,8 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             <GlobalProductsView
               products={allProducts}
               onSaveProduct={handleSaveProduct}
+              suppliers={suppliers}
+              onSaveSupplier={handleSaveSupplier}
               activeShop={activeShop}
               onSelectShop={handleSelectShop}
             />

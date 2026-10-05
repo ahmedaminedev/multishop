@@ -215,6 +215,29 @@ export let suppliersData = [
     notes: 'Grossiste officiel électroménager et petit multimédia connecté avec garantie constructeur.',
     dateCreation: '2026-02-01T10:00:00.000Z',
     historique_achats: []
+  },
+  {
+    id: 'frn-4',
+    nom: 'Youpi Toys & Games Maghreb Import',
+    localisation: 'Zone Portuaire Radès, Ben Arous',
+    lien: 'https://youpi-toys-maghreb.tn',
+    image: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=300',
+    telephone: '+216 71 444 777',
+    notes: 'Importateur officiel de jouets éducatifs en bois, jeux de société et briques de construction avec certification normes européennes EN-71.',
+    dateCreation: '2026-02-10T11:00:00.000Z',
+    historique_achats: [
+      {
+        id: 'ach-104',
+        date: '2026-03-01',
+        type: 'produit_existant',
+        items: [
+          { productId: 401, nom: 'Pack Éveil Montessori en Bois Naturel', quantite: 30, prixAchat: 55, site: 'youpi', siteName: 'YoupiShop' },
+          { productId: 402, nom: 'Boîte de Construction Briques Créatives 850 pcs', quantite: 25, prixAchat: 85, site: 'youpi', siteName: 'YoupiShop' }
+        ],
+        montantTotal: 3775,
+        notes: 'Arrivage conteneur dédouané, emballage soigné conforme CE.'
+      }
+    ]
   }
 ];
 
@@ -257,6 +280,15 @@ export const FILIALE_MAP = {
     filialeType: 'produit_myshops_electro',
     accentColor: '#2563eb',
     badge: 'High-Tech'
+  },
+  youpi: {
+    key: 'youpi',
+    folder: 'templates/youpi',
+    legacyFolder: 'youpi_shop-main',
+    name: 'YoupiShop',
+    filialeType: 'produit_myshops_youpi',
+    accentColor: '#f59e0b',
+    badge: 'Jeux & Jouets d\'enfant'
   }
 };
 
@@ -267,6 +299,8 @@ function enrichProductWithFiliale(product, filialeKey) {
   p.filialeName = filiale.name;
   p.filialeKey = filialeKey;
   p.codeArticleFiliale = p.codeArticleFiliale || `${filiale.filialeType.toUpperCase()}-${p.id}`;
+  if (product.fournisseurId) p.fournisseurId = product.fournisseurId;
+  if (product.fournisseurNom) p.fournisseurNom = product.fournisseurNom;
 
   if (filialeKey === 'electro') {
     p.garantieMois = p.garantieMois || (p.price > 500 ? 36 : 24);
@@ -293,6 +327,12 @@ function enrichProductWithFiliale(product, filialeKey) {
     p.certification = p.certification || 'Certifié Bio ECOCERT & Norme ISO 22000';
     p.formeGalenique = p.formeGalenique || (p.name.includes('Huile') ? 'Huile végétale pure' : p.name.includes('Sérum') ? 'Flacon compte-gouttes' : 'Gélules végétales');
     p.typePeauOuBesoin = p.typePeauOuBesoin || 'Peaux sensibles & Défenses immunitaires';
+  } else if (filialeKey === 'youpi') {
+    p.trancheAge = p.trancheAge || '3 - 8 ans';
+    p.materiauPrincipal = p.materiauPrincipal || 'Bois naturel certifié FSC & Plastique sans BPA';
+    p.normeSecurite = p.normeSecurite || 'Conforme normes CE & EN-71';
+    p.nbJoueurs = p.nbJoueurs || '1 à 4 joueurs';
+    p.pilesRequises = p.pilesRequises !== undefined ? p.pilesRequises : false;
   }
 
   p.existe_dans_boutique = product.existe_dans_boutique !== undefined ? Boolean(product.existe_dans_boutique) : true;
@@ -309,7 +349,24 @@ export async function initStores() {
       const p = path.resolve(process.cwd(), 'backend/src/data', `initialData_${key}.js`);
       const data = require(p);
       const rawProducts = Array.isArray(data.allProducts) ? JSON.parse(JSON.stringify(data.allProducts)) : [];
-      const products = rawProducts.map(prod => enrichProductWithFiliale(prod, key));
+      const defaultSupplier = key === 'nutrition' 
+        ? { id: 'frn-1', nom: 'Tunisie Fitness & Sport Distribution' }
+        : key === 'para'
+        ? { id: 'frn-2', nom: 'Cosmetica Pharma Import & Logistique' }
+        : key === 'cosmetic'
+        ? { id: 'frn-2', nom: 'Cosmetica Pharma Import & Logistique' }
+        : key === 'youpi'
+        ? { id: 'frn-4', nom: 'Youpi Toys & Games Maghreb Import' }
+        : { id: 'frn-3', nom: 'Electro Maghreb Central' };
+
+      const products = rawProducts.map((prod, i) => {
+        const withSupplier = {
+          ...prod,
+          fournisseurId: prod.fournisseurId || (i % 3 !== 2 ? defaultSupplier.id : undefined),
+          fournisseurNom: prod.fournisseurNom || (i % 3 !== 2 ? defaultSupplier.nom : undefined)
+        };
+        return enrichProductWithFiliale(withSupplier, key);
+      });
       const categories = Array.isArray(data.categories) ? JSON.parse(JSON.stringify(data.categories)) : [];
       const packs = Array.isArray(data.packs) ? JSON.parse(JSON.stringify(data.packs)) : [];
       const stores = Array.isArray(data.stores) ? JSON.parse(JSON.stringify(data.stores)) : [];
@@ -626,6 +683,26 @@ export function handleApiRequest(req, res, next) {
         return sendJson(200, allProds);
       }
 
+      if (endpoint === '/global/products' && req.method === 'POST') {
+        const body = await getBody();
+        const filialeKey = body.filialeKey || 'para';
+        const targetStore = storesData[filialeKey] || storesData.para;
+        const newId = body.id || (Date.now() + Math.floor(Math.random() * 1000));
+        const newProduct = enrichProductWithFiliale({
+          id: newId,
+          ...body,
+          quantité_enstock: body.quantité_enstock !== undefined ? Number(body.quantité_enstock) : (Number(body.quantity) || 10),
+          quantity: body.quantité_enstock !== undefined ? Number(body.quantité_enstock) : (Number(body.quantity) || 10),
+          existe_dans_boutique: body.existe_dans_boutique !== undefined ? Boolean(body.existe_dans_boutique) : true,
+          fournisseurId: body.fournisseurId || '',
+          fournisseurNom: body.fournisseurNom || '',
+          images: body.images?.length ? body.images : [body.imageUrl || 'https://picsum.photos/400/400'],
+          filialeKey
+        }, filialeKey);
+        targetStore.products.unshift(newProduct);
+        return sendJson(201, newProduct);
+      }
+
       if (endpoint.startsWith('/global/products/') && req.method === 'PUT') {
         const prodId = parseInt(endpoint.replace('/global/products/', ''), 10);
         const body = await getBody();
@@ -640,6 +717,12 @@ export function handleApiRequest(req, res, next) {
             }
             if (body.existe_dans_boutique !== undefined) {
               body.existe_dans_boutique = Boolean(body.existe_dans_boutique);
+            }
+            if (body.fournisseurId !== undefined) {
+              body.fournisseurId = body.fournisseurId;
+            }
+            if (body.fournisseurNom !== undefined) {
+              body.fournisseurNom = body.fournisseurNom;
             }
             s.products[idx] = enrichProductWithFiliale({ ...s.products[idx], ...body }, s.key);
             return sendJson(200, s.products[idx]);
@@ -1232,6 +1315,8 @@ export function handleApiRequest(req, res, next) {
           quantité_enstock: body.quantité_enstock !== undefined ? Number(body.quantité_enstock) : (Number(body.quantity) || 10),
           quantity: body.quantité_enstock !== undefined ? Number(body.quantité_enstock) : (Number(body.quantity) || 10),
           existe_dans_boutique: body.existe_dans_boutique !== undefined ? Boolean(body.existe_dans_boutique) : true,
+          fournisseurId: body.fournisseurId || '',
+          fournisseurNom: body.fournisseurNom || '',
           images: body.images?.length ? body.images : [body.imageUrl || 'https://picsum.photos/400/400']
         }, shop.key);
         shop.products.unshift(newProduct);
@@ -1250,6 +1335,12 @@ export function handleApiRequest(req, res, next) {
           }
           if (body.existe_dans_boutique !== undefined) {
             body.existe_dans_boutique = Boolean(body.existe_dans_boutique);
+          }
+          if (body.fournisseurId !== undefined) {
+            shop.products[index].fournisseurId = body.fournisseurId;
+          }
+          if (body.fournisseurNom !== undefined) {
+            shop.products[index].fournisseurNom = body.fournisseurNom;
           }
           shop.products[index] = enrichProductWithFiliale({ ...shop.products[index], ...body }, shop.key);
           return sendJson(200, shop.products[index]);
