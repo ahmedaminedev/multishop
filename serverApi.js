@@ -11,7 +11,72 @@ export const storesData = {
   nutrition: null,
   cosmetic: null,
   electro: null,
+  youpi: null,
 };
+
+// Global in-memory chat sessions store per shop
+export const chatSessionsStore = {
+  para: new Map(),
+  nutrition: new Map(),
+  cosmetic: new Map(),
+  electro: new Map(),
+  youpi: new Map()
+};
+
+// Seed realistic client chat sessions for YoupiShop
+chatSessionsStore.youpi.set('client_youpi_1', {
+  _id: 'chat-youpi-1',
+  userId: 'client_youpi_1',
+  userName: 'Amira Ben Salem',
+  userEmail: 'amira.bensalem@gmail.com',
+  lastUpdated: new Date(Date.now() - 1000 * 60 * 15).toISOString(),
+  messages: [
+    { sender: 'client', content: 'Bonjour ! Auriez-vous un conseil pour un cadeau d\'anniversaire d\'une petite fille de 4 ans ?', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 25).toISOString(), read: true },
+    { sender: 'admin', content: 'Bonjour Amira ! 🧸 Pour 4 ans, nous vous recommandons vivement notre "Pack Éveil & Découverte" en bois ou la boîte de briques créatives. Les enfants adorent manipuler et inventer des histoires.', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), read: true },
+    { sender: 'client', content: 'Super merci beaucoup ! Est-ce que l\'emballage cadeau est inclus ?', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), read: false }
+  ]
+});
+
+chatSessionsStore.youpi.set('client_youpi_2', {
+  _id: 'chat-youpi-2',
+  userId: 'client_youpi_2',
+  userName: 'Mehdi Trabelsi',
+  userEmail: 'mehdi.trabelsi@yahoo.fr',
+  lastUpdated: new Date(Date.now() - 1000 * 60 * 60).toISOString(),
+  messages: [
+    { sender: 'client', content: 'Bonjour, avez-vous en stock le pack briques de construction 850 pièces pour livraison à Sousse ?', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 75).toISOString(), read: true },
+    { sender: 'admin', content: 'Bonjour Mehdi ! Oui, tout à fait, nous en avons 25 unités en stock au dépôt central. Livraison express sous 24 à 48 heures ouvrées.', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 65).toISOString(), read: true },
+    { sender: 'client', content: 'Parfait, je passe commande de suite sur le site. Merci pour votre réactivité !', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 60).toISOString(), read: true }
+  ]
+});
+
+export function recordChatMessage(shopKey, data) {
+  const targetKey = chatSessionsStore[shopKey] ? shopKey : 'youpi';
+  const sessions = chatSessionsStore[targetKey];
+  const userId = String(data.userId || 'client_web');
+  let session = sessions.get(userId);
+  if (!session) {
+    session = {
+      _id: `chat-${userId}`,
+      userId,
+      userName: data.userName || (data.sender === 'admin' ? 'Support YoupiShop' : 'Client YoupiShop'),
+      userEmail: data.userEmail || `${userId}@youpishop.tn`,
+      lastUpdated: new Date().toISOString(),
+      messages: []
+    };
+    sessions.set(userId, session);
+  }
+  const msg = {
+    sender: data.sender === 'admin' ? 'admin' : 'client',
+    content: String(data.content || ''),
+    type: data.type || 'text',
+    timestamp: new Date().toISOString(),
+    read: data.sender === 'admin'
+  };
+  session.messages.push(msg);
+  session.lastUpdated = new Date().toISOString();
+  return { session, message: msg };
+}
 
 // Visibilité et disponibilité des boutiques (Gestion avancée Front-office / Back-office / Maintenance)
 export let siteVisibilityData = {
@@ -1359,6 +1424,33 @@ export function handleApiRequest(req, res, next) {
       if (endpoint === '/categories' && req.method === 'GET') {
         return sendJson(200, shop.categories || []);
       }
+      if (endpoint === '/categories' && req.method === 'POST') {
+        const body = await getBody();
+        if (!shop.categories) shop.categories = [];
+        const newCategory = { id: Date.now(), ...body };
+        shop.categories.push(newCategory);
+        return sendJson(201, newCategory);
+      }
+      if (endpoint.startsWith('/categories/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const catIdentifier = decodeURIComponent(endpoint.replace('/categories/', ''));
+        const body = await getBody();
+        if (!shop.categories) shop.categories = [];
+        const index = shop.categories.findIndex(c => c.name === catIdentifier || String(c.id) === catIdentifier || c.slug === catIdentifier);
+        if (index !== -1) {
+          shop.categories[index] = { ...shop.categories[index], ...body };
+          return sendJson(200, shop.categories[index]);
+        } else {
+          const created = { id: Date.now(), name: catIdentifier, ...body };
+          shop.categories.push(created);
+          return sendJson(200, created);
+        }
+      }
+      if (endpoint.startsWith('/categories/') && req.method === 'DELETE') {
+        const catIdentifier = decodeURIComponent(endpoint.replace('/categories/', ''));
+        if (!shop.categories) shop.categories = [];
+        shop.categories = shop.categories.filter(c => c.name !== catIdentifier && String(c.id) !== catIdentifier && c.slug !== catIdentifier);
+        return sendJson(200, { message: 'Catégorie supprimée avec succès' });
+      }
 
       // --- PACKS ---
       if (endpoint === '/packs' && req.method === 'GET') {
@@ -1369,6 +1461,30 @@ export function handleApiRequest(req, res, next) {
         const pack = (shop.packs || []).find(p => p.id === id);
         if (pack) return sendJson(200, pack);
         return sendJson(404, { message: 'Pack non trouvé' });
+      }
+      if (endpoint === '/packs' && req.method === 'POST') {
+        const body = await getBody();
+        if (!shop.packs) shop.packs = [];
+        const newPack = { id: Date.now(), ...body };
+        shop.packs.push(newPack);
+        return sendJson(201, newPack);
+      }
+      if (endpoint.startsWith('/packs/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const id = parseInt(endpoint.replace('/packs/', ''), 10);
+        const body = await getBody();
+        if (!shop.packs) shop.packs = [];
+        const index = shop.packs.findIndex(p => p.id === id);
+        if (index !== -1) {
+          shop.packs[index] = { ...shop.packs[index], ...body, id };
+          return sendJson(200, shop.packs[index]);
+        }
+        return sendJson(404, { message: 'Pack non trouvé' });
+      }
+      if (endpoint.startsWith('/packs/') && req.method === 'DELETE') {
+        const id = parseInt(endpoint.replace('/packs/', ''), 10);
+        if (!shop.packs) shop.packs = [];
+        shop.packs = shop.packs.filter(p => p.id !== id);
+        return sendJson(200, { message: 'Pack supprimé avec succès' });
       }
 
       // --- BRANDS ---
@@ -1397,7 +1513,8 @@ export function handleApiRequest(req, res, next) {
           ...shop.advertisements, 
           ...body,
           logoConfig: { ...(shop.advertisements?.logoConfig || {}), ...(body?.logoConfig || {}) },
-          fitnessHome: { ...(shop.advertisements?.fitnessHome || {}), ...(body?.fitnessHome || {}) }
+          fitnessHome: { ...(shop.advertisements?.fitnessHome || {}), ...(body?.fitnessHome || {}) },
+          youpiHome: { ...(shop.advertisements?.youpiHome || {}), ...(body?.youpiHome || {}) }
         };
         return sendJson(200, shop.advertisements);
       }
@@ -1504,11 +1621,29 @@ export function handleApiRequest(req, res, next) {
       }
 
       // --- CHAT ---
-      if (endpoint.startsWith('/chat/') && req.method === 'GET') {
-        return sendJson(200, []);
-      }
       if (endpoint === '/chat/all' && req.method === 'GET') {
-        return sendJson(200, []);
+        const sessions = chatSessionsStore[shopKey] || chatSessionsStore.youpi;
+        return sendJson(200, Array.from(sessions.values()));
+      }
+      if (endpoint.startsWith('/chat/') && req.method === 'GET') {
+        const targetUserId = endpoint.replace('/chat/', '');
+        if (targetUserId === 'all') {
+          const sessions = chatSessionsStore[shopKey] || chatSessionsStore.youpi;
+          return sendJson(200, Array.from(sessions.values()));
+        }
+        const sessions = chatSessionsStore[shopKey] || chatSessionsStore.youpi;
+        const session = sessions.get(targetUserId) || { userId: targetUserId, messages: [] };
+        return sendJson(200, session);
+      }
+      if (endpoint === '/chat/send' && req.method === 'POST') {
+        const body = await getBody();
+        const record = recordChatMessage(shopKey, body);
+        return sendJson(200, { success: true, ...record });
+      }
+      if (endpoint === '/chat/reply' && req.method === 'POST') {
+        const body = await getBody();
+        const record = recordChatMessage(shopKey, { ...body, sender: 'admin' });
+        return sendJson(200, { success: true, ...record });
       }
 
       if (req.method === 'GET') {

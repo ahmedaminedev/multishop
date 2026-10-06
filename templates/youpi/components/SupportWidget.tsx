@@ -1,252 +1,334 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, X, Send, Sparkles, Smile, CheckCheck, Clock, Phone } from 'lucide-react';
+import { MessageSquare, X, Send, Sparkles, Smile, CheckCheck, Clock, Phone, Headphones, ArrowLeft } from 'lucide-react';
+import { socket } from '../utils/socket';
+import { api } from '../utils/api';
 import { useToast } from './ToastContext';
 
-interface ChatMessage {
-  id: string;
-  sender: 'bot' | 'user';
-  text: string;
-  time: string;
+interface Message {
+  sender: 'client' | 'admin';
+  content: string;
+  type?: 'text' | 'image';
+  timestamp?: string;
 }
 
-export const SupportWidget: React.FC = () => {
+export const SupportWidget: React.FC<{ currentUser?: any }> = ({ currentUser }) => {
   const [isOpen, setIsOpen] = useState(false);
+  const [viewMode, setViewMode] = useState<'choice' | 'chat'>('choice');
   const [inputMessage, setInputMessage] = useState('');
   const [customerName, setCustomerName] = useState('');
-  const [customerPhone, setCustomerPhone] = useState('');
-  const [showContactInputs, setShowContactInputs] = useState(false);
-  const [isSending, setIsSending] = useState(false);
-  const { addToast } = useToast();
+  const [isAdminOnline, setIsAdminOnline] = useState(false);
+  const [messages, setMessages] = useState<Message[]>([]);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const { addToast } = useToast();
 
-  const [messages, setMessages] = useState<ChatMessage[]>([
-    {
-      id: 'msg-welcome',
-      sender: 'bot',
-      text: 'Bonjour ! 👋 Bienvenue chez YoupiShop. Je suis Lina, votre conseillère jouets. Avez-vous besoin d\'un conseil d\'âge ou d\'une recommandation de cadeau ?',
-      time: 'À l\'instant'
+  // Persistent Client Session ID across reloads
+  const [chatUserId] = useState<string>(() => {
+    if (typeof localStorage !== 'undefined') {
+      const saved = localStorage.getItem('youpi_chat_user_id');
+      if (saved) return saved;
+      const newId = `youpi_client_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`;
+      localStorage.setItem('youpi_chat_user_id', newId);
+      return newId;
     }
-  ]);
+    return `youpi_client_${Date.now()}`;
+  });
+
+  const effectiveName = currentUser?.firstName || customerName || 'Parent / Visiteur';
+
+  useEffect(() => {
+    if (isOpen) {
+      socket.connect();
+      socket.emit('join_room', chatUserId);
+      socket.emit('check_admin_status');
+
+      // Load initial chat history from backend
+      api.getChatHistory(chatUserId)
+        .then((data: any) => {
+          if (data?.messages && Array.isArray(data.messages) && data.messages.length > 0) {
+            setMessages(data.messages);
+          } else {
+            // Default friendly welcome message
+            setMessages([
+              {
+                sender: 'admin',
+                content: `Bonjour ! 👋 Bienvenue chez YoupiShop. Je suis Lina, conseillère jouets. Avez-vous besoin d'un conseil selon l'âge ou pour un cadeau ?`,
+                timestamp: new Date().toISOString()
+              }
+            ]);
+          }
+        })
+        .catch(() => {});
+
+      const handleReceive = (msg: Message) => {
+        setMessages(prev => [...prev, msg]);
+      };
+
+      const handleAdminStatus = (status: { online: boolean }) => {
+        setIsAdminOnline(status.online);
+      };
+
+      socket.on('receive_message', handleReceive);
+      socket.on('admin_status', handleAdminStatus);
+
+      return () => {
+        socket.off('receive_message', handleReceive);
+        socket.off('admin_status', handleAdminStatus);
+        socket.disconnect();
+      };
+    }
+  }, [isOpen, chatUserId]);
+
+  useEffect(() => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [messages, isOpen, viewMode]);
+
+  const handleSendMessage = async (customText?: string) => {
+    const text = (customText || inputMessage).trim();
+    if (!text) return;
+
+    const userMessage: Message = {
+      sender: 'client',
+      content: text,
+      timestamp: new Date().toISOString()
+    };
+
+    // 1. Optimistic UI update
+    setMessages(prev => [...prev, userMessage]);
+    setInputMessage('');
+
+    // 2. Real-time Socket.IO emission
+    socket.emit('send_message', {
+      userId: chatUserId,
+      sender: 'client',
+      content: text,
+      userName: effectiveName,
+      userEmail: currentUser?.email || `${chatUserId}@youpishop.tn`,
+      shopId: 'youpi'
+    });
+
+    // 3. Fallback server API persistence
+    try {
+      await api.apiRequest('/chat/send', 'POST', {
+        userId: chatUserId,
+        sender: 'client',
+        content: text,
+        userName: effectiveName,
+        shop: 'youpi'
+      });
+    } catch (e) {
+      console.warn('Chat send persistence fallback:', e);
+    }
+  };
 
   const quickQuestions = [
     '🧸 Conseil cadeau selon l\'âge',
     '🎁 Emballage cadeau personnalisé',
     '🚚 Délais de livraison à mon adresse',
-    '📞 Parler à un conseiller par téléphone'
+    '📞 Parler à un conseiller au téléphone'
   ];
 
-  const scrollToBottom = () => {
-    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
-  };
-
-  useEffect(() => {
-    if (isOpen) scrollToBottom();
-  }, [messages, isOpen]);
-
-  const handleSendMessage = async (textToSend?: string) => {
-    const text = textToSend || inputMessage;
-    if (!text.trim()) return;
-
-    const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
-      sender: 'user',
-      text,
-      time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    };
-
-    setMessages(prev => [...prev, userMsg]);
-    setInputMessage('');
-    setIsSending(true);
-
-    try {
-      // Send to server so it appears in the backoffice
-      await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'x-shop-id': 'youpi' },
-        body: JSON.stringify({
-          name: customerName || 'Client Chat Web',
-          email: 'client.chat@youpishop.tn',
-          phone: customerPhone || '+216 -- --- ---',
-          subject: 'Question Chat Support YoupiShop',
-          message: text,
-          date: new Date().toISOString()
-        })
-      }).catch(() => {});
-
-      // Bot simulated smart response after 600ms
-      setTimeout(() => {
-        let botReply = "C'est bien noté ! Notre équipe prépare votre réponse avec soin. Si vous avez laissé vos coordonnées, un conseiller peut aussi vous contacter au téléphone.";
-        if (text.includes('âge') || text.includes('cadeau')) {
-          botReply = "Pour les tout-petits (0-3 ans), nous recommandons vivement nos jeux d'éveil Montessori en bois. Pour les 4-8 ans, les boîtes de briques créatives font toujours l'unanimité !";
-        } else if (text.includes('livraison')) {
-          botReply = "Nous livrons partout en Tunisie sous 24 à 48 heures ouvrées ! La livraison est gratuite à partir de 100 DT d'achat, et vous payez en espèces à la réception.";
-        } else if (text.includes('emballage')) {
-          botReply = "L'emballage cadeau avec ruban et carte personnalisée est totalement offert ! Vous pouvez cocher l'option lors de la validation de votre commande.";
-        } else if (text.includes('téléphone')) {
-          botReply = "Vous pouvez également joindre directement notre service client par téléphone au +216 71 888 123 (du lundi au samedi de 9h à 19h).";
-        }
-
-        setMessages(prev => [
-          ...prev,
-          {
-            id: `bot-${Date.now()}`,
-            sender: 'bot',
-            text: botReply,
-            time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-          }
-        ]);
-        setIsSending(false);
-      }, 700);
-
-    } catch {
-      setIsSending(false);
-    }
-  };
-
   return (
-    <div className="fixed bottom-5 right-5 z-40">
+    <div className="fixed bottom-6 right-6 z-50 font-sans flex flex-col items-end">
       
-      {/* Floating Messenger Drawer */}
-      {isOpen ? (
-        <div className="w-[330px] sm:w-[380px] bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col h-[500px] animate-fadeIn">
+      {/* Pop-up Window */}
+      {isOpen && (
+        <div className="mb-3 w-[350px] sm:w-[380px] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl overflow-hidden flex flex-col h-[520px] animate-in fade-in slide-in-from-bottom-5 duration-200">
           
           {/* Header */}
-          <div className="p-4 bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 text-white flex items-center justify-between">
+          <div className="p-4 bg-gradient-to-r from-amber-500 to-orange-500 text-white flex items-center justify-between shrink-0 shadow-xs">
             <div className="flex items-center gap-2.5">
-              <div className="relative w-9 h-9 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-xl">
-                🧸
-                <span className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-emerald-400 border-2 border-orange-500"></span>
+              {viewMode === 'chat' && (
+                <button
+                  onClick={() => setViewMode('choice')}
+                  className="p-1 rounded-lg hover:bg-white/20 transition-colors cursor-pointer mr-0.5"
+                  title="Retour aux options"
+                >
+                  <ArrowLeft className="w-4 h-4" />
+                </button>
+              )}
+              <div className="relative">
+                <div className="w-9 h-9 rounded-2xl bg-white/20 backdrop-blur-xs flex items-center justify-center text-lg shadow-2xs">
+                  🧸
+                </div>
+                <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full ring-2 ring-amber-500 ${
+                  isAdminOnline ? 'bg-emerald-400 animate-pulse' : 'bg-amber-200'
+                }`}></span>
               </div>
               <div>
-                <h3 className="font-black text-sm leading-tight">Conseiller YoupiShop</h3>
-                <p className="text-[10px] text-amber-100 flex items-center gap-1">
-                  <Clock className="w-2.5 h-2.5" />
-                  <span>En ligne • Réponse en 5 min</span>
+                <h3 className="text-xs font-black uppercase tracking-wider leading-tight">
+                  Support YoupiShop
+                </h3>
+                <p className="text-[10px] text-white/90 font-medium">
+                  {isAdminOnline ? 'Conseillers disponibles en direct' : 'Messagerie active 24/7'}
                 </p>
               </div>
             </div>
+
             <button
               onClick={() => setIsOpen(false)}
-              className="p-1.5 rounded-xl hover:bg-white/20 transition-colors cursor-pointer"
+              className="w-7 h-7 rounded-full flex items-center justify-center text-white/80 hover:text-white hover:bg-white/20 transition-colors cursor-pointer"
             >
-              <X className="w-5 h-5" />
+              <X className="w-4 h-4" />
             </button>
           </div>
 
-          {/* Quick Suggestion Chips */}
-          <div className="p-2.5 bg-slate-50 dark:bg-slate-800/50 border-b border-slate-100 dark:border-slate-800 flex gap-1.5 overflow-x-auto no-scrollbar">
-            {quickQuestions.map((q, i) => (
-              <button
-                key={i}
-                onClick={() => handleSendMessage(q)}
-                className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-[11px] font-bold text-slate-700 dark:text-slate-200 hover:border-amber-400 whitespace-nowrap cursor-pointer transition-colors shadow-2xs"
-              >
-                {q}
-              </button>
-            ))}
-          </div>
-
-          {/* Chat Messages */}
-          <div className="flex-1 overflow-y-auto p-4 space-y-3 text-xs bg-[#f8fafc] dark:bg-slate-950">
-            {messages.map((m) => (
-              <div
-                key={m.id}
-                className={`flex flex-col ${m.sender === 'user' ? 'items-end' : 'items-start'}`}
-              >
-                <div
-                  className={`max-w-[85%] p-3 rounded-2xl shadow-xs leading-relaxed ${
-                    m.sender === 'user'
-                      ? 'bg-amber-500 text-white rounded-tr-xs'
-                      : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 rounded-tl-xs border border-slate-200/70 dark:border-slate-700'
-                  }`}
-                >
-                  <p>{m.text}</p>
+          {/* CHOICE VIEW */}
+          {viewMode === 'choice' && (
+            <div className="flex-1 p-5 flex flex-col justify-between overflow-y-auto bg-slate-50/60 dark:bg-slate-950/40">
+              <div className="space-y-4">
+                <div className="text-center pt-2">
+                  <div className="w-12 h-12 rounded-2xl bg-amber-100 text-amber-600 flex items-center justify-center mx-auto mb-2 text-2xl">
+                    👋
+                  </div>
+                  <h4 className="text-sm font-black text-slate-800 dark:text-slate-100">
+                    Comment pouvons-nous vous aider ?
+                  </h4>
+                  <p className="text-xs text-slate-500 mt-1">
+                    Notre équipe YoupiShop répond à toutes vos questions sur les jouets et livraisons.
+                  </p>
                 </div>
-                <span className="text-[9px] text-slate-400 mt-1 px-1">
-                  {m.time}
-                </span>
-              </div>
-            ))}
-            {isSending && (
-              <div className="flex items-center gap-1.5 text-xs text-slate-400 italic">
-                <span className="w-2 h-2 rounded-full bg-amber-500 animate-ping"></span>
-                <span>Lina est en train d'écrire...</span>
-              </div>
-            )}
-            <div ref={messagesEndRef} />
-          </div>
 
-          {/* Optional phone callback prompt */}
-          {showContactInputs && (
-            <div className="p-3 bg-amber-50 dark:bg-amber-950/40 border-t border-amber-200 dark:border-amber-900/40 space-y-2 text-xs">
-              <input
-                type="text"
-                value={customerName}
-                onChange={(e) => setCustomerName(e.target.value)}
-                placeholder="Votre prénom"
-                className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 text-xs"
-              />
-              <input
-                type="tel"
-                value={customerPhone}
-                onChange={(e) => setCustomerPhone(e.target.value)}
-                placeholder="Votre numéro de mobile"
-                className="w-full px-3 py-1.5 rounded-lg bg-white dark:bg-slate-900 border border-amber-300 text-xs"
-              />
+                <div className="space-y-2.5 pt-2">
+                  {/* Option 1: Live Chat Socket.IO */}
+                  <button
+                    onClick={() => setViewMode('chat')}
+                    className="w-full p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-amber-400 text-left flex items-center gap-3 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-amber-500 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <MessageSquare className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-900 dark:text-white">
+                        Discuter en Direct
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        Chat instantané avec un conseiller jouets
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-amber-500">→</span>
+                  </button>
+
+                  {/* Option 2: WhatsApp Direct */}
+                  <a
+                    href="https://wa.me/21655263522?text=Bonjour%20YoupiShop,%20je%20souhaite%20un%20renseignement%20sur%20un%20jouet"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="w-full p-3.5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:border-emerald-400 text-left flex items-center gap-3 shadow-xs hover:shadow-md transition-all cursor-pointer group"
+                  >
+                    <div className="w-9 h-9 rounded-xl bg-emerald-500 text-white flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                      <Phone className="w-4 h-4" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-black text-slate-900 dark:text-white">
+                        WhatsApp YoupiShop
+                      </p>
+                      <p className="text-[10px] text-slate-500">
+                        Échange direct au +216 55 263 522
+                      </p>
+                    </div>
+                    <span className="text-xs font-bold text-emerald-500">→</span>
+                  </a>
+                </div>
+              </div>
+
+              {/* Quick suggestions */}
+              <div className="pt-4 border-t border-slate-200/60 dark:border-slate-800">
+                <span className="text-[10px] font-black uppercase tracking-wider text-slate-400 block mb-2">
+                  Questions fréquentes
+                </span>
+                <div className="flex flex-col gap-1.5">
+                  {quickQuestions.map((q, i) => (
+                    <button
+                      key={i}
+                      onClick={() => {
+                        setViewMode('chat');
+                        handleSendMessage(q);
+                      }}
+                      className="text-left text-xs p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 hover:bg-amber-50 dark:hover:bg-amber-950/20 text-slate-700 dark:text-slate-300 font-medium transition-colors"
+                    >
+                      {q}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </div>
           )}
 
-          {/* Input Area */}
-          <div className="p-3 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <input
-                type="text"
-                value={inputMessage}
-                onChange={(e) => setInputMessage(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') handleSendMessage();
+          {/* CHAT MESSAGING VIEW */}
+          {viewMode === 'chat' && (
+            <div className="flex-1 flex flex-col overflow-hidden bg-slate-50/50 dark:bg-slate-950/50">
+              
+              {/* Message thread */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar text-xs">
+                {messages.map((msg, idx) => {
+                  const isUser = msg.sender === 'client';
+                  return (
+                    <div
+                      key={idx}
+                      className={`flex flex-col ${isUser ? 'items-end' : 'items-start'}`}
+                    >
+                      <span className="text-[9px] text-slate-400 mb-0.5 px-1 font-medium">
+                        {isUser ? 'Vous' : 'Conseiller YoupiShop'}
+                      </span>
+                      <div
+                        className={`max-w-[80%] px-3.5 py-2 rounded-2xl leading-relaxed shadow-2xs ${
+                          isUser
+                            ? 'bg-amber-500 text-white rounded-tr-xs font-medium'
+                            : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-tl-xs'
+                        }`}
+                      >
+                        {msg.content}
+                      </div>
+                    </div>
+                  );
+                })}
+                <div ref={messagesEndRef} />
+              </div>
+
+              {/* Chat Input */}
+              <form
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  handleSendMessage();
                 }}
-                placeholder="Posez votre question à Lina..."
-                className="flex-1 px-3.5 py-2 rounded-2xl bg-slate-100 dark:bg-slate-800 border-none text-xs text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-amber-500"
-              />
-              <button
-                type="button"
-                onClick={() => handleSendMessage()}
-                disabled={!inputMessage.trim()}
-                className="p-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white cursor-pointer transition-all shadow-xs"
+                className="p-3 bg-white dark:bg-slate-900 border-t border-slate-200 dark:border-slate-800 flex items-center gap-2"
               >
-                <Send className="w-4 h-4" />
-              </button>
+                <input
+                  type="text"
+                  value={inputMessage}
+                  onChange={(e) => setInputMessage(e.target.value)}
+                  placeholder="Écrivez votre message ici..."
+                  className="flex-1 px-3.5 py-2 bg-slate-100 dark:bg-slate-800 border-transparent rounded-2xl text-xs focus:bg-white dark:focus:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-amber-500 transition-all"
+                />
+                <button
+                  type="submit"
+                  disabled={!inputMessage.trim()}
+                  className="w-8 h-8 rounded-full bg-amber-500 hover:bg-amber-600 disabled:opacity-40 text-white flex items-center justify-center transition-colors shadow-xs cursor-pointer shrink-0"
+                >
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
             </div>
-            
-            <div className="flex justify-between items-center text-[10px] text-slate-400 pt-1.5 px-1">
-              <button
-                type="button"
-                onClick={() => setShowContactInputs(!showContactInputs)}
-                className="text-amber-600 dark:text-amber-400 hover:underline cursor-pointer"
-              >
-                {showContactInputs ? 'Masquer le rappel' : '📞 Être rappelé par téléphone'}
-              </button>
-              <span>MultiShop Support</span>
-            </div>
-          </div>
+          )}
 
         </div>
-      ) : (
-        /* Floating Button */
-        <button
-          type="button"
-          onClick={() => setIsOpen(true)}
-          className="group flex items-center gap-2.5 px-4 py-3 rounded-full bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs shadow-xl shadow-orange-500/30 hover:shadow-2xl transition-all cursor-pointer active:scale-95"
-        >
-          <div className="relative">
-            <span className="text-xl">🧸</span>
-            <span className="absolute -top-1 -right-1 w-2.5 h-2.5 rounded-full bg-emerald-400 border border-white"></span>
-          </div>
-          <span className="font-serif text-sm tracking-wide">Une question ?</span>
-          <span className="hidden sm:inline text-[11px] opacity-90 font-normal">• Conseillère en ligne</span>
-        </button>
       )}
+
+      {/* Floating Trigger Button */}
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-14 h-14 rounded-full bg-gradient-to-tr from-amber-500 to-orange-500 text-white flex items-center justify-center shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all cursor-pointer relative"
+        aria-label="Ouvrir le chat support YoupiShop"
+      >
+        {isOpen ? (
+          <X className="w-6 h-6" />
+        ) : (
+          <>
+            <MessageSquare className="w-6 h-6" />
+            <span className="absolute -top-1 -right-1 w-4 h-4 rounded-full bg-emerald-400 border-2 border-white animate-pulse"></span>
+          </>
+        )}
+      </button>
 
     </div>
   );

@@ -171,9 +171,15 @@ export function createShopApiClient(shopId?: string) {
 
       // Packs
       getPacks: () => req('/packs'),
+      createPack: (pack: any) => req('/packs', 'POST', pack),
+      updatePack: (id: number | string, pack: any) => req(`/packs/${id}`, 'PUT', pack),
+      deletePack: (id: number | string) => req(`/packs/${id}`, 'DELETE'),
 
       // Categories
       getCategories: () => req('/categories'),
+      createCategory: (category: any) => req('/categories', 'POST', category),
+      updateCategory: (nameOrId: string | number, category: any) => req(`/categories/${encodeURIComponent(nameOrId)}`, 'PUT', category),
+      deleteCategory: (nameOrId: string | number) => req(`/categories/${encodeURIComponent(nameOrId)}`, 'DELETE'),
 
       // Brands
       getBrands: () => req('/brands'),

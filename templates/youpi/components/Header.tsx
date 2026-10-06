@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Search, ShoppingCart, Heart, User, ChevronDown, Menu, X, Sun, Moon } from 'lucide-react';
+import { Search, ShoppingCart, Heart, User, ChevronDown, ChevronRight, Menu, X, Sun, Moon, Sparkles, FolderTree } from 'lucide-react';
 import { Logo } from './Logo';
 import { useCart } from './CartContext';
 import { useFavorites } from './FavoritesContext';
 import { useTheme } from './ThemeContext';
+import type { Category } from '../types';
 
 interface HeaderProps {
   onNavigate: (view: 'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout') => void;
@@ -13,6 +14,7 @@ interface HeaderProps {
   onSelectCategory?: (category: string) => void;
   onOpenAuthModal?: () => void;
   currentUser?: any;
+  categories?: Category[];
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -22,31 +24,38 @@ export const Header: React.FC<HeaderProps> = ({
   onSearchChange,
   onSelectCategory,
   onOpenAuthModal,
-  currentUser
+  currentUser,
+  categories: propCategories = []
 }) => {
   const { totalItems, totalPrice, setIsCartOpen } = useCart();
   const { favorites } = useFavorites();
   const { theme, toggleTheme } = useTheme();
   const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [hoveredCategory, setHoveredCategory] = useState<Category | null>(null);
 
-  const categories = [
-    { label: '👶 Jouets 0-3 ans', category: '0-3' },
-    { label: '🧸 Jouets 3-6 ans', category: '3-6' },
-    { label: '🎮 Jouets 6-12 ans', category: '6-12' },
-    { label: '🎲 Jeux de société', category: 'Jeux de société' },
-    { label: '🧩 Puzzles', category: 'Puzzles' },
-    { label: '💡 Éducatifs', category: 'Éducatifs' },
-    { label: '🚲 Extérieurs', category: 'Extérieurs' },
-    { label: '🧱 Briques & Lego', category: 'Construction' },
-    { label: '🎨 Loisirs créatifs', category: 'Créatifs' }
+  const defaultCategories: Category[] = [
+    { id: 1, name: 'Jouets 0-3 ans', slug: '0-3', icon: '👶', ageRange: '0-3 ans' },
+    { id: 2, name: 'Jouets 3-6 ans', slug: '3-6', icon: '🧸', ageRange: '3-6 ans' },
+    { id: 3, name: 'Jouets 6-12 ans', slug: '6-12', icon: '🎮', ageRange: '6-12 ans' },
+    { id: 4, name: 'Jeux de société', slug: 'jeux-de-societe', icon: '🎲', ageRange: 'Tous âges' },
+    { id: 5, name: 'Puzzles & Encastrements', slug: 'puzzles', icon: '🧩', ageRange: 'Tous âges' },
+    { id: 6, name: 'Jeux Éducatifs & Montessori', slug: 'educatifs', icon: '💡', ageRange: '2-8 ans' },
+    { id: 7, name: 'Plein air & Extérieurs', slug: 'exterieurs', icon: '🚲', ageRange: '3-12 ans' },
+    { id: 8, name: 'Briques & Lego', slug: 'construction', icon: '🧱', ageRange: '4-12 ans' },
+    { id: 9, name: 'Loisirs créatifs & Dessin', slug: 'creatifs', icon: '🎨', ageRange: 'Tous âges' }
   ];
 
-  const handleCategoryClick = (cat: string) => {
+  const effectiveCategories = propCategories && propCategories.length > 0
+    ? propCategories
+    : defaultCategories;
+
+  const handleCategoryClick = (catNameOrSlug: string) => {
     if (onSelectCategory) {
-      onSelectCategory(cat);
+      onSelectCategory(catNameOrSlug);
     }
     setIsCategoriesDropdownOpen(false);
+    setHoveredCategory(null);
     onNavigate('catalog');
   };
 
@@ -215,16 +224,101 @@ export const Header: React.FC<HeaderProps> = ({
 
               {/* Dropdown Menu */}
               {isCategoriesDropdownOpen && (
-                <div className="absolute top-full left-0 mt-2 w-64 bg-white dark:bg-slate-800 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-700 py-2 z-50 animate-fadeIn">
-                  {categories.map((cat, idx) => (
-                    <button
-                      key={idx}
-                      onClick={() => handleCategoryClick(cat.category)}
-                      className="w-full text-left px-4 py-2.5 text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-700/60 hover:text-amber-600 transition-colors flex items-center justify-between"
-                    >
-                      <span>{cat.label}</span>
-                    </button>
-                  ))}
+                <div
+                  className="absolute top-full left-0 mt-2 w-72 sm:w-80 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-2 z-50 animate-fadeIn divide-y divide-slate-100 dark:divide-slate-800"
+                  onMouseLeave={() => setHoveredCategory(null)}
+                >
+                  <div className="p-2 text-[10px] font-black uppercase tracking-wider text-slate-400">
+                    Rayons & Univers Jouets ({effectiveCategories.length})
+                  </div>
+                  <div className="py-1 max-h-[420px] overflow-y-auto custom-scrollbar">
+                    {effectiveCategories.map((cat, idx) => {
+                      const hasSub = (cat.subCategories && cat.subCategories.length > 0) || (cat.megaMenu && cat.megaMenu.length > 0);
+                      const isHovered = hoveredCategory?.name === cat.name;
+
+                      return (
+                        <div
+                          key={cat.id || cat.name || idx}
+                          className="relative"
+                          onMouseEnter={() => setHoveredCategory(cat)}
+                        >
+                          <button
+                            type="button"
+                            onClick={() => handleCategoryClick(cat.name)}
+                            className="w-full text-left px-3.5 py-2.5 rounded-2xl text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-amber-50 dark:hover:bg-slate-800/80 hover:text-amber-600 transition-colors flex items-center justify-between group cursor-pointer"
+                          >
+                            <div className="flex items-center gap-2.5 truncate">
+                              <span className="text-base shrink-0">{cat.icon || '🧸'}</span>
+                              <div className="truncate">
+                                <span className="block truncate font-bold">{cat.name}</span>
+                                {cat.ageRange && (
+                                  <span className="text-[10px] font-medium text-slate-400 block -mt-0.5">
+                                    {cat.ageRange}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                            {hasSub && (
+                              <ChevronRight className="w-3.5 h-3.5 text-slate-400 group-hover:text-amber-500 shrink-0 ml-1" />
+                            )}
+                          </button>
+
+                          {/* Hover flyout for SubCategories / MegaMenu */}
+                          {hasSub && isHovered && (
+                            <div className="absolute left-full top-0 ml-2 w-64 sm:w-72 bg-white dark:bg-slate-900 rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 p-4 z-50 animate-fadeIn">
+                              <div className="text-xs font-black text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
+                                <Sparkles className="w-3.5 h-3.5" />
+                                <span>{cat.name}</span>
+                              </div>
+
+                              {cat.megaMenu && cat.megaMenu.length > 0 ? (
+                                <div className="space-y-3">
+                                  {cat.megaMenu.map((group, gIdx) => (
+                                    <div key={gIdx} className="space-y-1">
+                                      <p className="text-[11px] font-black text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+                                        {group.title}
+                                      </p>
+                                      <div className="space-y-0.5 pl-2 border-l border-amber-200 dark:border-amber-900">
+                                        {group.items.map((item, iIdx) => (
+                                          <button
+                                            key={iIdx}
+                                            type="button"
+                                            onClick={(e) => {
+                                              e.stopPropagation();
+                                              handleCategoryClick(item.name);
+                                            }}
+                                            className="block w-full text-left text-xs text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 py-1 font-medium transition-colors"
+                                          >
+                                            {item.name}
+                                          </button>
+                                        ))}
+                                      </div>
+                                    </div>
+                                  ))}
+                                </div>
+                              ) : cat.subCategories && cat.subCategories.length > 0 ? (
+                                <div className="space-y-1">
+                                  {cat.subCategories.map((sub, sIdx) => (
+                                    <button
+                                      key={sIdx}
+                                      type="button"
+                                      onClick={(e) => {
+                                        e.stopPropagation();
+                                        handleCategoryClick(sub);
+                                      }}
+                                      className="block w-full text-left text-xs text-slate-600 dark:text-slate-400 hover:text-amber-600 dark:hover:text-amber-400 py-1 font-medium transition-colors"
+                                    >
+                                      • {sub}
+                                    </button>
+                                  ))}
+                                </div>
+                              ) : null}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
                 </div>
               )}
             </div>

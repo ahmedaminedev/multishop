@@ -186,11 +186,70 @@ const allProducts = [
 ];
 
 const categories = [
-    { id: 1, name: 'Éveil & Bébé', slug: 'eveil-bebe', image: '/src/assets/images/category_youpi_eveil_1791240046354.jpg' },
-    { id: 2, name: 'Construction & Lego', slug: 'construction-lego', image: '/src/assets/images/category_youpi_lego_1791240056376.jpg' },
-    { id: 3, name: 'Jeux de Société', slug: 'jeux-de-societe', image: '/src/assets/images/category_youpi_societe_1791240065789.jpg' },
-    { id: 4, name: 'Plein Air & Véhicules', slug: 'plein-air-vehicules', image: '/src/assets/images/hero_youpishop_toys_1791240036994.jpg' },
-    { id: 5, name: 'Arts Créatifs', slug: 'arts-creatifs', image: '/src/assets/images/category_youpi_eveil_1791240046354.jpg' }
+    {
+        id: 1,
+        name: 'Éveil & Bébé',
+        slug: 'eveil-bebe',
+        ageRange: '0-3 ans (Éveil & Petite Enfance)',
+        icon: '🧸',
+        color: 'rose',
+        image: '/src/assets/images/category_youpi_eveil_1791240046354.jpg',
+        subCategories: ['Hochets & Doudous', 'Tapis d\'Éveil & Portiques', 'Puzzles Premier Âge', 'Jouets en Bois Montessori'],
+        description: 'Développe la motricité fine et la curiosité sensorielle des tout-petits.'
+    },
+    {
+        id: 2,
+        name: 'Construction & Lego',
+        slug: 'construction-lego',
+        ageRange: '4-12 ans (École & Créativité)',
+        icon: '🧱',
+        color: 'amber',
+        image: '/src/assets/images/category_youpi_lego_1791240056376.jpg',
+        megaMenu: [
+            {
+                title: 'Briques & Boîtes Géantes',
+                items: [{ name: 'Boîte Classic 850 pcs' }, { name: 'Plaques de base' }, { name: 'Accessoires & Roues' }]
+            },
+            {
+                title: 'Univers & Thématiques',
+                items: [{ name: 'Villes & Métiers' }, { name: 'Exploration Spatiale' }, { name: 'Châteaux & Royaumes' }]
+            }
+        ],
+        description: 'Stimule l\'imagination spatiale et la patience par la construction.'
+    },
+    {
+        id: 3,
+        name: 'Jeux de Société',
+        slug: 'jeux-de-societe',
+        ageRange: '6-12 ans (École & Créativité)',
+        icon: '🎲',
+        color: 'blue',
+        image: '/src/assets/images/category_youpi_societe_1791240065789.jpg',
+        subCategories: ['Jeux de Coopération', 'Jeux d\'Ambiance & Fêtes', 'Stratégie & Réflexion', 'Jeux de Cartes Rapides'],
+        description: 'Des moments de rire et de partage inoubliables en famille.'
+    },
+    {
+        id: 4,
+        name: 'Plein Air & Véhicules',
+        slug: 'plein-air-vehicules',
+        ageRange: '3-6 ans (Maternelle & Imagination)',
+        icon: '🚗',
+        color: 'emerald',
+        image: '/src/assets/images/hero_youpishop_toys_1791240036994.jpg',
+        subCategories: ['Trottinettes & Draisiennes', 'Voitures & Circuits', 'Jeux d\'Eau & Piscine', 'Cabanes & Tentes'],
+        description: 'Pour bouger, explorer et profiter du grand air en toute sécurité.'
+    },
+    {
+        id: 5,
+        name: 'Arts Créatifs & Dessin',
+        slug: 'arts-creatifs',
+        ageRange: 'Tous âges',
+        icon: '🎨',
+        color: 'purple',
+        image: '/src/assets/images/category_youpi_eveil_1791240046354.jpg',
+        subCategories: ['Pâte à modeler', 'Peinture aux doigts', 'Coloriages géants', 'Perles & Bijoux'],
+        description: 'Libérez le talent artistique et l\'expression personnelle de vos enfants.'
+    }
 ];
 
 const brands = [
@@ -205,22 +264,30 @@ const brands = [
 const packs = [
     {
         id: 4001,
+        name: 'Pack Éveil Naissance Montessori',
         title: 'Pack Éveil Naissance Montessori',
         price: 129,
+        oldPrice: 169,
         originalPrice: 169,
         discount: 23,
         imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg',
         description: 'Le trio incontournable pour développer les sens et la motricité : anneaux en bois, boîte à formes et doudou lange bio.',
+        includedProductIds: [401, 404],
+        includedItems: ['Pack Éveil Montessori en Bois Naturel', 'Peluche Doudou Ourson Géant Ultra-Doux 60cm'],
         products: [allProducts[0], allProducts[3]]
     },
     {
         id: 4002,
+        name: 'Pack Grand Architecte Créatif',
         title: 'Pack Grand Architecte Créatif',
         price: 249,
+        oldPrice: 314,
         originalPrice: 314,
         discount: 20,
         imageUrl: '/src/assets/images/category_youpi_lego_1791240056376.jpg',
         description: 'La méga boîte de briques 850 pcs combinée avec la station spatiale pour des heures de construction infinies.',
+        includedProductIds: [402, 407],
+        includedItems: ['Boîte de Construction Briques Créatives 850 pcs', 'Station Spatiale & Fusée Décollage Lumineuse'],
         products: [allProducts[1], allProducts[6]]
     }
 ];
@@ -244,17 +311,53 @@ const stores = [
 
 const initialAdvertisements = {
     hero: {
-        badge: 'JOUETS & ÉVEIL ENFANT',
-        title: 'L\'UNIVERS DU JEU & DU RÊVE',
+        badge: 'LE ROYAUME DES JOUETS & DU SOURIRE',
+        title: 'FAIRE BRILLER LES YEUX',
+        titleHighlight: 'DE VOS ENFANTS',
         subtitle: 'Des jouets éducatifs, créatifs et durables pour émerveiller petits et grands.',
         cta: 'Voir les Nouveautés',
         bgImage: '/src/assets/images/hero_youpishop_toys_1791240036994.jpg'
     },
     promoBanner: {
-        title: 'OFFRE ANNIVERSAIRE & FÊTES',
-        discount: '-20%',
-        subtitle: 'Sur tous les jeux d\'éveil en bois et constructions Lego',
-        code: 'YOUPI20'
+        tag: 'OFFRE ANNIVERSAIRE & FÊTES',
+        title: 'JUSQU\'À',
+        discountHighlight: '-20%',
+        description: 'Sur tous les jeux d\'éveil en bois naturel et constructions Lego',
+        buttonText: 'Découvrir les offres',
+        categoryTarget: 'Construction & Lego',
+        bgImage: '/src/assets/images/category_youpi_lego_1791240056376.jpg'
+    },
+    youpiHome: {
+        hero: {
+            badge: 'LE ROYAUME DES JOUETS & DU SOURIRE',
+            title: 'FAIRE BRILLER LES YEUX',
+            titleHighlight: 'DE VOS ENFANTS',
+            description: 'Des milliers de jouets d\'éveil, jeux de société et briques de construction livrés rapidement chez vous partout en Tunisie.',
+            buttonText: 'Explorer le catalogue',
+            buttonCategory: 'all',
+            bgImage: '/src/assets/images/hero_youpishop_toys_1791240036994.jpg',
+            stickerLeft: '🧸 Éveil Montessori',
+            stickerRight: '🎁 Emballage Cadeau Offert'
+        },
+        promoBanner: {
+            tag: 'OFFRE ANNIVERSAIRE & FÊTES',
+            title: 'JUSQU\'À',
+            discountHighlight: '-20%',
+            description: 'Sur tous les jeux d\'éveil en bois naturel et constructions Lego',
+            buttonText: 'Découvrir les offres',
+            categoryTarget: 'Construction & Lego',
+            bgImage: '/src/assets/images/category_youpi_lego_1791240056376.jpg'
+        },
+        bestsellersTitle: 'Nos Bestsellers Coups de Cœur',
+        bestsellersKicker: 'LES JOUETS LES PLUS DEMANDÉS',
+        ageCategoriesTitle: 'Trouver le Jouet Idéal selon l\'Âge',
+        ageCategoriesKicker: 'PAR TRANCHE D\'ÂGE',
+        trustBadges: [
+            { id: 1, title: 'Livraison rapide ✨', subtitle: '24/48h partout en Tunisie', icon: 'truck' },
+            { id: 2, title: 'Paiement sécurisé ✨', subtitle: '100% fiable à la livraison', icon: 'shield' },
+            { id: 3, title: 'Service client ✨', subtitle: 'À votre écoute 7j/7', icon: 'headphones' },
+            { id: 4, title: 'Retour facile ✨', subtitle: 'Sous 14 jours', icon: 'refresh' }
+        ]
     }
 };
 

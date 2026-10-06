@@ -121,7 +121,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     const hash = window.location.hash;
     if (hash.startsWith('#/admin/')) {
       const s = hash.replace('#/admin/', '').trim();
-      if (['para', 'nutrition', 'cosmetic', 'electro'].includes(s)) return s as ShopContextId;
+      if (['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(s)) return s as ShopContextId;
     }
     return 'all';
   });
@@ -749,7 +749,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar">
-                    {((['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[])
+                    {((['para', 'nutrition', 'cosmetic', 'electro', 'youpi'] as FilialeId[])
                       .filter(fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)))
                       .map((fKey) => {
                       const fMeta = BOUTIQUES_META[fKey];

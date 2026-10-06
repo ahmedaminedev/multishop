@@ -49,7 +49,7 @@ export const PacksPage: React.FC<PacksPageProps> = ({ packs }) => {
                     Pack Avantage
                   </span>
                   <h3 className="text-xl font-black font-serif text-slate-900 dark:text-white">
-                    {pack.title}
+                    {pack.name || pack.title}
                   </h3>
                   <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
                     {pack.description}
@@ -61,12 +61,26 @@ export const PacksPage: React.FC<PacksPageProps> = ({ packs }) => {
                       Articles inclus dans ce coffret :
                     </p>
                     <ul className="space-y-1 text-xs text-slate-600 dark:text-slate-300">
-                      {pack.products?.map((prod, i) => (
-                        <li key={i} className="flex items-center gap-2">
+                      {pack.products && pack.products.length > 0 ? (
+                        pack.products.map((prod, i) => (
+                          <li key={i} className="flex items-center gap-2">
+                            <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span>{prod.name} ({prod.price} DT)</span>
+                          </li>
+                        ))
+                      ) : pack.includedItems && pack.includedItems.length > 0 ? (
+                        pack.includedItems.map((item, i) => (
+                          <li key={i} className="flex items-center gap-2">
+                            <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                            <span>{item}</span>
+                          </li>
+                        ))
+                      ) : (
+                        <li className="flex items-center gap-2">
                           <Check className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
-                          <span>{prod.name} ({prod.price} DT)</span>
+                          <span>Assortiment complet de jouets YoupiShop</span>
                         </li>
-                      ))}
+                      )}
                     </ul>
                   </div>
                 </div>
@@ -77,15 +91,27 @@ export const PacksPage: React.FC<PacksPageProps> = ({ packs }) => {
                   <span className="text-2xl font-black text-slate-900 dark:text-white tabular-nums">
                     {pack.price} DT
                   </span>
-                  <span className="text-xs text-slate-400 line-through ml-2 tabular-nums">
-                    {pack.originalPrice} DT
-                  </span>
+                  {(pack.oldPrice || pack.originalPrice) && (
+                    <span className="text-xs text-slate-400 line-through ml-2 tabular-nums">
+                      {pack.oldPrice || pack.originalPrice} DT
+                    </span>
+                  )}
                 </div>
 
                 <button
                   type="button"
                   onClick={() => {
-                    pack.products.forEach(p => addToCart(p, 1));
+                    if (pack.products && pack.products.length > 0) {
+                      pack.products.forEach(p => addToCart(p, 1));
+                    } else {
+                      addToCart({
+                        id: pack.id,
+                        name: pack.name || pack.title,
+                        price: pack.price,
+                        imageUrl: pack.imageUrl,
+                        category: 'Packs & Coffrets'
+                      } as any, 1);
+                    }
                   }}
                   className="px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-orange-500/20 active:scale-95 transition-all flex items-center gap-2 cursor-pointer"
                 >

@@ -20,13 +20,17 @@ import {
   Send,
   Sparkles,
   FolderTree,
-  Palette,
-  Bot,
-  User,
-  Check,
-  Clock
+  Baby,
+  Clock,
+  Check
 } from 'lucide-react';
 import { Product, Category, Pack, Order, ContactMessage, Promotion, Store as StoreType, Brand } from '../../types';
+import { AdminSidebar } from './AdminSidebar';
+import { ManageCategoriesPage } from './ManageCategoriesPage';
+import { ManagePacksPage } from './ManagePacksPage';
+import { ManageHomePage } from './ManageHomePage';
+import { AdminChat } from './AdminChat';
+import { SubsiteLiveFullscreenModal } from './SubsiteLiveFullscreenModal';
 
 export type AdminPageName =
   | 'dashboard'
@@ -60,8 +64,8 @@ interface AdminPageProps {
   setPromotionsData: React.Dispatch<React.SetStateAction<Promotion[]>>;
   storesData: StoreType[];
   setStoresData: React.Dispatch<React.SetStateAction<StoreType[]>>;
-  brandsData: Brand[];
-  setBrandsData: React.Dispatch<React.SetStateAction<Brand[]>>;
+  brandsData?: Brand[];
+  setBrandsData?: React.Dispatch<React.SetStateAction<Brand[]>>;
   hideSidebar?: boolean;
   forcedPage?: AdminPageName;
 }
@@ -69,28 +73,29 @@ interface AdminPageProps {
 export const AdminPage: React.FC<AdminPageProps> = ({
   onNavigateHome,
   onLogout,
-  productsData,
+  productsData = [],
   setProductsData,
-  categoriesData,
+  categoriesData = [],
   setCategoriesData,
-  packsData,
+  packsData = [],
   setPacksData,
-  ordersData,
+  ordersData = [],
   setOrdersData,
-  messagesData,
+  messagesData = [],
   setMessagesData,
   advertisementsData,
-  setAdvertisementsData,
-  promotionsData,
+  setAdvertisementsData = () => {},
+  promotionsData = [],
   setPromotionsData,
-  storesData,
+  storesData = [],
   setStoresData,
-  brandsData,
-  setBrandsData,
+  brandsData = [],
+  setBrandsData = () => {},
   hideSidebar = false,
   forcedPage
 }) => {
   const [activeTab, setActiveTab] = useState<AdminPageName>('dashboard');
+  const [isSubsiteModalOpen, setIsSubsiteModalOpen] = useState(false);
   const effectiveTab = forcedPage || activeTab;
 
   // Search & Filter States
@@ -109,54 +114,21 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     quantity: 20,
     trancheAge: '3 - 8 ans',
     description: '',
-    imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
+    imageUrl: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=600'
   });
 
-  // Category Modal State
-  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const [editingCategory, setEditingCategory] = useState<Category | null>(null);
-  const [categoryName, setCategoryName] = useState('');
-  const [categoryImage, setCategoryImage] = useState('');
+  // Selected Order for details modal
+  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-  // Brand Modal State
-  const [isBrandModalOpen, setIsBrandModalOpen] = useState(false);
-  const [brandName, setBrandName] = useState('');
+  // Replying to customer message modal
+  const [replyingMessage, setReplyingMessage] = useState<ContactMessage | null>(null);
+  const [replyText, setReplyText] = useState('');
 
-  // Pack Modal State
-  const [isPackModalOpen, setIsPackModalOpen] = useState(false);
-  const [packTitle, setPackTitle] = useState('');
-  const [packPrice, setPackPrice] = useState(99);
-  const [packOriginalPrice, setPackOriginalPrice] = useState(129);
-  const [packDesc, setPackDesc] = useState('');
-
-  // Promo Modal State
+  // Promo Code Modal
   const [isPromoModalOpen, setIsPromoModalOpen] = useState(false);
   const [promoCode, setPromoCode] = useState('');
   const [promoTitle, setPromoTitle] = useState('');
   const [promoDiscount, setPromoDiscount] = useState(15);
-
-  // Selected Order for details
-  const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
-  // Replying to customer message
-  const [replyingMessage, setReplyingMessage] = useState<ContactMessage | null>(null);
-  const [replyText, setReplyText] = useState('');
-
-  // Live Chat simulation state
-  const [chatMessages, setChatMessages] = useState<Array<{ id: string; sender: 'client' | 'admin'; text: string; time: string; customerName: string }>>([
-    { id: '1', sender: 'client', text: 'Bonjour, avez-vous la boîte de 850 briques Lego en stock ?', time: '14:20', customerName: 'Yassine M.' },
-    { id: '2', sender: 'admin', text: 'Bonjour Yassine ! Oui, elle est disponible immédiatement avec livraison sous 24h.', time: '14:21', customerName: 'Support Youpi' },
-    { id: '3', sender: 'client', text: 'Super, l\'emballage cadeau est-il gratuit ?', time: '14:23', customerName: 'Yassine M.' }
-  ]);
-  const [adminChatReply, setAdminChatReply] = useState('');
-
-  // Homepage ads state
-  const [heroTitle, setHeroTitle] = useState(advertisementsData?.hero?.title || "L'UNIVERS DU JEU & DU RÊVE");
-  const [heroSubtitle, setHeroSubtitle] = useState(advertisementsData?.hero?.subtitle || 'Des jouets éducatifs, créatifs et durables pour émerveiller petits et grands.');
-  const [heroBadge, setHeroBadge] = useState(advertisementsData?.hero?.badge || 'JOUETS & ÉVEIL ENFANT');
-  const [promoBannerCode, setPromoBannerCode] = useState(advertisementsData?.promoBanner?.code || 'YOUPI20');
-  const [promoBannerText, setPromoBannerText] = useState(advertisementsData?.promoBanner?.subtitle || "Sur tous les jeux d'éveil en bois et constructions Lego");
-  const [adsSavedMsg, setAdsSavedMsg] = useState(false);
 
   // KPI Computations
   const totalRevenue = ordersData.reduce((sum, o) => sum + (o.totalAmount || 0), 0);
@@ -169,13 +141,13 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setProductForm({
       name: '',
       brand: 'YoupiPlay',
-      category: 'Éveil & Bébé',
+      category: categoriesData[0]?.name || 'Éveil & Bébé',
       price: 49,
       oldPrice: 0,
       quantity: 20,
       trancheAge: '3 - 8 ans',
       description: '',
-      imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
+      imageUrl: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=600'
     });
     setIsProductModalOpen(true);
   };
@@ -199,11 +171,11 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         id: Date.now(),
         name: productForm.name || 'Nouveau Jouet',
         brand: productForm.brand || 'YoupiPlay',
-        category: productForm.category || 'Éveil & Bébé',
+        category: productForm.category || categoriesData[0]?.name || 'Éveil & Bébé',
         price: Number(productForm.price) || 29,
         oldPrice: Number(productForm.oldPrice) || 0,
-        imageUrl: productForm.imageUrl || '/src/assets/images/category_youpi_eveil_1791240046354.jpg',
-        images: [productForm.imageUrl || '/src/assets/images/category_youpi_eveil_1791240046354.jpg'],
+        imageUrl: productForm.imageUrl || 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=600',
+        images: [productForm.imageUrl || 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=600'],
         quantity: Number(productForm.quantity) || 15,
         trancheAge: productForm.trancheAge || '3 - 8 ans',
         description: productForm.description || '',
@@ -215,460 +187,442 @@ export const AdminPage: React.FC<AdminPageProps> = ({
   };
 
   const handleDeleteProduct = (id: number) => {
-    if (window.confirm('Voulez-vous vraiment supprimer cet article ?')) {
+    if (window.confirm('Voulez-vous vraiment supprimer cet article du catalogue YoupiShop ?')) {
       setProductsData(prev => prev.filter(p => p.id !== id));
     }
   };
 
-  // 2. Category Handlers
-  const handleSaveCategory = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!categoryName.trim()) return;
-
-    if (editingCategory) {
-      setCategoriesData(prev =>
-        prev.map(c => (c.id === editingCategory.id ? { ...c, name: categoryName, image: categoryImage || c.image } : c))
-      );
-    } else {
-      const newCat: Category = {
-        id: Date.now(),
-        name: categoryName,
-        slug: categoryName.toLowerCase().replace(/\s+/g, '-'),
-        image: categoryImage || '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
-      };
-      setCategoriesData(prev => [...prev, newCat]);
-    }
-    setIsCategoryModalOpen(false);
-    setCategoryName('');
-    setCategoryImage('');
-  };
-
-  const handleDeleteCategory = (id: number) => {
-    if (window.confirm('Supprimer cette catégorie ?')) {
-      setCategoriesData(prev => prev.filter(c => c.id !== id));
-    }
-  };
-
-  // 3. Brand Handlers
-  const handleSaveBrand = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!brandName.trim()) return;
-    const newBrand: Brand = {
-      id: Date.now(),
-      name: brandName
-    };
-    setBrandsData(prev => [...prev, newBrand]);
-    setBrandName('');
-    setIsBrandModalOpen(false);
-  };
-
-  const handleDeleteBrand = (id: number) => {
-    if (window.confirm('Supprimer cette marque ?')) {
-      setBrandsData(prev => prev.filter(b => b.id !== id));
-    }
-  };
-
-  // 4. Order status changer
-  const handleUpdateOrderStatus = (orderId: string, newStatus: any) => {
+  // 2. Orders Handlers
+  const handleUpdateOrderStatus = (orderId: string, newStatus: Order['status']) => {
     setOrdersData(prev =>
       prev.map(o => (o.id === orderId ? { ...o, status: newStatus } : o))
     );
+    if (selectedOrder && selectedOrder.id === orderId) {
+      setSelectedOrder(prev => (prev ? { ...prev, status: newStatus } : null));
+    }
   };
 
-  // 5. Message reply handler
+  // 3. Message Reply Handlers
   const handleSendReply = (e: React.FormEvent) => {
     e.preventDefault();
     if (!replyingMessage || !replyText.trim()) return;
 
     setMessagesData(prev =>
       prev.map(m =>
-        m.id === replyingMessage.id ? { ...m, reply: replyText, read: true } : m
+        m.id === replyingMessage.id ? { ...m, reply: replyText.trim(), read: true } : m
       )
     );
     setReplyingMessage(null);
     setReplyText('');
   };
 
-  // 6. Live Chat response
-  const handleSendAdminChat = (e: React.FormEvent) => {
+  // 4. Promo Handlers
+  const handleSavePromo = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!adminChatReply.trim()) return;
+    if (!promoCode.trim()) return;
 
-    setChatMessages(prev => [
-      ...prev,
-      {
-        id: String(Date.now()),
-        sender: 'admin',
-        text: adminChatReply,
-        time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-        customerName: 'Support Youpi'
-      }
-    ]);
-    setAdminChatReply('');
+    const newPromo: Promotion = {
+      id: `promo-${Date.now()}`,
+      code: promoCode.trim().toUpperCase(),
+      title: promoTitle.trim() || `Remise de ${promoDiscount}%`,
+      discountPercentage: Number(promoDiscount) || 10,
+      validUntil: new Date(Date.now() + 30 * 24 * 3600 * 1000).toISOString().split('T')[0]
+    };
+    setPromotionsData(prev => [newPromo, ...prev]);
+    setIsPromoModalOpen(false);
+    setPromoCode('');
+    setPromoTitle('');
+    setPromoDiscount(15);
   };
 
-  // 7. Save Homepage Ads
-  const handleSaveAds = () => {
-    if (setAdvertisementsData) {
-      setAdvertisementsData((prev: any) => ({
-        ...prev,
-        hero: {
-          ...prev?.hero,
-          title: heroTitle,
-          subtitle: heroSubtitle,
-          badge: heroBadge
-        },
-        promoBanner: {
-          ...prev?.promoBanner,
-          code: promoBannerCode,
-          subtitle: promoBannerText
-        }
-      }));
-    }
-    setAdsSavedMsg(true);
-    setTimeout(() => setAdsSavedMsg(false), 3000);
-  };
-
+  // Filtered Products for Products Tab
   const filteredProducts = productsData.filter(p => {
-    const matchCat = selectedProductCategory === 'all' || p.category === selectedProductCategory;
-    const matchSearch =
-      !searchProduct ||
+    const matchesSearch =
       p.name.toLowerCase().includes(searchProduct.toLowerCase()) ||
-      p.brand.toLowerCase().includes(searchProduct.toLowerCase());
-    return matchCat && matchSearch;
+      p.brand?.toLowerCase().includes(searchProduct.toLowerCase());
+    const matchesCat =
+      selectedProductCategory === 'all' ||
+      p.category === selectedProductCategory ||
+      p.parentCategory === selectedProductCategory;
+    return matchesSearch && matchesCat;
   });
 
+  const isFullEditor = effectiveTab === 'home';
+
   return (
-    <div className="flex h-screen bg-slate-50 dark:bg-slate-950 font-sans overflow-hidden">
+    <div className={`flex ${hideSidebar ? 'h-auto min-h-0 bg-transparent' : 'h-screen bg-slate-100 dark:bg-slate-950 overflow-hidden font-sans'}`}>
       
-      {/* Sidebar Navigation */}
+      {/* 1. Left Sidebar Navigation */}
       {!hideSidebar && (
-        <aside className="w-64 bg-slate-900 text-white flex flex-col justify-between p-4 border-r border-slate-800 shrink-0 select-none overflow-y-auto">
-          <div className="space-y-6">
-            
-            {/* Header Brand */}
-            <div className="flex items-center gap-3 px-2 pt-2">
-              <div className="w-9 h-9 rounded-2xl bg-amber-500 text-white flex items-center justify-center text-xl shadow-md">
-                🧸
-              </div>
-              <div>
-                <h2 className="font-serif font-black text-lg leading-tight">YoupiShop</h2>
-                <span className="text-[10px] uppercase font-bold tracking-wider text-amber-400">
-                  Console Dédiée
-                </span>
-              </div>
-            </div>
-
-            {/* Menu List */}
-            <nav className="space-y-1">
-              {[
-                { id: 'dashboard', label: 'Tableau de bord', icon: LayoutDashboard },
-                { id: 'products', label: 'Catalogue & Stock', icon: Package, badge: productsData.length },
-                { id: 'categories', label: 'Catégories Jouets', icon: FolderTree, badge: categoriesData.length },
-                { id: 'brands', label: 'Marques Partenaires', icon: Tag, badge: brandsData.length },
-                { id: 'orders', label: 'Commandes', icon: ShoppingCart, badge: pendingOrders },
-                { id: 'packs', label: 'Coffrets & Packs', icon: Gift, badge: packsData.length },
-                { id: 'home', label: "Page d'accueil & Ads", icon: Palette },
-                { id: 'chat', label: 'Live Chat Support', icon: Bot },
-                { id: 'messages', label: 'Messages Formulaire', icon: MessageSquare, badge: unreadMessages },
-                { id: 'promotions', label: 'Codes Promo', icon: Tag },
-                { id: 'stores', label: 'Nos Boutiques', icon: Store }
-              ].map(item => {
-                const Icon = item.icon;
-                const isActive = effectiveTab === item.id;
-                return (
-                  <button
-                    key={item.id}
-                    onClick={() => setActiveTab(item.id as any)}
-                    className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
-                      isActive
-                        ? 'bg-amber-500 text-white shadow-md shadow-amber-500/20'
-                        : 'text-slate-400 hover:text-white hover:bg-slate-800/60'
-                    }`}
-                  >
-                    <div className="flex items-center gap-3">
-                      <Icon className="w-4 h-4" />
-                      <span>{item.label}</span>
-                    </div>
-                    {item.badge !== undefined && item.badge > 0 && (
-                      <span className={`px-2 py-0.5 rounded-full text-[10px] font-black ${
-                        isActive ? 'bg-white/20 text-white' : 'bg-slate-800 text-amber-400'
-                      }`}>
-                        {item.badge}
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
-            </nav>
-
-          </div>
-
-          {/* Footer Actions */}
-          <div className="pt-4 border-t border-slate-800 space-y-2">
-            <button
-              onClick={onNavigateHome}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-slate-400 hover:text-white hover:bg-slate-800 transition-colors cursor-pointer"
-            >
-              <ArrowLeft className="w-4 h-4" />
-              <span>Visiter le Store YoupiShop</span>
-            </button>
-            <button
-              onClick={onLogout}
-              className="w-full flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold text-rose-400 hover:text-white hover:bg-rose-900/40 transition-colors cursor-pointer"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Déconnexion</span>
-            </button>
-          </div>
-        </aside>
+        <AdminSidebar
+          activePage={activeTab}
+          setActivePage={setActiveTab}
+          onNavigateHome={onNavigateHome}
+          onLogout={onLogout}
+          onOpenSubsiteModal={() => setIsSubsiteModalOpen(true)}
+        />
       )}
 
-      {/* Main Content Workspace */}
-      <main className="flex-1 flex flex-col overflow-y-auto p-6 sm:p-8">
+      {/* 2. Main Content Routing */}
+      <main className={`relative flex-1 flex flex-col min-w-0 ${hideSidebar ? 'p-0 overflow-visible' : isFullEditor ? 'p-0 overflow-hidden' : 'p-6 sm:p-8 overflow-y-auto'}`}>
         
-        {/* ========================================================================= */}
-        {/* TAB 1: TABLEAU DE BORD                                                    */}
-        {/* ========================================================================= */}
+        {/* TAB 1: CATEGORIES (Custom rich component matching FitnessShop + Youpi design) */}
+        {effectiveTab === 'categories' && (
+          <ManageCategoriesPage
+            categories={categoriesData}
+            setCategories={setCategoriesData}
+          />
+        )}
+
+        {/* TAB 2: PACKS & BUNDLES (Custom rich component matching FitnessShop + Youpi design) */}
+        {effectiveTab === 'packs' && (
+          <ManagePacksPage
+            packs={packsData}
+            setPacks={setPacksData}
+            allProducts={productsData}
+            allCategories={categoriesData}
+          />
+        )}
+
+        {/* TAB 3: PAGE ACCUEIL & ADS (Total visual control + live subsite preview) */}
+        {effectiveTab === 'home' && (
+          <ManageHomePage
+            initialAds={advertisementsData}
+            onSave={setAdvertisementsData}
+            allProducts={productsData}
+            allPacks={packsData}
+            allCategories={categoriesData}
+          />
+        )}
+
+        {/* TAB 4: LIVE CHAT (Socket.IO + backend persistent sessions) */}
+        {effectiveTab === 'chat' && (
+          <AdminChat />
+        )}
+
+        {/* TAB 5: DASHBOARD HOME */}
         {effectiveTab === 'dashboard' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                  Tableau de bord YoupiShop
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-xl">🧸</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-amber-600 dark:text-amber-400 bg-amber-100 dark:bg-amber-950/50 px-2.5 py-0.5 rounded-full">
+                    Tableau de Bord Filiale
+                  </span>
+                </div>
+                <h1 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">
+                  Performances <span className="text-amber-500">YoupiShop</span>
                 </h1>
-                <p className="text-xs text-slate-500">
-                  Performance commerciale et état du stock des univers jouets en temps réel.
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  Vue d'ensemble de la boutique jouets, commandes et interactions clients
                 </p>
               </div>
 
-              <button
-                onClick={handleOpenCreateProduct}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nouveau Jouet</span>
-              </button>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setIsSubsiteModalOpen(true)}
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-gradient-to-r from-amber-500 to-orange-500 hover:from-amber-600 hover:to-orange-600 text-white font-bold text-xs shadow-md transition-all cursor-pointer"
+                >
+                  <Eye className="w-4 h-4" />
+                  <span>Sous-Site en Direct</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setActiveTab('home')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs shadow-md transition-colors"
+                >
+                  <Sparkles className="w-4 h-4" />
+                  <span>Personnaliser l'Accueil</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('chat')}
+                  className="flex items-center gap-2 px-4 py-2 rounded-2xl bg-purple-600 hover:bg-purple-700 text-white font-bold text-xs shadow-md transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Ouvrir le Live Chat</span>
+                </button>
+              </div>
             </div>
 
             {/* KPI Cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Chiffre d'Affaires</span>
-                <div className="text-2xl font-black text-amber-600 dark:text-amber-400 mt-1 tabular-nums">
-                  {totalRevenue} DT
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase text-slate-400">Chiffre d'Affaires</span>
+                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-600 flex items-center justify-center font-bold">
+                    💰
+                  </div>
                 </div>
-                <span className="text-[10px] text-emerald-600 font-semibold">Toutes commandes confirmées</span>
+                <p className="text-2xl font-black text-slate-900 dark:text-white">
+                  {totalRevenue.toFixed(2)} DT
+                </p>
+                <p className="text-[11px] text-emerald-600 font-bold mt-1">
+                  +18% ce mois-ci
+                </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Commandes en cours</span>
-                <div className="text-2xl font-black text-orange-600 mt-1 tabular-nums">
-                  {ordersData.length}
+              <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase text-slate-400">Commandes en cours</span>
+                  <div className="w-8 h-8 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">
+                    📦
+                  </div>
                 </div>
-                <span className="text-[10px] text-orange-500 font-semibold">{pendingOrders} en attente de livraison</span>
+                <p className="text-2xl font-black text-slate-900 dark:text-white">
+                  {pendingOrders}
+                </p>
+                <p className="text-[11px] text-slate-400 font-medium mt-1">
+                  Sur {ordersData.length} commandes totales
+                </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Catalogue Jouets</span>
-                <div className="text-2xl font-black text-slate-900 dark:text-white mt-1 tabular-nums">
-                  {productsData.length}
+              <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase text-slate-400">Catalogue Jouets</span>
+                  <div className="w-8 h-8 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center font-bold">
+                    🧸
+                  </div>
                 </div>
-                <span className="text-[10px] text-slate-400">Références actives en boutique</span>
+                <p className="text-2xl font-black text-slate-900 dark:text-white">
+                  {productsData.length} articles
+                </p>
+                <p className="text-[11px] text-amber-600 font-bold mt-1">
+                  {categoriesData.length} catégories actives
+                </p>
               </div>
 
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs">
-                <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider">Messages Boîte Chat</span>
-                <div className="text-2xl font-black text-rose-600 mt-1 tabular-nums">
-                  {unreadMessages}
+              <div className="p-5 rounded-3xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="text-xs font-black uppercase text-slate-400">Support & Chat</span>
+                  <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-600 flex items-center justify-center font-bold">
+                    💬
+                  </div>
                 </div>
-                <span className="text-[10px] text-rose-500 font-semibold">Demandes clients à traiter</span>
+                <p className="text-2xl font-black text-slate-900 dark:text-white">
+                  {unreadMessages} non lu(s)
+                </p>
+                <p className="text-[11px] text-emerald-600 font-bold mt-1">
+                  Socket.IO Connecté
+                </p>
               </div>
             </div>
 
-            {/* Recent Orders Preview */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between">
-                <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                  Dernières Commandes YoupiShop
-                </h3>
-                <button
-                  onClick={() => setActiveTab('orders')}
-                  className="text-xs font-bold text-amber-600 hover:underline cursor-pointer"
-                >
-                  Voir toutes les commandes ({ordersData.length})
-                </button>
+            {/* Quick Actions & Recent Orders Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              
+              {/* Recent Orders */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs">
+                <div className="flex items-center justify-between mb-4">
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider">
+                    Dernières Commandes
+                  </h3>
+                  <button
+                    onClick={() => setActiveTab('orders')}
+                    className="text-xs font-bold text-amber-600 hover:underline"
+                  >
+                    Voir tout
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {ordersData.slice(0, 4).map(o => (
+                    <div
+                      key={o.id}
+                      className="p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/50 flex items-center justify-between"
+                    >
+                      <div>
+                        <p className="text-xs font-black text-slate-900 dark:text-white">
+                          {o.orderNumber || o.id} - {o.customer?.name}
+                        </p>
+                        <p className="text-[11px] text-slate-400">
+                          {o.items?.length || 1} article(s) • {o.paymentMethod || 'Paiement à la livraison'}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs font-black text-amber-600 dark:text-amber-400">
+                          {o.totalAmount?.toFixed(2)} DT
+                        </p>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full font-bold uppercase bg-amber-100 text-amber-800 dark:bg-amber-900/40 dark:text-amber-300">
+                          {o.status}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
 
-              <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 uppercase text-[10px]">
-                    <tr>
-                      <th className="py-3 px-4">N° Commande</th>
-                      <th className="py-3 px-4">Client</th>
-                      <th className="py-3 px-4">Montant</th>
-                      <th className="py-3 px-4">Statut</th>
-                      <th className="py-3 px-4 text-right">Action</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {ordersData.slice(0, 5).map(o => (
-                      <tr key={o.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                        <td className="py-3 px-4 font-bold">{o.orderNumber || o.id}</td>
-                        <td className="py-3 px-4">{o.customer?.name} ({o.customer?.phone})</td>
-                        <td className="py-3 px-4 font-black">{o.totalAmount || (o as any).total} DT</td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2.5 py-1 rounded-full text-[10px] font-bold ${
-                            o.status === 'livré' || (o.status as any) === 'Livrée'
-                              ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950/60 dark:text-emerald-300'
-                              : o.status === 'expédié' || (o.status as any) === 'Expédiée'
-                              ? 'bg-blue-100 text-blue-800 dark:bg-blue-950/60 dark:text-blue-300'
-                              : 'bg-amber-100 text-amber-800 dark:bg-amber-950/60 dark:text-amber-300'
-                          }`}>
-                            {o.status}
-                          </span>
-                        </td>
-                        <td className="py-3 px-4 text-right">
-                          <button
-                            onClick={() => {
-                              setSelectedOrder(o);
-                              setActiveTab('orders');
-                            }}
-                            className="px-3 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-amber-500 hover:text-white font-bold transition-colors cursor-pointer"
-                          >
-                            Détails
-                          </button>
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              {/* Quick Shortcuts */}
+              <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col justify-between">
+                <div>
+                  <h3 className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-wider mb-2">
+                    Accès Rapide & Modules
+                  </h3>
+                  <p className="text-xs text-slate-400 mb-4">
+                    Gérez l'ensemble de votre écosystème e-commerce jouets
+                  </p>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <button
+                      onClick={() => setActiveTab('categories')}
+                      className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-left hover:bg-amber-100/50 transition-colors"
+                    >
+                      <FolderTree className="w-5 h-5 text-amber-600 mb-2" />
+                      <p className="text-xs font-black text-slate-900 dark:text-white">Catégories & Âges</p>
+                      <p className="text-[10px] text-slate-500">Ajout, modif, méga menu</p>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('packs')}
+                      className="p-4 rounded-2xl bg-rose-50 dark:bg-rose-950/20 border border-rose-200/60 dark:border-rose-900/40 text-left hover:bg-rose-100/50 transition-colors"
+                    >
+                      <Gift className="w-5 h-5 text-rose-600 mb-2" />
+                      <p className="text-xs font-black text-slate-900 dark:text-white">Packs & Bundles</p>
+                      <p className="text-[10px] text-slate-500">Lots & réductions</p>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('home')}
+                      className="p-4 rounded-2xl bg-purple-50 dark:bg-purple-950/20 border border-purple-200/60 dark:border-purple-900/40 text-left hover:bg-purple-100/50 transition-colors"
+                    >
+                      <Sparkles className="w-5 h-5 text-purple-600 mb-2" />
+                      <p className="text-xs font-black text-slate-900 dark:text-white">Page Accueil & Ads</p>
+                      <p className="text-[10px] text-slate-500">Bannières & aperçu direct</p>
+                    </button>
+
+                    <button
+                      onClick={() => setActiveTab('chat')}
+                      className="p-4 rounded-2xl bg-blue-50 dark:bg-blue-950/20 border border-blue-200/60 dark:border-blue-900/40 text-left hover:bg-blue-100/50 transition-colors"
+                    >
+                      <MessageSquare className="w-5 h-5 text-blue-600 mb-2" />
+                      <p className="text-xs font-black text-slate-900 dark:text-white">Live Chat Direct</p>
+                      <p className="text-[10px] text-slate-500">Messagerie instantanée</p>
+                    </button>
+                  </div>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <span className="text-xs text-slate-500">Boutique YoupiShop active</span>
+                  <button
+                    onClick={onNavigateHome}
+                    className="text-xs font-bold text-emerald-600 hover:underline flex items-center gap-1"
+                  >
+                    <span>Ouvrir la vitrine frontoffice</span>
+                    <ArrowLeft className="w-3.5 h-3.5 rotate-180" />
+                  </button>
+                </div>
               </div>
+
             </div>
-
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 2: GESTION DES PRODUITS & STOCKS                                      */}
-        {/* ========================================================================= */}
+        {/* TAB 6: PRODUCTS CATALOG */}
         {effectiveTab === 'products' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
               <div>
-                <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                  Catalogue Jouets YoupiShop ({productsData.length})
+                <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                  Catalogue <span className="text-amber-500">Jouets & Jeux</span>
                 </h1>
-                <p className="text-xs text-slate-500">
-                  Création, édition des prix, stocks et spécifications des jeux et jouets.
+                <p className="text-xs text-slate-500 mt-1">
+                  {productsData.length} articles répertoriés
                 </p>
               </div>
 
               <button
-                type="button"
                 onClick={handleOpenCreateProduct}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-gradient-to-r from-amber-500 via-orange-500 to-rose-500 hover:from-amber-600 hover:to-rose-600 text-white font-bold text-xs uppercase tracking-wider shadow-lg shadow-orange-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
+                className="flex items-center gap-2 px-5 py-2.5 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md"
               >
                 <Plus className="w-4 h-4" />
                 <span>Nouveau Jouet</span>
               </button>
             </div>
 
-            {/* Filter Bar */}
-            <div className="bg-white dark:bg-slate-900 p-4 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col md:flex-row gap-3 items-center">
-              <div className="relative flex-1 w-full">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3.5 top-3" />
+            {/* Search and filters */}
+            <div className="flex flex-col sm:flex-row gap-3">
+              <div className="relative flex-1">
                 <input
                   type="text"
                   value={searchProduct}
                   onChange={(e) => setSearchProduct(e.target.value)}
-                  placeholder="Rechercher par nom, marque, âge..."
-                  className="w-full pl-10 pr-4 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs border border-slate-200 dark:border-slate-700 text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-amber-500"
+                  placeholder="Rechercher par nom, marque..."
+                  className="w-full pl-9 pr-4 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs"
                 />
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-2.5" />
               </div>
 
               <select
                 value={selectedProductCategory}
                 onChange={(e) => setSelectedProductCategory(e.target.value)}
-                className="w-full md:w-56 px-3.5 py-2 bg-slate-50 dark:bg-slate-800 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer"
+                className="px-3 py-2 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-xl text-xs font-bold"
               >
                 <option value="all">Toutes les catégories</option>
                 {categoriesData.map(c => (
-                  <option key={c.id} value={c.name}>{c.name}</option>
+                  <option key={c.name} value={c.name}>{c.name}</option>
                 ))}
               </select>
             </div>
 
             {/* Products Table */}
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 uppercase text-[10px]">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-[11px] text-slate-500 uppercase bg-slate-100/60 dark:bg-slate-800/60 font-black tracking-wider">
                     <tr>
-                      <th className="py-3 px-4">Article</th>
-                      <th className="py-3 px-4">Catégorie</th>
-                      <th className="py-3 px-4">Âge Recommandé</th>
-                      <th className="py-3 px-4">Prix</th>
-                      <th className="py-3 px-4">Stock</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="px-6 py-4">Aperçu</th>
+                      <th className="px-6 py-4">Article</th>
+                      <th className="px-6 py-4">Catégorie</th>
+                      <th className="px-6 py-4">Âge</th>
+                      <th className="px-6 py-4">Prix</th>
+                      <th className="px-6 py-4">Stock</th>
+                      <th className="px-6 py-4 text-right">Actions</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
                     {filteredProducts.map(p => (
-                      <tr key={p.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                        <td className="py-3 px-4">
-                          <div className="flex items-center gap-3">
-                            <img
-                              src={p.imageUrl}
-                              alt={p.name}
-                              className="w-10 h-10 object-contain rounded-xl bg-slate-50 dark:bg-slate-800 p-0.5 border border-slate-200/60 shrink-0"
-                            />
-                            <div>
-                              <p className="font-bold text-slate-900 dark:text-white line-clamp-1">{p.name}</p>
-                              <span className="text-[10px] text-slate-400">{p.brand}</span>
-                            </div>
-                          </div>
+                      <tr key={p.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                        <td className="px-6 py-4">
+                          <img
+                            src={p.imageUrl}
+                            alt={p.name}
+                            className="w-12 h-12 rounded-xl object-contain bg-slate-50 dark:bg-slate-800 p-1 border border-slate-200 dark:border-slate-700"
+                          />
                         </td>
-                        <td className="py-3 px-4 font-semibold text-slate-600 dark:text-slate-300">
+                        <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">
+                          <div className="text-sm font-black">{p.name}</div>
+                          <span className="text-[11px] text-amber-600 font-bold">{p.brand || 'YoupiPlay'}</span>
+                        </td>
+                        <td className="px-6 py-4 text-xs font-bold text-slate-600 dark:text-slate-300">
                           {p.category}
                         </td>
-                        <td className="py-3 px-4">
-                          <span className="px-2 py-0.5 rounded-md bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 font-bold text-[10px]">
-                            {p.trancheAge || '3 - 8 ans'}
+                        <td className="px-6 py-4">
+                          <span className="px-2 py-0.5 rounded-full text-[11px] font-bold bg-amber-50 text-amber-800 border border-amber-200">
+                            {p.trancheAge || 'Tous âges'}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-black text-slate-900 dark:text-white">
-                          {p.price} DT
-                          {p.oldPrice && (
-                            <span className="text-[10px] text-slate-400 line-through ml-1 font-normal">
-                              {p.oldPrice} DT
-                            </span>
-                          )}
+                        <td className="px-6 py-4 font-black text-amber-600 text-sm">
+                          {p.price.toFixed(2)} DT
                         </td>
-                        <td className="py-3 px-4">
-                          <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                            p.quantity > 5 ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'
-                          }`}>
+                        <td className="px-6 py-4 text-xs font-bold">
+                          <span className={p.quantity > 5 ? 'text-emerald-600' : 'text-rose-600'}>
                             {p.quantity} en stock
                           </span>
                         </td>
-                        <td className="py-3 px-4 text-right">
-                          <div className="flex items-center justify-end gap-1.5">
+                        <td className="px-6 py-4 text-right">
+                          <div className="flex items-center justify-end gap-2">
                             <button
                               onClick={() => handleOpenEditProduct(p)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                              title="Modifier"
+                              className="p-2 rounded-xl bg-slate-100 hover:bg-amber-100 text-slate-600 hover:text-amber-700"
                             >
-                              <Edit2 className="w-3.5 h-3.5" />
+                              <Edit2 className="w-4 h-4" />
                             </button>
                             <button
                               onClick={() => handleDeleteProduct(p.id)}
-                              className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                              title="Supprimer"
+                              className="p-2 rounded-xl bg-slate-100 hover:bg-red-100 text-slate-600 hover:text-red-600"
                             >
-                              <Trash2 className="w-3.5 h-3.5" />
+                              <Trash2 className="w-4 h-4" />
                             </button>
                           </div>
                         </td>
@@ -678,197 +632,64 @@ export const AdminPage: React.FC<AdminPageProps> = ({
                 </table>
               </div>
             </div>
-
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 3: GESTION DES CATÉGORIES (MODULE CONTEXTUEL)                         */}
-        {/* ========================================================================= */}
-        {effectiveTab === 'categories' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                  Catégories & Univers Jouets ({categoriesData.length})
-                </h1>
-                <p className="text-xs text-slate-500">
-                  Organisez les rayons de jeux d'éveil, briques, puzzles et jeux de société.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setEditingCategory(null);
-                  setCategoryName('');
-                  setCategoryImage('');
-                  setIsCategoryModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nouvelle Catégorie</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {categoriesData.map(cat => {
-                const count = productsData.filter(p => p.category === cat.name).length;
-                return (
-                  <div key={cat.id} className="bg-white dark:bg-slate-900 rounded-3xl p-5 border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
-                      <img src={cat.image || '/src/assets/images/category_youpi_eveil_1791240046354.jpg'} alt={cat.name} className="w-14 h-14 rounded-2xl object-cover border border-slate-100 dark:border-slate-800 shrink-0" />
-                      <div>
-                        <h3 className="font-bold text-sm text-slate-900 dark:text-white">{cat.name}</h3>
-                        <p className="text-xs text-amber-600 font-semibold">{count} produit(s) associé(s)</p>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center gap-1">
-                      <button
-                        onClick={() => {
-                          setEditingCategory(cat);
-                          setCategoryName(cat.name);
-                          setCategoryImage(cat.image || '');
-                          setIsCategoryModalOpen(true);
-                        }}
-                        className="p-2 text-slate-400 hover:text-amber-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                        title="Modifier"
-                      >
-                        <Edit2 className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => handleDeleteCategory(cat.id)}
-                        className="p-2 text-slate-400 hover:text-rose-600 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 4: GESTION DES MARQUES (MODULE CONTEXTUEL)                            */}
-        {/* ========================================================================= */}
-        {effectiveTab === 'brands' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                  Marques & Fabricants de Jouets ({brandsData.length})
-                </h1>
-                <p className="text-xs text-slate-500">
-                  Gérez les marques partenaires référencées chez YoupiShop (Lego, Janod, Djeco, Playmobil, Asmodee...)
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setBrandName('');
-                  setIsBrandModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Ajouter une Marque</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
-              {brandsData.map(b => {
-                const count = productsData.filter(p => p.brand?.toLowerCase() === b.name?.toLowerCase()).length;
-                return (
-                  <div key={b.id} className="bg-white dark:bg-slate-900 p-5 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex items-center justify-between">
-                    <div>
-                      <h4 className="font-bold text-sm text-slate-900 dark:text-white">{b.name}</h4>
-                      <p className="text-[11px] text-slate-400 font-medium">{count} référence(s)</p>
-                    </div>
-                    <button
-                      onClick={() => handleDeleteBrand(b.id)}
-                      className="p-1.5 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 5: GESTION DES COMMANDES                                              */}
-        {/* ========================================================================= */}
+        {/* TAB 7: ORDERS */}
         {effectiveTab === 'orders' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div>
-              <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                Commandes Clients YoupiShop ({ordersData.length})
-              </h1>
-              <p className="text-xs text-slate-500">
-                Suivez les livraisons, adresses et paiements en espèces à la livraison.
-              </p>
-            </div>
+          <div className="space-y-6">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+              Commandes <span className="text-amber-500">Clients YoupiShop</span>
+            </h1>
 
-            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs overflow-hidden">
+            <div className="bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs overflow-hidden">
               <div className="overflow-x-auto">
-                <table className="w-full text-xs text-left">
-                  <thead className="bg-slate-50 dark:bg-slate-800/50 text-slate-400 uppercase text-[10px]">
+                <table className="w-full text-sm text-left">
+                  <thead className="text-[11px] text-slate-500 uppercase bg-slate-100/60 dark:bg-slate-800/60 font-black">
                     <tr>
-                      <th className="py-3 px-4">Réf Commande</th>
-                      <th className="py-3 px-4">Client</th>
-                      <th className="py-3 px-4">Date</th>
-                      <th className="py-3 px-4">Articles</th>
-                      <th className="py-3 px-4">Total</th>
-                      <th className="py-3 px-4">Statut</th>
-                      <th className="py-3 px-4 text-right">Actions</th>
+                      <th className="px-6 py-4">N° Commande</th>
+                      <th className="px-6 py-4">Client</th>
+                      <th className="px-6 py-4">Articles</th>
+                      <th className="px-6 py-4">Montant</th>
+                      <th className="px-6 py-4">Statut</th>
+                      <th className="px-6 py-4 text-right">Détails</th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
-                    {ordersData.map(o => (
-                      <tr key={o.id} className="hover:bg-slate-50/50 dark:hover:bg-slate-800/40">
-                        <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-white">
-                          {o.orderNumber || o.id}
+                  <tbody className="divide-y divide-slate-100 dark:divide-slate-800 font-medium">
+                    {ordersData.map(order => (
+                      <tr key={order.id} className="hover:bg-slate-50/80 dark:hover:bg-slate-800/40">
+                        <td className="px-6 py-4 font-mono font-bold text-xs">
+                          {order.orderNumber || order.id}
                         </td>
-                        <td className="py-3 px-4">
-                          <p className="font-bold text-slate-900 dark:text-white">{o.customer?.name || (o as any).customerName}</p>
-                          <p className="text-[10px] text-slate-400">{o.customer?.phone || (o as any).phone || o.customer?.email}</p>
+                        <td className="px-6 py-4 font-bold text-slate-900 dark:text-white">
+                          <div>{order.customer?.name}</div>
+                          <div className="text-[11px] text-slate-400 font-normal">{order.customer?.phone}</div>
                         </td>
-                        <td className="py-3 px-4 text-slate-500">{o.date}</td>
-                        <td className="py-3 px-4 font-semibold text-slate-700 dark:text-slate-300">
-                          {o.items?.length || 1} article(s)
+                        <td className="px-6 py-4 text-xs">
+                          {order.items?.length || 1} article(s)
                         </td>
-                        <td className="py-3 px-4 font-black text-slate-900 dark:text-white">
-                          {o.totalAmount || (o as any).total} DT
+                        <td className="px-6 py-4 font-black text-amber-600">
+                          {order.totalAmount?.toFixed(2)} DT
                         </td>
-                        <td className="py-3 px-4">
+                        <td className="px-6 py-4">
                           <select
-                            value={o.status}
-                            onChange={(e) => handleUpdateOrderStatus(o.id, e.target.value as any)}
-                            className="text-[10px] font-bold px-2 py-1 rounded-full border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 cursor-pointer"
+                            value={order.status}
+                            onChange={(e) => handleUpdateOrderStatus(order.id, e.target.value as any)}
+                            className="px-2.5 py-1 rounded-xl text-xs font-bold bg-amber-50 border border-amber-200 text-amber-900"
                           >
                             <option value="en_attente">En attente</option>
                             <option value="confirmé">Confirmé</option>
-                            <option value="expédié">Expédiée</option>
-                            <option value="livré">Livrée</option>
-                            <option value="annulé">Annulée</option>
+                            <option value="expédié">Expédié</option>
+                            <option value="livré">Livré</option>
+                            <option value="annulé">Annulé</option>
                           </select>
                         </td>
-                        <td className="py-3 px-4 text-right">
+                        <td className="px-6 py-4 text-right">
                           <button
-                            onClick={() => setSelectedOrder(o)}
-                            className="p-1.5 rounded-lg text-slate-400 hover:text-amber-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
-                            title="Voir détails"
+                            onClick={() => setSelectedOrder(order)}
+                            className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold"
                           >
-                            <Eye className="w-4 h-4" />
+                            Voir détails
                           </button>
                         </td>
                       </tr>
@@ -880,372 +701,109 @@ export const AdminPage: React.FC<AdminPageProps> = ({
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 6: PACKS & COFFRETS (MODULE CONTEXTUEL)                              */}
-        {/* ========================================================================= */}
-        {effectiveTab === 'packs' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                  Coffrets Cadeaux & Bundles YoupiShop ({packsData.length})
-                </h1>
-                <p className="text-xs text-slate-500">
-                  Offrez des packs remisés regroupant plusieurs jouets complémentaires.
-                </p>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => {
-                  setPackTitle('');
-                  setPackPrice(119);
-                  setPackOriginalPrice(149);
-                  setPackDesc('');
-                  setIsPackModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
-              >
-                <Plus className="w-4 h-4" />
-                <span>Nouveau Coffret</span>
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {packsData.map(p => (
-                <div key={p.id} className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 flex gap-4 shadow-xs">
-                  <img src={p.imageUrl} alt={p.title} className="w-24 h-24 object-contain rounded-2xl bg-slate-50 dark:bg-slate-800 p-1.5 border border-slate-100 shrink-0" />
-                  <div className="space-y-1.5 flex-1">
-                    <div className="flex justify-between items-start">
-                      <h3 className="font-bold text-base text-slate-900 dark:text-white">{p.title}</h3>
-                      <button
-                        onClick={() => setPacksData(prev => prev.filter(pk => pk.id !== p.id))}
-                        className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                    <p className="text-xs text-slate-500 line-clamp-2">{p.description}</p>
-                    <div className="flex items-baseline gap-2 pt-1">
-                      <span className="font-black text-amber-600 text-lg">{p.price} DT</span>
-                      <span className="text-xs text-slate-400 line-through">({p.originalPrice} DT)</span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-100 text-rose-700">-{p.discount}%</span>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 7: PAGE D'ACCUEIL & ADS (MODULE CONTEXTUEL)                          */}
-        {/* ========================================================================= */}
-        {effectiveTab === 'home' && (
-          <div className="space-y-6 max-w-4xl w-full mx-auto animate-fadeIn">
-            <div>
-              <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                Configuration de la Page d'accueil & Bannières
-              </h1>
-              <p className="text-xs text-slate-500">
-                Personnalisez les messages promotionnels, le hero banner et les codes promo affichés aux visiteurs.
-              </p>
-            </div>
-
-            {adsSavedMsg && (
-              <div className="p-3 rounded-2xl bg-emerald-50 text-emerald-800 border border-emerald-200 text-xs font-bold flex items-center gap-2">
-                <Check className="w-4 h-4 text-emerald-600" />
-                <span>Bannières enregistrées avec succès !</span>
-              </div>
-            )}
-
-            <div className="bg-white dark:bg-slate-900 p-6 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs space-y-5">
-              <h3 className="font-bold text-sm text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2">
-                1. Bannière Principale Hero Header
-              </h3>
-              
-              <div className="space-y-3">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Badge d'en-tête</label>
-                  <input
-                    type="text"
-                    value={heroBadge}
-                    onChange={(e) => setHeroBadge(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Titre Principal</label>
-                  <input
-                    type="text"
-                    value={heroTitle}
-                    onChange={(e) => setHeroTitle(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs font-bold"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Sous-titre / Descriptif</label>
-                  <textarea
-                    rows={2}
-                    value={heroSubtitle}
-                    onChange={(e) => setHeroSubtitle(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs"
-                  />
-                </div>
-              </div>
-
-              <h3 className="font-bold text-sm text-slate-900 dark:text-white border-b border-slate-100 dark:border-slate-800 pb-2 pt-3">
-                2. Ruban Promotionnel & Code Promo
-              </h3>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Code Promo actif</label>
-                  <input
-                    type="text"
-                    value={promoBannerCode}
-                    onChange={(e) => setPromoBannerCode(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs font-mono font-bold text-amber-600"
-                  />
-                </div>
-
-                <div>
-                  <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">Texte de l'offre</label>
-                  <input
-                    type="text"
-                    value={promoBannerText}
-                    onChange={(e) => setPromoBannerText(e.target.value)}
-                    className="w-full px-3.5 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div className="pt-3 border-t border-slate-100 flex justify-end">
-                <button
-                  type="button"
-                  onClick={handleSaveAds}
-                  className="px-6 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 cursor-pointer active:scale-95 transition-all"
-                >
-                  Enregistrer les bannières
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 8: LIVE CHAT SUPPORT (MODULE CONTEXTUEL)                              */}
-        {/* ========================================================================= */}
-        {effectiveTab === 'chat' && (
-          <div className="space-y-6 max-w-4xl w-full mx-auto animate-fadeIn flex flex-col h-[calc(100vh-8rem)]">
-            <div>
-              <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                Live Chat Support YoupiShop
-              </h1>
-              <p className="text-xs text-slate-500">
-                Échangez en direct avec les parents et clients connectés sur la boutique en ligne.
-              </p>
-            </div>
-
-            <div className="flex-1 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs flex flex-col overflow-hidden">
-              {/* Chat Header */}
-              <div className="p-4 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-8 h-8 rounded-full bg-amber-500 text-white flex items-center justify-center font-bold text-xs">
-                    💬
-                  </div>
-                  <div>
-                    <h3 className="font-bold text-xs text-slate-900 dark:text-white">Discussion Client Directe</h3>
-                    <p className="text-[10px] text-emerald-600 font-semibold flex items-center gap-1">
-                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
-                      Canal Ouvert (YoupiShop)
-                    </p>
-                  </div>
-                </div>
-                <span className="text-[11px] text-slate-400 font-mono">ID Session #YOUPI-LIVE</span>
-              </div>
-
-              {/* Chat Message History */}
-              <div className="flex-1 p-5 overflow-y-auto space-y-3 bg-slate-50/30">
-                {chatMessages.map(msg => (
-                  <div
-                    key={msg.id}
-                    className={`flex flex-col max-w-[75%] ${
-                      msg.sender === 'admin' ? 'ml-auto items-end' : 'mr-auto items-start'
-                    }`}
-                  >
-                    <span className="text-[10px] text-slate-400 font-semibold mb-0.5 px-1">
-                      {msg.customerName} • {msg.time}
-                    </span>
-                    <div
-                      className={`p-3 rounded-2xl text-xs font-medium ${
-                        msg.sender === 'admin'
-                          ? 'bg-amber-500 text-white rounded-tr-none'
-                          : 'bg-white dark:bg-slate-800 text-slate-800 dark:text-white border border-slate-200 dark:border-slate-700 rounded-tl-none shadow-2xs'
-                      }`}
-                    >
-                      {msg.text}
-                    </div>
-                  </div>
-                ))}
-              </div>
-
-              {/* Chat Input */}
-              <form onSubmit={handleSendAdminChat} className="p-3 border-t border-slate-100 dark:border-slate-800 bg-white dark:bg-slate-900 flex gap-2">
-                <input
-                  type="text"
-                  value={adminChatReply}
-                  onChange={(e) => setAdminChatReply(e.target.value)}
-                  placeholder="Répondre au client en direct..."
-                  className="flex-1 px-4 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs focus:ring-2 focus:ring-amber-500 outline-none"
-                />
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase flex items-center gap-1.5 shadow-xs cursor-pointer"
-                >
-                  <Send className="w-3.5 h-3.5" />
-                  <span>Envoyer</span>
-                </button>
-              </form>
-            </div>
-          </div>
-        )}
-
-        {/* ========================================================================= */}
-        {/* TAB 9: MESSAGES DU FORMULAIRE DE CONTACT                                 */}
-        {/* ========================================================================= */}
+        {/* TAB 8: MESSAGES */}
         {effectiveTab === 'messages' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div>
-              <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                Boîte de Messages YoupiShop ({messagesData.length})
-              </h1>
-              <p className="text-xs text-slate-500">
-                Demandes de renseignements, conseils d'âge et réclamations clients.
-              </p>
-            </div>
+          <div className="space-y-6">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+              Messages de <span className="text-amber-500">Contact</span>
+            </h1>
 
             <div className="space-y-3">
               {messagesData.map(msg => (
-                <div key={msg.id} className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="font-bold text-sm text-slate-900 dark:text-white">{msg.name}</h4>
-                        <span className="text-xs text-slate-400">({msg.email})</span>
-                        {!msg.read && (
-                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">
-                            Nouveau
-                          </span>
-                        )}
+                <div
+                  key={msg.id}
+                  className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs flex flex-col sm:flex-row justify-between gap-4"
+                >
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2">
+                      <span className="font-bold text-sm text-slate-900 dark:text-white">{msg.name}</span>
+                      <span className="text-xs text-slate-400 font-mono">{msg.email}</span>
+                      {msg.read ? (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 font-bold">Traité</span>
+                      ) : (
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-amber-100 text-amber-800 font-bold">Nouveau</span>
+                      )}
+                    </div>
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-300">{msg.subject}</p>
+                    <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">{msg.message}</p>
+                    {msg.reply && (
+                      <div className="mt-2 p-3 bg-amber-50 dark:bg-amber-950/30 rounded-xl border border-amber-200 text-xs font-medium text-amber-900 dark:text-amber-300">
+                        <span className="font-bold block">Réponse envoyée :</span>
+                        {msg.reply}
                       </div>
-                      <p className="text-xs font-semibold text-slate-600 dark:text-slate-300 mt-0.5">{msg.subject}</p>
-                    </div>
-                    <span className="text-[10px] text-slate-400">{msg.date}</span>
+                    )}
                   </div>
 
-                  <p className="text-xs text-slate-600 dark:text-slate-300 bg-slate-50 dark:bg-slate-800/50 p-3 rounded-xl border border-slate-100 dark:border-slate-800">
-                    "{msg.message}"
-                  </p>
-
-                  {msg.reply && (
-                    <div className="text-xs text-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 p-3 rounded-xl border border-emerald-100">
-                      <strong>Votre réponse :</strong> {msg.reply}
-                    </div>
-                  )}
-
-                  <div className="flex justify-end pt-1">
-                    <button
-                      onClick={() => setReplyingMessage(msg)}
-                      className="px-4 py-1.5 rounded-xl bg-slate-100 hover:bg-amber-500 hover:text-white text-xs font-bold transition-colors cursor-pointer"
-                    >
-                      {msg.reply ? 'Modifier la réponse' : 'Répondre'}
-                    </button>
-                  </div>
+                  <button
+                    onClick={() => {
+                      setReplyingMessage(msg);
+                      setReplyText(msg.reply || '');
+                    }}
+                    className="self-start px-4 py-2 rounded-xl bg-amber-500 text-white font-bold text-xs"
+                  >
+                    Répondre
+                  </button>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 10: PROMOTIONS & CODES PROMO                                         */}
-        {/* ========================================================================= */}
+        {/* TAB 9: PROMOTIONS */}
         {effectiveTab === 'promotions' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                  Codes Promotionnels & Offres ({promotionsData.length})
-                </h1>
-                <p className="text-xs text-slate-500">
-                  Créez des remises exclusives applicables au panier d'achat.
-                </p>
-              </div>
-
+          <div className="space-y-6">
+            <div className="flex justify-between items-center">
+              <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+                Codes <span className="text-amber-500">Promo & Réductions</span>
+              </h1>
               <button
-                type="button"
-                onClick={() => {
-                  setPromoCode('');
-                  setPromoTitle('');
-                  setPromoDiscount(15);
-                  setIsPromoModalOpen(true);
-                }}
-                className="inline-flex items-center gap-2 px-5 py-3 rounded-2xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider shadow-md shadow-amber-500/20 active:scale-95 transition-all cursor-pointer shrink-0"
+                onClick={() => setIsPromoModalOpen(true)}
+                className="px-5 py-2.5 rounded-2xl bg-amber-500 text-white font-bold text-xs flex items-center gap-2"
               >
                 <Plus className="w-4 h-4" />
-                <span>Nouveau Code Promo</span>
+                <span>Nouveau Code</span>
               </button>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
               {promotionsData.map(promo => (
-                <div key={promo.id} className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-                  <div className="flex justify-between items-center">
-                    <span className="font-black text-amber-600 font-mono text-base px-3 py-1 bg-amber-50 rounded-xl border border-amber-200 inline-block">
+                <div
+                  key={promo.id}
+                  className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-3"
+                >
+                  <div className="flex items-center justify-between">
+                    <span className="px-3 py-1 bg-amber-100 text-amber-900 font-mono font-black text-xs rounded-xl">
                       {promo.code}
                     </span>
-                    <button
-                      onClick={() => setPromotionsData(prev => prev.filter(p => p.id !== promo.id))}
-                      className="text-slate-400 hover:text-rose-600 p-1 cursor-pointer"
-                      title="Supprimer"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
+                    <span className="text-base font-black text-rose-600">
+                      -{promo.discountPercentage}%
+                    </span>
                   </div>
-                  <h4 className="font-bold text-sm text-slate-900 dark:text-white">{promo.title}</h4>
-                  <p className="text-xs text-emerald-600 font-bold">-{promo.discountPercentage}% de réduction</p>
-                  <p className="text-[10px] text-slate-400">Valable jusqu'au {promo.validUntil}</p>
+                  <p className="text-xs font-bold text-slate-800 dark:text-slate-200">{promo.title}</p>
+                  <p className="text-[11px] text-slate-400">Valide jusqu'au {promo.validUntil}</p>
                 </div>
               ))}
             </div>
           </div>
         )}
 
-        {/* ========================================================================= */}
-        {/* TAB 11: POINTS DE VENTE / MAGASINS                                       */}
-        {/* ========================================================================= */}
+        {/* TAB 10: STORES */}
         {effectiveTab === 'stores' && (
-          <div className="space-y-6 max-w-7xl w-full mx-auto animate-fadeIn">
-            <div>
-              <h1 className="text-2xl font-black font-serif text-slate-900 dark:text-white">
-                Points de Vente YoupiShop ({storesData.length})
-              </h1>
-              <p className="text-xs text-slate-500">
-                Emplacements physiques, horaires d'ouverture et contacts des boutiques partenaires.
-              </p>
-            </div>
+          <div className="space-y-6">
+            <h1 className="text-2xl font-black text-slate-900 dark:text-white">
+              Boutiques <span className="text-amber-500">Physiques YoupiShop</span>
+            </h1>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {storesData.map(s => (
-                <div key={s.id} className="p-6 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 space-y-2 shadow-xs">
-                  <h3 className="font-bold text-base text-slate-900 dark:text-white">{s.name}</h3>
-                  <p className="text-xs text-slate-500">{s.address}</p>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold">{s.phone}</p>
-                  <p className="text-xs text-slate-400">{s.hours}</p>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {storesData.map(st => (
+                <div
+                  key={st.id}
+                  className="p-5 bg-white dark:bg-slate-900 rounded-3xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-2"
+                >
+                  <h3 className="text-base font-black text-slate-900 dark:text-white">{st.name}</h3>
+                  <p className="text-xs text-slate-500">{st.address}</p>
+                  <p className="text-xs font-mono font-bold text-amber-600">{st.phone}</p>
+                  <p className="text-[11px] text-slate-400">{st.hours}</p>
                 </div>
               ))}
             </div>
@@ -1254,190 +812,106 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       </main>
 
-      {/* Product Creation / Edit Modal */}
+      {/* Product Modal */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-xl w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <h3 className="text-lg font-black font-serif text-slate-900 dark:text-white">
-                {editingProduct ? 'Modifier le Jouet' : 'Nouveau Jouet YoupiShop'}
-              </h3>
-              <button onClick={() => setIsProductModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveProduct} className="space-y-4 text-xs">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+            <h3 className="text-lg font-black text-slate-900 dark:text-white">
+              {editingProduct ? 'Modifier le Jouet' : 'Nouveau Jouet'}
+            </h3>
+            <form onSubmit={handleSaveProduct} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Nom de l'article *</label>
+                <label className="font-bold text-slate-700 block mb-1">Nom du Jouet</label>
                 <input
                   type="text"
-                  required
-                  value={productForm.name || ''}
+                  value={productForm.name}
                   onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                  placeholder="Ex: Train en bois Montessori 70 pcs"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
+                  required
+                  className="w-full p-2 bg-slate-50 border rounded-xl"
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Marque</label>
-                  <input
-                    type="text"
-                    value={productForm.brand || ''}
-                    onChange={(e) => setProductForm({ ...productForm, brand: e.target.value })}
-                    placeholder="Lego, Janod, YoupiPlay..."
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Catégorie</label>
+                  <label className="font-bold text-slate-700 block mb-1">Catégorie</label>
                   <select
-                    value={productForm.category || 'Éveil & Bébé'}
+                    value={productForm.category}
                     onChange={(e) => setProductForm({ ...productForm, category: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold cursor-pointer"
+                    className="w-full p-2 bg-slate-50 border rounded-xl"
                   >
                     {categoriesData.map(c => (
-                      <option key={c.id} value={c.name}>{c.name}</option>
+                      <option key={c.name} value={c.name}>{c.name}</option>
                     ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Tranche d'Âge</label>
+                  <select
+                    value={productForm.trancheAge}
+                    onChange={(e) => setProductForm({ ...productForm, trancheAge: e.target.value })}
+                    className="w-full p-2 bg-slate-50 border rounded-xl"
+                  >
+                    <option value="0 - 3 ans">0 - 3 ans</option>
+                    <option value="3 - 6 ans">3 - 6 ans</option>
+                    <option value="6 - 12 ans">6 - 12 ans</option>
+                    <option value="12+ ans">12+ ans</option>
                   </select>
                 </div>
               </div>
 
               <div className="grid grid-cols-3 gap-3">
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Prix (DT) *</label>
+                  <label className="font-bold text-slate-700 block mb-1">Prix (DT)</label>
                   <input
                     type="number"
-                    required
-                    value={productForm.price || ''}
+                    step="0.01"
+                    value={productForm.price}
                     onChange={(e) => setProductForm({ ...productForm, price: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold"
+                    className="w-full p-2 bg-slate-50 border rounded-xl font-bold"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Prix Ancien</label>
+                  <label className="font-bold text-slate-700 block mb-1">Ancien Prix</label>
                   <input
                     type="number"
-                    value={productForm.oldPrice || ''}
+                    step="0.01"
+                    value={productForm.oldPrice}
                     onChange={(e) => setProductForm({ ...productForm, oldPrice: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
+                    className="w-full p-2 bg-slate-50 border rounded-xl"
                   />
                 </div>
                 <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Stock *</label>
+                  <label className="font-bold text-slate-700 block mb-1">Stock</label>
                   <input
                     type="number"
-                    required
-                    value={productForm.quantity || ''}
+                    value={productForm.quantity}
                     onChange={(e) => setProductForm({ ...productForm, quantity: Number(e.target.value) })}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs font-bold"
+                    className="w-full p-2 bg-slate-50 border rounded-xl"
                   />
                 </div>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Tranche d'âge conseillée</label>
+                <label className="font-bold text-slate-700 block mb-1">URL Image</label>
                 <input
                   type="text"
-                  value={productForm.trancheAge || ''}
-                  onChange={(e) => setProductForm({ ...productForm, trancheAge: e.target.value })}
-                  placeholder="Ex: 3 - 6 ans, Dès 12 mois..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">URL de l'image</label>
-                <input
-                  type="text"
-                  value={productForm.imageUrl || ''}
+                  value={productForm.imageUrl}
                   onChange={(e) => setProductForm({ ...productForm, imageUrl: e.target.value })}
-                  placeholder="/src/assets/images/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
+                  className="w-full p-2 bg-slate-50 border rounded-xl font-mono text-[11px]"
                 />
               </div>
 
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Description</label>
-                <textarea
-                  rows={3}
-                  value={productForm.description || ''}
-                  onChange={(e) => setProductForm({ ...productForm, description: e.target.value })}
-                  placeholder="Détails sur les bienfaits d'éveil, règles du jeu..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="flex justify-end gap-2 pt-3 border-t">
                 <button
                   type="button"
                   onClick={() => setIsProductModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
+                  className="px-4 py-2 border rounded-xl"
                 >
                   Annuler
                 </button>
                 <button
                   type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase tracking-wider cursor-pointer shadow-md shadow-orange-500/20"
-                >
-                  {editingProduct ? 'Enregistrer les modifications' : 'Créer l\'article'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Category Creation / Edit Modal */}
-      {isCategoryModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                {editingCategory ? 'Modifier la Catégorie' : 'Nouvelle Catégorie'}
-              </h3>
-              <button onClick={() => setIsCategoryModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveCategory} className="space-y-4 text-xs">
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Nom de la Catégorie *</label>
-                <input
-                  type="text"
-                  required
-                  value={categoryName}
-                  onChange={(e) => setCategoryName(e.target.value)}
-                  placeholder="Ex: Puzzles & Casse-têtes"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Image URL</label>
-                <input
-                  type="text"
-                  value={categoryImage}
-                  onChange={(e) => setCategoryImage(e.target.value)}
-                  placeholder="/src/assets/images/..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsCategoryModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase cursor-pointer"
+                  className="px-5 py-2 bg-amber-500 text-white font-bold rounded-xl"
                 >
                   Enregistrer
                 </button>
@@ -1447,44 +921,38 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         </div>
       )}
 
-      {/* Brand Creation Modal */}
-      {isBrandModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                Ajouter une Marque Partenaire
-              </h3>
-              <button onClick={() => setIsBrandModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveBrand} className="space-y-4 text-xs">
+      {/* Promo Modal */}
+      {isPromoModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+            <h3 className="text-base font-black">Nouveau Code Promo</h3>
+            <form onSubmit={handleSavePromo} className="space-y-3 text-xs">
               <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Nom de la marque *</label>
+                <label className="font-bold block mb-1">Code Promo (ex: YOUPI20)</label>
                 <input
                   type="text"
+                  value={promoCode}
+                  onChange={(e) => setPromoCode(e.target.value)}
                   required
-                  value={brandName}
-                  onChange={(e) => setBrandName(e.target.value)}
-                  placeholder="Ex: Haba, VTech, Chicco..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs"
+                  className="w-full p-2 bg-slate-50 border rounded-xl uppercase font-mono font-bold"
                 />
               </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsBrandModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
-                >
+              <div>
+                <label className="font-bold block mb-1">Remise (%)</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="90"
+                  value={promoDiscount}
+                  onChange={(e) => setPromoDiscount(Number(e.target.value))}
+                  className="w-full p-2 bg-slate-50 border rounded-xl"
+                />
+              </div>
+              <div className="flex justify-end gap-2 pt-2 border-t">
+                <button type="button" onClick={() => setIsPromoModalOpen(false)} className="px-4 py-2 border rounded-xl">
                   Annuler
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase cursor-pointer"
-                >
+                <button type="submit" className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl">
                   Ajouter
                 </button>
               </div>
@@ -1493,297 +961,47 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         </div>
       )}
 
-      {/* Pack Creation Modal */}
-      {isPackModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                Créer un Pack / Coffret
-              </h3>
-              <button onClick={() => setIsPackModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!packTitle) return;
-                const newPk: Pack = {
-                  id: Date.now(),
-                  title: packTitle,
-                  price: packPrice,
-                  originalPrice: packOriginalPrice,
-                  discount: Math.round(((packOriginalPrice - packPrice) / packOriginalPrice) * 100),
-                  imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg',
-                  description: packDesc || 'Pack exclusif YoupiShop.',
-                  products: productsData.slice(0, 2)
-                };
-                setPacksData(prev => [...prev, newPk]);
-                setIsPackModalOpen(false);
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Titre du Pack *</label>
-                <input
-                  type="text"
-                  required
-                  value={packTitle}
-                  onChange={(e) => setPackTitle(e.target.value)}
-                  placeholder="Ex: Pack Anniversaire 5 ans"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 text-xs"
-                />
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Prix Pack (DT)</label>
-                  <input
-                    type="number"
-                    value={packPrice}
-                    onChange={(e) => setPackPrice(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold"
-                  />
-                </div>
-                <div>
-                  <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Prix Initial (DT)</label>
-                  <input
-                    type="number"
-                    value={packOriginalPrice}
-                    onChange={(e) => setPackOriginalPrice(Number(e.target.value))}
-                    className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Description</label>
-                <textarea
-                  rows={2}
-                  value={packDesc}
-                  onChange={(e) => setPackDesc(e.target.value)}
-                  placeholder="Description du contenu du coffret..."
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsPackModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase cursor-pointer"
-                >
-                  Créer le Pack
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Code Promo Creation Modal */}
-      {isPromoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                Nouveau Code Promo YoupiShop
-              </h3>
-              <button onClick={() => setIsPromoModalOpen(false)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form
-              onSubmit={(e) => {
-                e.preventDefault();
-                if (!promoCode) return;
-                const newPr: Promotion = {
-                  id: `promo-${Date.now()}`,
-                  code: promoCode.toUpperCase(),
-                  title: promoTitle || `Remise ${promoDiscount}%`,
-                  discountPercentage: Number(promoDiscount) || 10,
-                  validUntil: '2026-12-31'
-                };
-                setPromotionsData(prev => [...prev, newPr]);
-                setIsPromoModalOpen(false);
-              }}
-              className="space-y-4 text-xs"
-            >
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Code Promo (ex: JOUET15) *</label>
-                <input
-                  type="text"
-                  required
-                  value={promoCode}
-                  onChange={(e) => setPromoCode(e.target.value)}
-                  placeholder="EXEMPLE15"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-mono font-bold uppercase"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Libellé de l'offre</label>
-                <input
-                  type="text"
-                  value={promoTitle}
-                  onChange={(e) => setPromoTitle(e.target.value)}
-                  placeholder="Remise fête des enfants"
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs"
-                />
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Pourcentage de Remise (%)</label>
-                <input
-                  type="number"
-                  value={promoDiscount}
-                  onChange={(e) => setPromoDiscount(Number(e.target.value))}
-                  className="w-full px-3.5 py-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs font-bold"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setIsPromoModalOpen(false)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs cursor-pointer"
-                >
-                  Annuler
-                </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-600 text-white font-bold text-xs uppercase cursor-pointer"
-                >
-                  Créer le Code
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
-
-      {/* Order Details Modal */}
-      {selectedOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800 max-h-[90vh] overflow-y-auto">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <div>
-                <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                  Commande #{selectedOrder.orderNumber || selectedOrder.id}
-                </h3>
-                <span className="text-[10px] text-slate-400">Date : {selectedOrder.date}</span>
-              </div>
-              <button onClick={() => setSelectedOrder(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <div className="space-y-4 text-xs">
-              <div className="p-3.5 bg-slate-50 dark:bg-slate-800/60 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <p className="font-bold text-slate-900 dark:text-white">
-                  {selectedOrder.customer?.name || (selectedOrder as any).customerName}
-                </p>
-                <p className="text-slate-500">{selectedOrder.customer?.phone || (selectedOrder as any).phone}</p>
-                <p className="text-slate-500">{selectedOrder.customer?.address || (selectedOrder as any).shippingAddress?.street}</p>
-                <p className="text-[10px] text-amber-600 font-semibold mt-1">Paiement : {selectedOrder.paymentMethod || 'Espèces à la livraison'}</p>
-              </div>
-
-              <div>
-                <h4 className="font-bold text-slate-700 dark:text-slate-300 mb-2">Articles commandés :</h4>
-                <div className="space-y-2">
-                  {selectedOrder.items?.map((item, idx) => (
-                    <div key={idx} className="flex justify-between items-center p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/40">
-                      <div>
-                        <p className="font-bold">{item.name}</p>
-                        <span className="text-[10px] text-slate-400">Qté: {item.quantity}</span>
-                      </div>
-                      <span className="font-black text-amber-600">{item.price} DT</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 flex justify-between items-center">
-                <span className="font-bold text-sm">Total Commande :</span>
-                <span className="text-xl font-black text-amber-600">{selectedOrder.totalAmount || (selectedOrder as any).total} DT</span>
-              </div>
-
-              <div className="flex justify-end pt-2">
-                <button
-                  type="button"
-                  onClick={() => setSelectedOrder(null)}
-                  className="px-5 py-2.5 rounded-xl bg-slate-900 text-white font-bold text-xs uppercase cursor-pointer"
-                >
-                  Fermer
-                </button>
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Reply Message Modal */}
+      {/* Message Reply Modal */}
       {replyingMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 max-w-lg w-full shadow-2xl border border-slate-200 dark:border-slate-800">
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 mb-4">
-              <div>
-                <h3 className="text-base font-black font-serif text-slate-900 dark:text-white">
-                  Répondre à {replyingMessage.name}
-                </h3>
-                <span className="text-[10px] text-slate-400">{replyingMessage.email}</span>
-              </div>
-              <button onClick={() => setReplyingMessage(null)} className="text-slate-400 hover:text-slate-700 cursor-pointer">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleSendReply} className="space-y-4 text-xs">
-              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">
-                <p className="text-slate-400 text-[10px] uppercase font-bold">Message du client :</p>
-                <p className="text-slate-700 dark:text-slate-300 mt-1 italic">"{replyingMessage.message}"</p>
-              </div>
-
-              <div>
-                <label className="block font-bold text-slate-700 dark:text-slate-300 mb-1">Votre réponse :</label>
-                <textarea
-                  rows={4}
-                  required
-                  value={replyText}
-                  onChange={(e) => setReplyText(e.target.value)}
-                  placeholder="Saisissez votre réponse pour le client..."
-                  className="w-full p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs focus:ring-2 focus:ring-amber-500"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2">
-                <button
-                  type="button"
-                  onClick={() => setReplyingMessage(null)}
-                  className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold text-slate-600 cursor-pointer"
-                >
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+            <h3 className="text-base font-black">Répondre à {replyingMessage.name}</h3>
+            <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border">
+              "{replyingMessage.message}"
+            </p>
+            <form onSubmit={handleSendReply} className="space-y-3 text-xs">
+              <textarea
+                rows={4}
+                value={replyText}
+                onChange={(e) => setReplyText(e.target.value)}
+                placeholder="Votre réponse personnalisée..."
+                required
+                className="w-full p-3 bg-slate-50 border rounded-xl"
+              />
+              <div className="flex justify-end gap-2 pt-2 border-t">
+                <button type="button" onClick={() => setReplyingMessage(null)} className="px-4 py-2 border rounded-xl">
                   Annuler
                 </button>
-                <button
-                  type="submit"
-                  className="px-5 py-2 rounded-xl bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold uppercase cursor-pointer"
-                >
-                  Envoyer la réponse
+                <button type="submit" className="px-4 py-2 bg-amber-500 text-white font-bold rounded-xl">
+                  Envoyer Réponse
                 </button>
               </div>
             </form>
           </div>
         </div>
       )}
+
+      {/* Subsite Live Fullscreen Modal */}
+      <SubsiteLiveFullscreenModal
+        isOpen={isSubsiteModalOpen}
+        onClose={() => setIsSubsiteModalOpen(false)}
+        products={productsData}
+        categories={categoriesData}
+        packs={packsData}
+        stores={storesData}
+        advertisements={advertisementsData}
+        onNavigateToStorefront={onNavigateHome}
+      />
 
     </div>
   );

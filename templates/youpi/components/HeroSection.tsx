@@ -5,9 +5,31 @@ import heroImage from '../../../src/assets/images/hero_youpishop_toys_1791240036
 interface HeroSectionProps {
   onExplore: (categorySlug?: string) => void;
   onSelectCategory?: (categorySlug: string) => void;
+  customHero?: {
+    badge?: string;
+    title?: string;
+    titleHighlight?: string;
+    description?: string;
+    buttonText?: string;
+    buttonCategory?: string;
+    bgImage?: string;
+    stickerLeft?: string;
+    stickerRight?: string;
+  };
+  customBadges?: Array<{
+    id?: number;
+    title: string;
+    subtitle: string;
+    icon?: string;
+  }>;
 }
 
-export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCategory }) => {
+export const HeroSection: React.FC<HeroSectionProps> = ({
+  onExplore,
+  onSelectCategory,
+  customHero,
+  customBadges
+}) => {
   const handleCardClick = (cat: string) => {
     if (onSelectCategory) {
       onSelectCategory(cat);
@@ -239,31 +261,35 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
                 <div className="flex items-center justify-center lg:justify-start gap-2">
                   <span className="text-amber-500 text-lg">✨</span>
                   <span className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-[#0284c7] font-serif italic tracking-wide">
-                    Le bonheur
+                    {customHero?.title || 'Le bonheur'}
                   </span>
                   <span className="text-amber-500 text-lg">✨</span>
                 </div>
 
                 {/* "commence ici !" with high contrast vibrant typography */}
                 <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.05] mt-1 font-sans">
-                  <span className="text-slate-900 dark:text-white">commence </span>
-                  <span className="text-[#e11d48]">ici !</span>
+                  <span className="text-slate-900 dark:text-white">
+                    {customHero ? '' : 'commence '}
+                  </span>
+                  <span className="text-[#e11d48]">
+                    {customHero?.titleHighlight || 'commence ici !'}
+                  </span>
                 </h1>
               </div>
 
               {/* Subtitle */}
               <p className="text-base sm:text-lg text-slate-600 dark:text-slate-300 font-medium max-w-lg mx-auto lg:mx-0 leading-relaxed">
-                Des milliers de jouets pour faire rêver vos enfants, à tous les âges !
+                {customHero?.description || 'Des milliers de jouets pour faire rêver vos enfants, à tous les âges !'}
               </p>
 
               {/* Yellow Pill CTA Button: "Découvrir la collection ➔" */}
               <div className="pt-2 flex justify-center lg:justify-start">
                 <button
                   type="button"
-                  onClick={() => onExplore('catalog')}
+                  onClick={() => onExplore(customHero?.buttonCategory || 'catalog')}
                   className="group inline-flex items-center gap-3 px-8 py-4 rounded-full bg-[#facc15] hover:bg-[#eab308] text-slate-950 font-black text-sm uppercase tracking-wider shadow-lg shadow-amber-500/25 hover:shadow-xl hover:scale-105 active:scale-95 transition-all cursor-pointer select-none"
                 >
-                  <span>Découvrir la collection</span>
+                  <span>{customHero?.buttonText || 'Découvrir la collection'}</span>
                   <span className="w-7 h-7 rounded-full bg-white flex items-center justify-center text-slate-900 group-hover:translate-x-1 transition-transform shadow-xs">
                     <ArrowRight className="w-4 h-4 stroke-[3]" />
                   </span>
@@ -276,7 +302,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
             <div className="lg:col-span-6 relative">
               <div className="relative rounded-3xl overflow-hidden shadow-2xl border-4 border-white dark:border-slate-800 bg-amber-50 dark:bg-slate-800">
                 <img
-                  src={heroImage}
+                  src={customHero?.bgImage || heroImage}
                   alt="Enfants heureux jouant avec les jouets YoupiShop"
                   className="w-full h-72 sm:h-96 lg:h-[420px] object-cover object-center transform hover:scale-102 transition-transform duration-700"
                 />
@@ -288,13 +314,13 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
                 <div className="absolute top-4 right-4 sm:top-6 sm:right-6 select-none pointer-events-none">
                   <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-full bg-[#fef08a]/95 dark:bg-amber-900/90 border-4 border-dashed border-[#ca8a04] dark:border-amber-400 p-2 flex flex-col items-center justify-center text-center shadow-lg rotate-12 transform hover:rotate-0 transition-transform">
                     <span className="text-[12px] sm:text-[13px] font-black text-amber-950 dark:text-amber-100 font-serif leading-tight">
-                      Jouer
+                      {customHero?.stickerLeft || 'Jouer'}
                     </span>
                     <span className="text-[11px] sm:text-[12px] font-extrabold text-amber-900 dark:text-amber-200 leading-tight">
                       Grandir
                     </span>
                     <span className="text-[12px] sm:text-[13px] font-black text-[#e11d48] font-serif leading-tight flex items-center justify-center gap-0.5">
-                      Rêver <span>♡</span>
+                      {customHero?.stickerRight || 'Rêver'} <span>♡</span>
                     </span>
                   </div>
                 </div>
@@ -319,10 +345,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
               </div>
               <div>
                 <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">
-                  Livraison rapide ✨
+                  {customBadges?.[0]?.title || 'Livraison rapide ✨'}
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                  24/48h partout en Tunisie
+                  {customBadges?.[0]?.subtitle || '24/48h partout en Tunisie'}
                 </p>
               </div>
             </div>
@@ -334,10 +360,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
               </div>
               <div>
                 <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">
-                  Paiement sécurisé ✨
+                  {customBadges?.[1]?.title || 'Paiement sécurisé ✨'}
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                  100% fiable à la livraison
+                  {customBadges?.[1]?.subtitle || '100% fiable à la livraison'}
                 </p>
               </div>
             </div>
@@ -349,10 +375,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
               </div>
               <div>
                 <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">
-                  Service client ✨
+                  {customBadges?.[2]?.title || 'Service client ✨'}
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                  À votre écoute 7j/7
+                  {customBadges?.[2]?.subtitle || 'À votre écoute 7j/7'}
                 </p>
               </div>
             </div>
@@ -364,10 +390,10 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, onSelectCat
               </div>
               <div>
                 <h4 className="font-extrabold text-xs sm:text-sm text-slate-900 dark:text-white leading-tight">
-                  Retour facile ✨
+                  {customBadges?.[3]?.title || 'Retour facile ✨'}
                 </h4>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400 font-medium mt-0.5">
-                  Sous 14 jours
+                  {customBadges?.[3]?.subtitle || 'Sous 14 jours'}
                 </p>
               </div>
             </div>

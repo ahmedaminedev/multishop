@@ -24,28 +24,110 @@ export interface Product {
     fournisseurNom?: string;
 }
 
-export interface Category {
-    id: number;
+export interface SubCategoryItem {
     name: string;
-    slug: string;
+}
+
+export interface SubCategoryGroup {
+    title: string;
+    items: SubCategoryItem[];
+}
+
+export interface Category {
+    id?: number;
+    name: string;
+    slug?: string;
     image?: string;
+    subCategories?: string[];
+    megaMenu?: SubCategoryGroup[];
+    ageRange?: string;
+    icon?: string;
+    color?: string;
+    description?: string;
 }
 
 export interface Brand {
     id: number;
     name: string;
     logo?: string;
+    logoUrl?: string;
 }
 
 export interface Pack {
     id: number;
-    title: string;
+    name: string;
+    title?: string;
     price: number;
-    originalPrice: number;
-    discount: number;
+    oldPrice?: number;
+    originalPrice?: number;
+    discount?: number;
     imageUrl: string;
     description: string;
-    products: Product[];
+    includedItems?: string[];
+    includedProductIds?: number[];
+    includedPackIds?: number[];
+    products?: Product[];
+}
+
+export interface User {
+    id: string | number;
+    firstName: string;
+    lastName?: string;
+    email: string;
+    phone?: string;
+    role?: 'CUSTOMER' | 'ADMIN' | 'SUPER_ADMIN';
+}
+
+export interface LogoConfig {
+    logoUrl?: string;
+    navbarHeight?: number;
+    footerHeight?: number;
+    textPrimary?: string;
+    textSecondary?: string;
+    tagline?: string;
+}
+
+export interface YoupiHomeConfig {
+    hero: {
+        badge: string;
+        title: string;
+        titleHighlight: string;
+        description: string;
+        buttonText: string;
+        buttonCategory: string;
+        bgImage: string;
+        stickerLeft?: string;
+        stickerRight?: string;
+    };
+    promoBanner: {
+        tag: string;
+        title: string;
+        discountHighlight: string;
+        description: string;
+        buttonText: string;
+        categoryTarget: string;
+        bgImage: string;
+    };
+    bestsellersTitle: string;
+    bestsellersKicker: string;
+    ageCategoriesTitle: string;
+    ageCategoriesKicker: string;
+    trustBadges: Array<{
+        id: number;
+        title: string;
+        subtitle: string;
+        icon?: string;
+    }>;
+}
+
+export interface Advertisements {
+    heroSlides?: any[];
+    promoBanners?: any[];
+    smallPromoBanners?: any[];
+    trustBadges?: any[];
+    logoConfig?: LogoConfig;
+    youpiHome?: YoupiHomeConfig;
+    [key: string]: any;
 }
 
 export interface OrderItem {
