@@ -1,5 +1,5 @@
 import React from 'react';
-import { ShoppingBag, Heart, Star, Sparkles } from 'lucide-react';
+import { ShoppingBag, Heart, Star, Sparkles, Eye } from 'lucide-react';
 import { Product } from '../types';
 import { useCart } from './CartContext';
 import { useFavorites } from './FavoritesContext';
@@ -66,6 +66,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect, onS
               -{product.discount}%
             </span>
           ) : null}
+        </div>
+
+        {/* Quick View Button on Hover */}
+        <div className="absolute inset-x-0 bottom-3 flex justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none">
+          <span className="px-3.5 py-1.5 rounded-full bg-slate-900/80 backdrop-blur-md text-white text-[11px] font-bold shadow-lg flex items-center gap-1.5 pointer-events-auto hover:bg-slate-900 transition-colors">
+            <Eye className="w-3.5 h-3.5 text-amber-400" />
+            <span>Aperçu rapide</span>
+          </span>
         </div>
 
       </div>

@@ -147,13 +147,22 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
       }
     };
 
+    const handleShopStats = (e: any) => {
+      const shopKey = e.detail?.shopKey;
+      if (!shopKey || shopKey === safeShopId || shopKey === 'all') {
+        loadFilialeData();
+      }
+    };
+
     window.addEventListener('multishop_data_changed', handleDataChanged);
     window.addEventListener('stats_updated', loadFilialeData);
+    window.addEventListener('shop_stats_updated', handleShopStats);
 
     return () => { 
       isCancelled = true; 
       window.removeEventListener('multishop_data_changed', handleDataChanged);
       window.removeEventListener('stats_updated', loadFilialeData);
+      window.removeEventListener('shop_stats_updated', handleShopStats);
     };
   }, [safeShopId]);
 

@@ -135,8 +135,13 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
           <div className="w-full flex items-center justify-between gap-2 sm:gap-4 flex-nowrap">
             
             {/* Left: MultiShop Corporate Logo & Active Shop Indicator */}
-            <div className="flex items-center gap-3.5 shrink-0">
-              <MultiShopLogo size="lg" showSubtitle={false} />
+            <div className="flex items-center gap-2 sm:gap-3.5 shrink-0">
+              <div className="hidden sm:block">
+                <MultiShopLogo size="md" showSubtitle={false} />
+              </div>
+              <div className="sm:hidden">
+                <MultiShopLogo size="sm" showSubtitle={false} />
+              </div>
 
               <div className="hidden xl:flex items-center gap-2 pl-3 border-l border-slate-200 dark:border-slate-800">
                 <span className="bg-blue-100 text-blue-800 dark:bg-blue-900/40 dark:text-blue-200 font-black text-[10px] px-2 py-0.5 rounded-full uppercase tracking-wider">

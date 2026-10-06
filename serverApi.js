@@ -815,6 +815,20 @@ export function handleApiRequest(req, res, next) {
         return sendJson(404, { message: 'Produit introuvable' });
       }
 
+      if (endpoint.startsWith('/global/products/') && req.method === 'DELETE') {
+        const prodId = parseInt(endpoint.replace('/global/products/', ''), 10);
+        for (const s of Object.values(storesData)) {
+          if (!s || !s.products) continue;
+          const idx = s.products.findIndex(p => p.id === prodId);
+          if (idx !== -1) {
+            s.products.splice(idx, 1);
+            broadcastDataChanged('product_deleted', s.key);
+            return sendJson(200, { success: true, message: 'Produit supprimé avec succès' });
+          }
+        }
+        return sendJson(404, { message: 'Produit introuvable' });
+      }
+
       // --- SOURCING: SOURCES DE VEILLE (Instagram, TikTok, Grossiste, etc.) ---
       if (endpoint === '/sources' && req.method === 'GET') {
         return sendJson(200, sourcesData);
@@ -835,6 +849,7 @@ export function handleApiRequest(req, res, next) {
           dateCreation: new Date().toISOString()
         };
         sourcesData.unshift(newSource);
+        broadcastDataChanged('source_created', 'all');
         return sendJson(201, newSource);
       }
       if (endpoint.startsWith('/sources/') && req.method === 'PUT') {
@@ -843,6 +858,7 @@ export function handleApiRequest(req, res, next) {
         const idx = sourcesData.findIndex(s => s.id === sId);
         if (idx !== -1) {
           sourcesData[idx] = { ...sourcesData[idx], ...body };
+          broadcastDataChanged('source_updated', 'all');
           return sendJson(200, sourcesData[idx]);
         }
         return sendJson(404, { message: 'Source introuvable' });
@@ -850,6 +866,7 @@ export function handleApiRequest(req, res, next) {
       if (endpoint.startsWith('/sources/') && req.method === 'DELETE') {
         const sId = endpoint.replace('/sources/', '');
         sourcesData = sourcesData.filter(s => s.id !== sId);
+        broadcastDataChanged('source_deleted', 'all');
         return sendJson(200, { success: true, message: 'Source supprimée' });
       }
 
@@ -887,6 +904,7 @@ export function handleApiRequest(req, res, next) {
           dateCreation: new Date().toISOString()
         };
         futureProductsData.unshift(newFutureProd);
+        broadcastDataChanged('future_product_created', 'all');
         return sendJson(201, newFutureProd);
       }
       if (endpoint.startsWith('/future-products/') && req.method === 'PUT') {
@@ -895,6 +913,7 @@ export function handleApiRequest(req, res, next) {
         const idx = futureProductsData.findIndex(f => f.id === fId);
         if (idx !== -1) {
           futureProductsData[idx] = { ...futureProductsData[idx], ...body };
+          broadcastDataChanged('future_product_updated', 'all');
           return sendJson(200, futureProductsData[idx]);
         }
         return sendJson(404, { message: 'Futur produit introuvable' });
@@ -902,6 +921,7 @@ export function handleApiRequest(req, res, next) {
       if (endpoint.startsWith('/future-products/') && req.method === 'DELETE') {
         const fId = endpoint.replace('/future-products/', '');
         futureProductsData = futureProductsData.filter(f => f.id !== fId);
+        broadcastDataChanged('future_product_deleted', 'all');
         return sendJson(200, { success: true, message: 'Futur produit supprimé' });
       }
 
@@ -970,6 +990,7 @@ export function handleApiRequest(req, res, next) {
             notes: payload.notes || 'Réapprovisionnement de produits existants en stock'
           };
           supplier.historique_achats.unshift(receptionRecord);
+          broadcastDataChanged('stock_restocked', 'all');
 
           return {
             success: true,
@@ -1055,6 +1076,7 @@ export function handleApiRequest(req, res, next) {
             notes: payload.notes || 'Entrée en stock de futurs produits prospectés (statut Hors Boutique par défaut)'
           };
           supplier.historique_achats.unshift(receptionRecord);
+          broadcastDataChanged('stock_restocked', 'all');
 
           return {
             success: true,
@@ -1093,10 +1115,12 @@ export function handleApiRequest(req, res, next) {
             return sendJson(400, restockRes);
           }
           suppliersData.unshift(newSupplier);
+          broadcastDataChanged('supplier_created', 'all');
           return sendJson(201, { ...newSupplier, receptionMessage: restockRes.message });
         }
 
         suppliersData.unshift(newSupplier);
+        broadcastDataChanged('supplier_created', 'all');
         return sendJson(201, newSupplier);
       }
       if (endpoint.startsWith('/suppliers/') && endpoint.endsWith('/receptions') && req.method === 'POST') {
@@ -1118,6 +1142,7 @@ export function handleApiRequest(req, res, next) {
         const idx = suppliersData.findIndex(s => s.id === sId);
         if (idx !== -1) {
           suppliersData[idx] = { ...suppliersData[idx], ...body };
+          broadcastDataChanged('supplier_updated', 'all');
           return sendJson(200, suppliersData[idx]);
         }
         return sendJson(404, { message: 'Fournisseur introuvable' });
@@ -1125,6 +1150,7 @@ export function handleApiRequest(req, res, next) {
       if (endpoint.startsWith('/suppliers/') && req.method === 'DELETE') {
         const sId = endpoint.replace('/suppliers/', '');
         suppliersData = suppliersData.filter(s => s.id !== sId);
+        broadcastDataChanged('supplier_deleted', 'all');
         return sendJson(200, { success: true, message: 'Fournisseur supprimé' });
       }
 
@@ -1155,6 +1181,20 @@ export function handleApiRequest(req, res, next) {
             s.orders[idx] = { ...s.orders[idx], ...body };
             broadcastDataChanged('order_updated', s.key);
             return sendJson(200, s.orders[idx]);
+          }
+        }
+        return sendJson(404, { message: 'Commande introuvable' });
+      }
+
+      if (endpoint.startsWith('/global/orders/') && req.method === 'DELETE') {
+        const orderId = endpoint.replace('/global/orders/', '');
+        for (const s of Object.values(storesData)) {
+          if (!s || !s.orders) continue;
+          const idx = s.orders.findIndex(o => o.id === orderId);
+          if (idx !== -1) {
+            s.orders.splice(idx, 1);
+            broadcastDataChanged('order_deleted', s.key);
+            return sendJson(200, { success: true, message: 'Commande supprimée avec succès' });
           }
         }
         return sendJson(404, { message: 'Commande introuvable' });
@@ -1525,12 +1565,40 @@ export function handleApiRequest(req, res, next) {
         const body = await getBody();
         const newBrand = { id: Date.now(), ...body };
         shop.brands.push(newBrand);
+        broadcastDataChanged('brand_created', shop.key);
         return sendJson(201, newBrand);
       }
 
       // --- STORES ---
       if (endpoint === '/stores' && req.method === 'GET') {
         return sendJson(200, shop.stores || []);
+      }
+      if (endpoint === '/stores' && req.method === 'POST') {
+        const body = await getBody();
+        if (!shop.stores) shop.stores = [];
+        const newStore = { id: Date.now(), ...body };
+        shop.stores.push(newStore);
+        broadcastDataChanged('store_created', shop.key);
+        return sendJson(201, newStore);
+      }
+      if (endpoint.startsWith('/stores/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const id = parseInt(endpoint.replace('/stores/', ''), 10);
+        const body = await getBody();
+        if (!shop.stores) shop.stores = [];
+        const idx = shop.stores.findIndex(s => s.id === id);
+        if (idx !== -1) {
+          shop.stores[idx] = { ...shop.stores[idx], ...body, id };
+          broadcastDataChanged('store_updated', shop.key);
+          return sendJson(200, shop.stores[idx]);
+        }
+        return sendJson(404, { message: 'Boutique physique introuvable' });
+      }
+      if (endpoint.startsWith('/stores/') && req.method === 'DELETE') {
+        const id = parseInt(endpoint.replace('/stores/', ''), 10);
+        if (!shop.stores) shop.stores = [];
+        shop.stores = shop.stores.filter(s => s.id !== id);
+        broadcastDataChanged('store_deleted', shop.key);
+        return sendJson(200, { success: true, message: 'Boutique physique supprimée' });
       }
 
       // --- ADVERTISEMENTS ---
@@ -1546,6 +1614,7 @@ export function handleApiRequest(req, res, next) {
           fitnessHome: { ...(shop.advertisements?.fitnessHome || {}), ...(body?.fitnessHome || {}) },
           youpiHome: { ...(shop.advertisements?.youpiHome || {}), ...(body?.youpiHome || {}) }
         };
+        broadcastDataChanged('advertisement_updated', shop.key);
         return sendJson(200, shop.advertisements);
       }
 
@@ -1556,12 +1625,40 @@ export function handleApiRequest(req, res, next) {
       if (endpoint === '/offers-config' && req.method === 'POST') {
         const body = await getBody();
         shop.offersConfig = { ...shop.offersConfig, ...body };
+        broadcastDataChanged('offers_config_updated', shop.key);
         return sendJson(200, shop.offersConfig);
       }
 
       // --- PROMOTIONS ---
       if (endpoint === '/promotions' && req.method === 'GET') {
         return sendJson(200, shop.promotions || []);
+      }
+      if (endpoint === '/promotions' && req.method === 'POST') {
+        const body = await getBody();
+        if (!shop.promotions) shop.promotions = [];
+        const newPromo = { id: Date.now(), ...body };
+        shop.promotions.push(newPromo);
+        broadcastDataChanged('promotion_created', shop.key);
+        return sendJson(201, newPromo);
+      }
+      if (endpoint.startsWith('/promotions/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const id = parseInt(endpoint.replace('/promotions/', ''), 10);
+        const body = await getBody();
+        if (!shop.promotions) shop.promotions = [];
+        const idx = shop.promotions.findIndex(p => p.id === id);
+        if (idx !== -1) {
+          shop.promotions[idx] = { ...shop.promotions[idx], ...body, id };
+          broadcastDataChanged('promotion_updated', shop.key);
+          return sendJson(200, shop.promotions[idx]);
+        }
+        return sendJson(404, { message: 'Promotion introuvable' });
+      }
+      if (endpoint.startsWith('/promotions/') && req.method === 'DELETE') {
+        const id = parseInt(endpoint.replace('/promotions/', ''), 10);
+        if (!shop.promotions) shop.promotions = [];
+        shop.promotions = shop.promotions.filter(p => p.id !== id);
+        broadcastDataChanged('promotion_deleted', shop.key);
+        return sendJson(200, { success: true, message: 'Promotion supprimée' });
       }
 
       // --- ORDERS ---
@@ -1657,10 +1754,22 @@ export function handleApiRequest(req, res, next) {
         const body = await getBody();
         const msg = { id: Date.now(), ...body, date: new Date().toISOString().split('T')[0], read: false };
         shop.contactMessages.unshift(msg);
+        broadcastDataChanged('message_received', shop.key);
         return sendJson(201, { success: true, message: 'Message envoyé avec succès.' });
       }
       if (endpoint === '/contact' && req.method === 'GET') {
         return sendJson(200, shop.contactMessages || []);
+      }
+      if (endpoint.startsWith('/contact/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const msgId = parseInt(endpoint.replace('/contact/', ''), 10);
+        const body = await getBody();
+        const msg = (shop.contactMessages || []).find(m => m.id === msgId);
+        if (msg) {
+          Object.assign(msg, body);
+          broadcastDataChanged('message_updated', shop.key);
+          return sendJson(200, msg);
+        }
+        return sendJson(404, { message: 'Message introuvable' });
       }
 
       // --- REVIEWS ---
@@ -1682,6 +1791,7 @@ export function handleApiRequest(req, res, next) {
           ...body
         };
         shop.reviews.unshift(rev);
+        broadcastDataChanged('review_added', shop.key);
         return sendJson(201, rev);
       }
 

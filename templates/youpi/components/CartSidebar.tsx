@@ -15,7 +15,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ onProceedToCheckout })
   const missingForFreeShipping = Math.max(0, freeShippingThreshold - totalPrice);
 
   return (
-    <div className="fixed inset-0 z-50 overflow-hidden animate-fadeIn">
+    <div className="fixed inset-0 z-[250] overflow-hidden animate-fadeIn">
       {/* Backdrop */}
       <div
         onClick={() => setIsCartOpen(false)}

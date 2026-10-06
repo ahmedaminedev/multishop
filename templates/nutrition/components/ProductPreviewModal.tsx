@@ -57,7 +57,7 @@ export const ProductPreviewModal: React.FC<ProductPreviewModalProps> = ({ produc
 
     return (
         <div 
-            className={`fixed inset-0 z-[60] flex items-center justify-center p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
+            className={`fixed inset-0 z-[250] overflow-y-auto flex items-center justify-center p-4 transition-opacity duration-300 ${isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
             aria-labelledby="modal-title"
             role="dialog"
             aria-modal="true"

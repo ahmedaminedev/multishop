@@ -37,6 +37,7 @@ export const YoupiShopApp: React.FC<{
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+  const [previewProduct, setPreviewProduct] = useState<Product | null>(null);
 
   // Sync data dynamically from backend API
   const loadData = async () => {
@@ -77,7 +78,12 @@ export const YoupiShopApp: React.FC<{
   };
 
   const handleProductSelect = (product: Product) => {
+    setPreviewProduct(product);
+  };
+
+  const handleViewFullDetail = (product: Product) => {
     setSelectedProduct(product);
+    setPreviewProduct(null);
     setCurrentView('product-detail');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -199,7 +205,7 @@ export const YoupiShopApp: React.FC<{
                         if (cat) setSelectedCategory(cat);
                         handleNavigate('catalog');
                       }}
-                      onSelectProduct={handleProductSelect}
+                      onSelectProduct={handleViewFullDetail}
                     />
                   )}
 
@@ -222,10 +228,11 @@ export const YoupiShopApp: React.FC<{
 
                 </main>
 
-                {/* 3. Product Quick Detail Modal */}
+                {/* 3. Product Quick Detail Modal (Centering + High Z-Index + Direct Access) */}
                 <ProductPreviewModal
-                  product={selectedProduct}
-                  onClose={() => setSelectedProduct(null)}
+                  product={previewProduct}
+                  onClose={() => setPreviewProduct(null)}
+                  onViewFullDetail={handleViewFullDetail}
                 />
 
                 {/* 4. Sliding Cart Drawer */}

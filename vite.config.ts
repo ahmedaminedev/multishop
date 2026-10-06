@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { handleApiRequest, initStores, recordChatMessage, attachSocketIO, calculateGlobalStats } from './serverApi.js';
+import { handleApiRequest, initStores, recordChatMessage, attachSocketIO, calculateGlobalStats, calculateShopStats } from './serverApi.js';
 import { Server as SocketIOServer } from 'socket.io';
 
 function multishopProductionPlugin() {
@@ -30,10 +30,21 @@ function multishopProductionPlugin() {
           socket.on('admin_join', () => {
             socket.join('admin_room');
             socket.emit('stats_updated', calculateGlobalStats());
+            ['nutrition', 'youpi'].forEach(k => {
+              socket.emit(`shop_stats_updated_${k}`, calculateShopStats(k));
+            });
           });
           socket.on('check_admin_status', () => socket.emit('admin_status', { online: true }));
           socket.on('request_global_stats', () => {
             socket.emit('stats_updated', calculateGlobalStats());
+            ['nutrition', 'youpi'].forEach(k => {
+              socket.emit(`shop_stats_updated_${k}`, calculateShopStats(k));
+            });
+          });
+          socket.on('request_shop_stats', (shopKey) => {
+            if (shopKey && typeof shopKey === 'string') {
+              socket.emit(`shop_stats_updated_${shopKey}`, calculateShopStats(shopKey));
+            }
           });
           socket.on('send_message', (data) => {
             if (!data || typeof data !== 'object') return;

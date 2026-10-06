@@ -96,7 +96,9 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
       const pending = serverFStats?.pendingOrdersCount !== undefined ? serverFStats.pendingOrdersCount : pendingOrders;
       const lowStock = serverFStats?.lowStockCount !== undefined ? serverFStats.lowStockCount : lowStockProds;
       const valStock = serverFStats?.catalogValue !== undefined ? serverFStats.catalogValue : catalogVal;
-      const panierMoyen = orders > 0 ? Math.round((revenue / (validOrders.length || 1)) * 10) / 10 : 0;
+      const panierMoyen = serverFStats?.averageOrderValue !== undefined
+        ? serverFStats.averageOrderValue
+        : (orders > 0 ? Math.round((revenue / (validOrders.length || 1)) * 10) / 10 : 0);
 
       const isHidden = Boolean(visibility[key]?.is_hidden);
 

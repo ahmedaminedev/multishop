@@ -60,7 +60,10 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 transition-colors shadow-xs">
+    <header 
+      style={{ top: 'var(--multishop-globalnav-height, 0px)' }}
+      className="sticky z-40 bg-white dark:bg-slate-900 border-b border-slate-200/90 dark:border-slate-800 transition-colors shadow-xs"
+    >
       
       {/* 1. TOP HEADER ROW: Logo, Big Search Bar, User Actions */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3.5 sm:py-4">
