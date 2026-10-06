@@ -10,6 +10,8 @@ interface AdminSidebarProps {
     setActivePage: (page: AdminPageName) => void;
     onNavigateHome: () => void;
     onLogout: () => void;
+    isMobileOpen?: boolean;
+    onCloseMobile?: () => void;
 }
 
 const ChatBubbleLeftRightIcon: React.FC<{ className?: string }> = ({ className }) => (
@@ -67,7 +69,14 @@ const StarIconSolid = ({ className }: { className?: string }) => (
     </svg>
 );
 
-export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActivePage, onNavigateHome, onLogout }) => {
+export const AdminSidebar: React.FC<AdminSidebarProps> = ({ 
+    activePage, 
+    setActivePage, 
+    onNavigateHome, 
+    onLogout,
+    isMobileOpen = false,
+    onCloseMobile
+}) => {
     const [isLogoutAlertOpen, setIsLogoutAlertOpen] = useState(false);
 
     const handleLogoutClick = () => {
@@ -77,6 +86,11 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActiv
     const confirmLogout = () => {
         setIsLogoutAlertOpen(false);
         onLogout();
+    };
+
+    const handleSelectPage = (id: AdminPageName) => {
+        setActivePage(id);
+        if (onCloseMobile) onCloseMobile();
     };
 
     const navItems: { id: AdminPageName, label: string, icon: React.ReactNode }[] = [
@@ -93,42 +107,53 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActiv
         { id: 'promotions', label: 'Codes Promo', icon: <SparklesIcon /> },
     ];
 
-    return (
-        <aside className="w-64 bg-white dark:bg-[#050505] border-r border-gray-300 dark:border-gray-800 flex flex-col flex-shrink-0 h-full z-50 relative overflow-hidden transition-colors duration-300">
-            <div className="h-24 flex items-center justify-center border-b border-gray-300 dark:border-gray-800 bg-white dark:bg-[#050505] relative z-10 transition-colors">
-                <Logo />
-            </div>
-            
-            <div className="px-4 py-6 relative z-10 flex justify-between items-center">
-                <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 bg-green-600 dark:bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
-                    <p className="text-[10px] font-black text-gray-700 dark:text-gray-400 uppercase tracking-[0.25em]">Système Actif</p>
+    const sidebarContent = (
+        <div className="flex flex-col h-full justify-between">
+            <div>
+                <div className="h-20 sm:h-24 flex items-center justify-between px-4 border-b border-gray-300 dark:border-gray-800 bg-white dark:bg-[#050505] relative z-10 transition-colors">
+                    <Logo />
+                    {onCloseMobile && (
+                        <button
+                            type="button"
+                            onClick={onCloseMobile}
+                            className="md:hidden p-2 text-gray-500 hover:text-black dark:hover:text-white"
+                        >
+                            ✕
+                        </button>
+                    )}
                 </div>
-                <div className="scale-75 origin-right">
-                    <ThemeToggle />
+                
+                <div className="px-4 py-4 relative z-10 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <div className="w-2 h-2 bg-green-600 dark:bg-green-500 rounded-full animate-pulse shadow-[0_0_10px_#22c55e]"></div>
+                        <p className="text-[10px] font-black text-gray-700 dark:text-gray-400 uppercase tracking-[0.25em]">Système Actif</p>
+                    </div>
+                    <div className="scale-75 origin-right">
+                        <ThemeToggle />
+                    </div>
                 </div>
+
+                {/* --- SCROLLABLE AREA --- */}
+                <nav className="px-2 overflow-y-auto custom-scrollbar relative z-10 pb-6 max-h-[calc(100vh-280px)]">
+                    <ul className="space-y-1.5">
+                        {navItems.map(item => (
+                            <NavItem
+                                key={item.id}
+                                icon={item.icon}
+                                label={item.label}
+                                isActive={activePage === item.id}
+                                onClick={() => handleSelectPage(item.id)}
+                            />
+                        ))}
+                    </ul>
+                </nav>
             </div>
 
-            {/* --- SCROLLABLE AREA --- */}
-            <nav className="flex-1 px-2 overflow-y-auto custom-scrollbar relative z-10 pb-10">
-                <ul className="space-y-2">
-                    {navItems.map(item => (
-                        <NavItem
-                            key={item.id}
-                            icon={item.icon}
-                            label={item.label}
-                            isActive={activePage === item.id}
-                            onClick={() => setActivePage(item.id)}
-                        />
-                    ))}
-                </ul>
-            </nav>
-
-            <div className="p-4 border-t border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-[#080808] relative z-10 space-y-3 transition-colors flex-shrink-0">
+            <div className="p-4 border-t border-gray-300 dark:border-gray-800 bg-gray-50 dark:bg-[#080808] relative z-10 space-y-2.5 transition-colors flex-shrink-0">
                  <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); handleLogoutClick(); }}
-                    className="flex items-center justify-center p-3 text-red-600 border border-red-200 dark:border-red-900/30 hover:bg-red-600 hover:text-white transition-all font-bold text-xs uppercase tracking-widest skew-x-[-10deg]"
+                    className="flex items-center justify-center p-2.5 text-red-600 border border-red-200 dark:border-red-900/30 hover:bg-red-600 hover:text-white transition-all font-bold text-xs uppercase tracking-widest skew-x-[-10deg]"
                 >
                     <ArrowLeftOnRectangleIcon className="w-4 h-4 mr-2 skew-x-[10deg]" />
                     <span className="skew-x-[10deg]">Déconnexion</span>
@@ -136,7 +161,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActiv
                  <a
                     href="#"
                     onClick={(e) => { e.preventDefault(); onNavigateHome(); }}
-                    className="flex items-center justify-center p-3 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-800 hover:bg-black dark:hover:border-brand-neon hover:text-white dark:hover:text-brand-neon dark:hover:bg-transparent transition-all font-bold text-xs uppercase tracking-widest skew-x-[-10deg]"
+                    className="flex items-center justify-center p-2.5 text-gray-600 dark:text-gray-400 border border-gray-300 dark:border-gray-800 hover:bg-black dark:hover:border-brand-neon hover:text-white dark:hover:text-brand-neon dark:hover:bg-transparent transition-all font-bold text-xs uppercase tracking-widest skew-x-[-10deg]"
                 >
                     <ArrowLongLeftIcon className="w-4 h-4 mr-2 skew-x-[10deg]" />
                     <span className="skew-x-[10deg]">Retour Site</span>
@@ -153,12 +178,31 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({ activePage, setActiv
                 confirmText="Oui, déconnecter"
                 onConfirm={confirmLogout}
             />
+        </div>
+    );
+
+    return (
+        <>
+            {/* Desktop Sidebar */}
+            <aside className="hidden md:flex w-64 bg-white dark:bg-[#050505] border-r border-gray-300 dark:border-gray-800 flex-col flex-shrink-0 h-full z-40 relative overflow-hidden transition-colors duration-300">
+                {sidebarContent}
+            </aside>
+
+            {/* Mobile Drawer */}
+            {isMobileOpen && (
+                <div className="fixed inset-0 z-50 md:hidden animate-fadeIn">
+                    <div className="fixed inset-0 bg-black/60 backdrop-blur-xs" onClick={onCloseMobile} />
+                    <aside className="fixed inset-y-0 left-0 w-72 max-w-[85vw] bg-white dark:bg-[#050505] z-50 shadow-2xl flex flex-col justify-between overflow-y-auto">
+                        {sidebarContent}
+                    </aside>
+                </div>
+            )}
 
             <style>{`
                 .custom-scrollbar::-webkit-scrollbar { width: 4px; }
                 .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
                 .custom-scrollbar::-webkit-scrollbar-thumb { background: #ccff00; border-radius: 10px; }
             `}</style>
-        </aside>
+        </>
     );
 };

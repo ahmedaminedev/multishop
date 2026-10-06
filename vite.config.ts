@@ -1,7 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import { handleApiRequest, initStores, recordChatMessage } from './serverApi.js';
+import { handleApiRequest, initStores, recordChatMessage, attachSocketIO, calculateGlobalStats } from './serverApi.js';
 import { Server as SocketIOServer } from 'socket.io';
 
 function multishopProductionPlugin() {
@@ -19,14 +19,22 @@ function multishopProductionPlugin() {
           maxHttpBufferSize: 1e6
         });
 
+        attachSocketIO(io);
+
         io.on('connection', (socket) => {
           socket.on('join_room', (userId) => {
             if (typeof userId === 'string' && userId.length < 100) {
               socket.join(userId);
             }
           });
-          socket.on('admin_join', () => socket.join('admin_room'));
+          socket.on('admin_join', () => {
+            socket.join('admin_room');
+            socket.emit('stats_updated', calculateGlobalStats());
+          });
           socket.on('check_admin_status', () => socket.emit('admin_status', { online: true }));
+          socket.on('request_global_stats', () => {
+            socket.emit('stats_updated', calculateGlobalStats());
+          });
           socket.on('send_message', (data) => {
             if (!data || typeof data !== 'object') return;
             const shopId = data.shopId || 'youpi';

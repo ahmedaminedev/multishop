@@ -139,8 +139,29 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
     };
 
     loadFilialeData();
-    return () => { isCancelled = true; };
+
+    const handleDataChanged = (e: any) => {
+      const shopKey = e.detail?.shopKey || e.detail?.shopId;
+      if (!shopKey || shopKey === safeShopId || shopKey === 'all') {
+        loadFilialeData();
+      }
+    };
+
+    window.addEventListener('multishop_data_changed', handleDataChanged);
+    window.addEventListener('stats_updated', loadFilialeData);
+
+    return () => { 
+      isCancelled = true; 
+      window.removeEventListener('multishop_data_changed', handleDataChanged);
+      window.removeEventListener('stats_updated', loadFilialeData);
+    };
   }, [safeShopId]);
+
+  // Dynamic real-time metrics computed 100% from database
+  const validOrders = (data.orders || []).filter((o: any) => o.status !== 'Annulée' && o.status !== 'annulé');
+  const revenue = validOrders.reduce((sum: number, o: any) => sum + (Number(o.total || o.totalAmount) || 0), 0);
+  const pendingOrders = (data.orders || []).filter((o: any) => ['En attente', 'en_attente', 'Expédiée', 'confirmé'].includes(o.status)).length;
+  const lowStockCount = (data.products || []).filter((p: any) => (Number(p.quantité_enstock ?? p.quantity) || 0) <= 5).length;
 
   // Updaters passed to the AdminPage components
   const setProductsData = (action: any) => {
@@ -330,6 +351,32 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
           </div>
         </div>
       </header>
+
+      {/* Real-time Filiale Performance Strip */}
+      <div className="bg-slate-900 text-white px-3 sm:px-6 py-2 text-xs border-b border-slate-800 flex items-center justify-between gap-3 overflow-x-auto no-scrollbar">
+        <div className="flex items-center gap-3 sm:gap-6 whitespace-nowrap">
+          <span className="flex items-center gap-1.5 font-bold text-emerald-400">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+            Ventes {meta.name} : {revenue.toLocaleString('fr-FR')} DT
+          </span>
+          <span className="text-slate-600 hidden sm:inline">•</span>
+          <span className="text-slate-300 font-medium">
+            Commandes : <strong className="text-white">{data.orders.length}</strong> ({pendingOrders} en attente)
+          </span>
+          <span className="text-slate-600 hidden sm:inline">•</span>
+          <span className="text-slate-300 font-medium">
+            Articles : <strong className="text-white">{data.products.length}</strong>
+          </span>
+          {lowStockCount > 0 && (
+            <span className="px-2 py-0.5 rounded-full bg-rose-500/20 text-rose-300 border border-rose-500/30 text-[10px] font-bold">
+              ⚠️ {lowStockCount} stock faible
+            </span>
+          )}
+        </div>
+        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 shrink-0 hidden md:inline">
+          Sync Flux Base 100%
+        </span>
+      </div>
 
       {/* 2. MAIN BACKOFFICE CONTENT */}
       <main className="flex-1 w-full">

@@ -25,6 +25,7 @@ import {
   Check
 } from 'lucide-react';
 import { Product, Category, Pack, Order, ContactMessage, Promotion, Store as StoreType, Brand } from '../../types';
+import { api, apiRequest } from '../../utils/api';
 import { AdminSidebar } from './AdminSidebar';
 import { ManageCategoriesPage } from './ManageCategoriesPage';
 import { ManagePacksPage } from './ManagePacksPage';
@@ -158,11 +159,16 @@ export const AdminPage: React.FC<AdminPageProps> = ({
     setIsProductModalOpen(true);
   };
 
-  const handleSaveProduct = (e: React.FormEvent) => {
+  const handleSaveProduct = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!productForm.name) return;
 
     if (editingProduct) {
+      try {
+        await api.updateProduct(editingProduct.id, productForm);
+      } catch (err) {
+        console.warn('API update product warning:', err);
+      }
       setProductsData(prev =>
         prev.map(p => (p.id === editingProduct.id ? ({ ...p, ...productForm } as Product) : p))
       );
@@ -181,19 +187,34 @@ export const AdminPage: React.FC<AdminPageProps> = ({
         description: productForm.description || '',
         promo: (Number(productForm.oldPrice) || 0) > (Number(productForm.price) || 0)
       };
-      setProductsData(prev => [newProd, ...prev]);
+      try {
+        const created = await api.createProduct(newProd);
+        setProductsData(prev => [created || newProd, ...prev]);
+      } catch (err) {
+        setProductsData(prev => [newProd, ...prev]);
+      }
     }
     setIsProductModalOpen(false);
   };
 
-  const handleDeleteProduct = (id: number) => {
+  const handleDeleteProduct = async (id: number) => {
     if (window.confirm('Voulez-vous vraiment supprimer cet article du catalogue YoupiShop ?')) {
+      try {
+        await api.deleteProduct(id);
+      } catch (err) {
+        console.warn('API delete product warning:', err);
+      }
       setProductsData(prev => prev.filter(p => p.id !== id));
     }
   };
 
   // 2. Orders Handlers
-  const handleUpdateOrderStatus = (orderId: string, newStatus: Order['status']) => {
+  const handleUpdateOrderStatus = async (orderId: string, newStatus: Order['status']) => {
+    try {
+      await apiRequest(`/orders/${orderId}`, 'PUT', { status: newStatus });
+    } catch (err) {
+      console.warn('API update order status warning:', err);
+    }
     setOrdersData(prev =>
       prev.map(o => (o.id === orderId ? { ...o, status: newStatus } : o))
     );

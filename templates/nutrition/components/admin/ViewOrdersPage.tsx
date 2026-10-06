@@ -2,9 +2,11 @@
 import React, { useState, useMemo } from 'react';
 import type { Order } from '../../types';
 import { SearchIcon, CalendarIcon, UserIcon, ShoppingBagIcon } from '../IconComponents';
+import { apiRequest } from '../../utils/api';
 
 interface ViewOrdersPageProps {
     orders: Order[];
+    setOrders?: React.Dispatch<React.SetStateAction<Order[]>>;
 }
 
 const OrderStatusBadge: React.FC<{ status: Order['status'] }> = ({ status }) => {
@@ -20,11 +22,11 @@ const OrderStatusBadge: React.FC<{ status: Order['status'] }> = ({ status }) => 
 };
 
 
-const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
+const OrderCard: React.FC<{ order: Order; onStatusChange?: (orderId: string, newStatus: Order['status']) => void }> = ({ order, onStatusChange }) => {
     return (
         <div className="bg-white dark:bg-[#1f2833] border border-gray-200 dark:border-gray-700 hover:border-black dark:hover:border-brand-neon transition-all duration-300 p-0 flex flex-col group h-full shadow-sm dark:shadow-none">
             {/* Header Ticket */}
-            <div className="bg-gray-50 dark:bg-black p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center">
+            <div className="bg-gray-50 dark:bg-black p-4 border-b border-gray-200 dark:border-gray-800 flex justify-between items-center flex-wrap gap-2">
                 <div>
                     <h3 className="font-mono font-bold text-gray-900 dark:text-white text-sm">{order.id}</h3>
                     <p className="text-[10px] text-gray-500 uppercase tracking-wider flex items-center gap-1.5 mt-1">
@@ -32,7 +34,22 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
                         {order.date}
                     </p>
                 </div>
-                <OrderStatusBadge status={order.status} />
+                <div className="flex items-center gap-2">
+                    {onStatusChange ? (
+                        <select
+                            value={order.status}
+                            onChange={(e) => onStatusChange(order.id, e.target.value as Order['status'])}
+                            className="text-[10px] font-black px-2.5 py-1 uppercase tracking-wider rounded-none bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-white border border-gray-300 dark:border-gray-600 focus:outline-none focus:border-brand-neon cursor-pointer"
+                        >
+                            <option value="En attente">En attente</option>
+                            <option value="Expédiée">Expédiée</option>
+                            <option value="Livrée">Livrée</option>
+                            <option value="Annulée">Annulée</option>
+                        </select>
+                    ) : (
+                        <OrderStatusBadge status={order.status} />
+                    )}
+                </div>
             </div>
             
             <div className="p-5 flex flex-col flex-grow">
@@ -62,12 +79,23 @@ const OrderCard: React.FC<{ order: Order }> = ({ order }) => {
 };
 
 
-export const ViewOrdersPage: React.FC<ViewOrdersPageProps> = ({ orders }) => {
+export const ViewOrdersPage: React.FC<ViewOrdersPageProps> = ({ orders, setOrders }) => {
     const [searchTerm, setSearchTerm] = useState('');
     const [filterStatus, setFilterStatus] = useState<Order['status'] | 'all'>('all');
     const [sortOption, setSortOption] = useState('date-desc');
     const [currentPage, setCurrentPage] = useState(1);
     const ORDERS_PER_PAGE = 9;
+
+    const handleStatusChange = async (orderId: string, newStatus: Order['status']) => {
+        try {
+            await apiRequest(`/orders/${orderId}`, 'PUT', { status: newStatus });
+        } catch (err) {
+            console.warn('Error updating order status:', err);
+        }
+        if (setOrders) {
+            setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o));
+        }
+    };
 
     const processedOrders = useMemo(() => {
         let filtered = orders
@@ -136,7 +164,7 @@ export const ViewOrdersPage: React.FC<ViewOrdersPageProps> = ({ orders }) => {
             {paginatedOrders.length > 0 ? (
                  <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
                     {paginatedOrders.map(order => (
-                        <OrderCard key={order.id} order={order} />
+                        <OrderCard key={order.id} order={order} onStatusChange={handleStatusChange} />
                     ))}
                 </div>
             ) : (

@@ -22,6 +22,8 @@ interface AdminSidebarProps {
   onNavigateHome: () => void;
   onLogout: () => void;
   onOpenSubsiteModal?: () => void;
+  isMobileOpen?: boolean;
+  onCloseMobile?: () => void;
 }
 
 export const AdminSidebar: React.FC<AdminSidebarProps> = ({
@@ -29,7 +31,9 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   setActivePage,
   onNavigateHome,
   onLogout,
-  onOpenSubsiteModal
+  onOpenSubsiteModal,
+  isMobileOpen = false,
+  onCloseMobile
 }) => {
   const navItems: Array<{ id: AdminPageName; label: string; icon: React.ReactNode; badge?: string }> = [
     { id: 'dashboard', label: 'Tableau de Bord', icon: <LayoutDashboard className="w-4 h-4" /> },

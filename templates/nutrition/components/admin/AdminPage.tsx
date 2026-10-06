@@ -44,6 +44,7 @@ interface AdminPageProps {
 
 export const AdminPage: React.FC<AdminPageProps> = (props) => {
     const [activePage, setActivePage] = useState<AdminPageName>('dashboard');
+    const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
     const effectivePage = props.forcedPage || activePage;
 
     const renderActivePage = () => {
@@ -78,7 +79,7 @@ export const AdminPage: React.FC<AdminPageProps> = (props) => {
                             allCategories={props.categoriesData}
                         />;
             case 'orders':
-                return <ViewOrdersPage orders={props.ordersData} />;
+                return <ViewOrdersPage orders={props.ordersData} setOrders={props.setOrdersData} />;
             case 'messages':
                 return <ViewMessagesPage messages={props.messagesData} />;
              case 'promotions':
@@ -113,12 +114,43 @@ export const AdminPage: React.FC<AdminPageProps> = (props) => {
     const isVisualEditor = effectivePage === 'home' || effectivePage === 'offers' || effectivePage === 'chat';
 
     return (
-        <div className={`flex ${props.hideSidebar ? 'h-auto min-h-0 bg-transparent' : 'h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden'}`}>
+        <div className={`flex flex-col md:flex-row ${props.hideSidebar ? 'h-auto min-h-0 bg-transparent' : 'h-screen bg-gray-100 dark:bg-gray-900 overflow-hidden'}`}>
             {!props.hideSidebar && (
-                <AdminSidebar activePage={activePage} setActivePage={setActivePage} onNavigateHome={props.onNavigateHome} onLogout={props.onLogout} />
+                <>
+                    {/* Mobile Top App Bar */}
+                    <div className="md:hidden bg-white dark:bg-[#050505] border-b border-gray-200 dark:border-gray-800 px-3.5 py-2.5 flex items-center justify-between sticky top-0 z-30 shadow-xs">
+                        <button
+                            type="button"
+                            onClick={() => setIsMobileSidebarOpen(true)}
+                            className="px-2.5 py-1.5 rounded-xl bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                        >
+                            <span className="text-sm">☰</span>
+                            <span className="uppercase text-[10px] tracking-wider">Menu</span>
+                        </button>
+                        <span className="text-xs font-black uppercase tracking-wider text-gray-900 dark:text-white">
+                            Fitness Shop Console
+                        </span>
+                        <button
+                            type="button"
+                            onClick={props.onNavigateHome}
+                            className="text-[11px] font-bold text-lime-600 dark:text-brand-neon hover:underline cursor-pointer"
+                        >
+                            Vitrine →
+                        </button>
+                    </div>
+
+                    <AdminSidebar 
+                        activePage={activePage} 
+                        setActivePage={setActivePage} 
+                        onNavigateHome={props.onNavigateHome} 
+                        onLogout={props.onLogout}
+                        isMobileOpen={isMobileSidebarOpen}
+                        onCloseMobile={() => setIsMobileSidebarOpen(false)}
+                    />
+                </>
             )}
             
-            <main className={`relative flex-1 flex flex-col min-w-0 ${props.hideSidebar ? 'p-0 overflow-visible' : (isVisualEditor ? 'p-0 overflow-hidden' : 'p-8 overflow-y-auto')}`}>
+            <main className={`relative flex-1 flex flex-col min-w-0 ${props.hideSidebar ? 'p-0 overflow-visible' : (isVisualEditor ? 'p-0 overflow-hidden' : 'p-3 sm:p-6 lg:p-8 overflow-y-auto')}`}>
                 {renderActivePage()}
             </main>
         </div>

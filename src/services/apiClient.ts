@@ -128,10 +128,16 @@ export async function centralApiRequest(
     }
 
     const contentType = response.headers.get('content-type');
-    if (contentType && contentType.includes('application/json')) {
-      return await response.json();
+    const result = (contentType && contentType.includes('application/json'))
+      ? await response.json()
+      : await response.text();
+
+    if (typeof window !== 'undefined' && method !== 'GET') {
+      window.dispatchEvent(new CustomEvent('multishop_data_changed', { detail: { endpoint, method, shopId } }));
+      window.dispatchEvent(new CustomEvent('stats_updated'));
     }
-    return await response.text();
+
+    return result;
   } catch (error: any) {
     if (error.message !== 'Session expirée impossible à renouveler' && !(error.status === 401 && endpoint.includes('/auth/login'))) {
       // Non-fatal or expected errors

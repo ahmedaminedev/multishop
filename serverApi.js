@@ -78,6 +78,181 @@ export let siteVisibilityData = {
   youpi: { siteId: 'youpi', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🧸 YoupiShop est en maintenance pour préparer de nouveaux jeux et jouets d\'éveil.' }
 };
 
+// Global Socket.IO instance for real-time live events across all shops
+let ioInstance = null;
+export function attachSocketIO(io) {
+  ioInstance = io;
+}
+
+export function broadcastDataChanged(actionType, shopKey = 'all') {
+  if (ioInstance) {
+    try {
+      const gStats = calculateGlobalStats();
+      ioInstance.emit('multishop_data_changed', { type: actionType, shopKey, timestamp: Date.now() });
+      ioInstance.emit('stats_updated', gStats);
+      ioInstance.emit('site_visibility_changed', siteVisibilityData);
+      // Emit real-time individual shop stats for each connected filial dashboard
+      for (const k of Object.keys(storesData)) {
+        const sStat = calculateShopStats(k);
+        if (sStat) {
+          ioInstance.emit(`shop_stats_updated_${k}`, sStat);
+        }
+      }
+    } catch (err) {
+      console.warn('Socket broadcast warning:', err);
+    }
+  }
+}
+
+export function calculateShopStats(shopKey) {
+  const s = storesData[shopKey];
+  if (!s) return null;
+
+  const validOrders = (s.orders || []).filter(o => o.status !== 'Annulée' && o.status !== 'annulé');
+  const revenue = validOrders.reduce((sum, o) => sum + (Number(o.total || o.totalAmount) || 0), 0);
+  const ordersCount = (s.orders || []).length;
+  const pendingOrdersCount = (s.orders || []).filter(o => ['En attente', 'en_attente', 'Expédiée', 'confirmé', 'Processing'].includes(o.status)).length;
+  const deliveredOrdersCount = (s.orders || []).filter(o => ['Livrée', 'livré', 'Delivered'].includes(o.status)).length;
+  const cancelledOrdersCount = (s.orders || []).filter(o => ['Annulée', 'annulé', 'Cancelled'].includes(o.status)).length;
+
+  const products = s.products || [];
+  const productsCount = products.length;
+  const inShopCount = products.filter(p => p.existe_dans_boutique !== false).length;
+  const outOfShopCount = productsCount - inShopCount;
+  const lowStockCount = products.filter(p => (Number(p.quantité_enstock ?? p.quantity) || 0) <= 5).length;
+  const outOfStockCount = products.filter(p => (Number(p.quantité_enstock ?? p.quantity) || 0) <= 0).length;
+  const totalStockUnits = products.reduce((sum, p) => sum + (Number(p.quantité_enstock ?? p.quantity) || 0), 0);
+  const catalogValue = products.reduce((sum, p) => sum + ((Number(p.price) || 0) * (Number(p.quantité_enstock ?? p.quantity) || 0)), 0);
+  const averageOrderValue = validOrders.length > 0 ? Math.round((revenue / validOrders.length) * 10) / 10 : 0;
+
+  const categoriesCount = (s.categories || []).length;
+  const packsCount = (s.packs || []).length;
+  const brandsCount = (s.brands || []).length;
+  const messagesCount = (s.contactMessages || []).length;
+  const unreadMessagesCount = (s.contactMessages || []).filter(m => !m.read).length;
+  const storesCount = (s.stores || []).length;
+
+  const isHidden = Boolean(siteVisibilityData[shopKey]?.is_hidden);
+  const visibilityConfig = siteVisibilityData[shopKey] || { siteId: shopKey, is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout' };
+
+  return {
+    key: shopKey,
+    name: s.name,
+    filialeType: s.filialeType,
+    revenue,
+    ordersCount,
+    pendingOrdersCount,
+    deliveredOrdersCount,
+    cancelledOrdersCount,
+    productsCount,
+    inShopCount,
+    outOfShopCount,
+    lowStockCount,
+    outOfStockCount,
+    totalStockUnits,
+    catalogValue,
+    averageOrderValue,
+    categoriesCount,
+    packsCount,
+    brandsCount,
+    messagesCount,
+    unreadMessagesCount,
+    storesCount,
+    isHidden,
+    visibilityConfig
+  };
+}
+
+export function calculateGlobalStats(options = {}) {
+  const { includeHidden = false } = options;
+  const filiales = {};
+
+  let totalRevenueAll = 0;
+  let totalOrdersAll = 0;
+  let totalProductsAll = 0;
+  let pendingOrdersAll = 0;
+  let deliveredOrdersAll = 0;
+  let totalCatalogValueAll = 0;
+  let lowStockAll = 0;
+
+  let totalRevenueVisible = 0;
+  let totalOrdersVisible = 0;
+  let totalProductsVisible = 0;
+  let pendingOrdersVisible = 0;
+  let deliveredOrdersVisible = 0;
+  let totalCatalogValueVisible = 0;
+  let lowStockVisible = 0;
+
+  let visibleCount = 0;
+  let hiddenCount = 0;
+
+  for (const key of Object.keys(storesData)) {
+    const fStats = calculateShopStats(key);
+    if (!fStats) continue;
+    filiales[key] = fStats;
+
+    totalRevenueAll += fStats.revenue;
+    totalOrdersAll += fStats.ordersCount;
+    totalProductsAll += fStats.productsCount;
+    pendingOrdersAll += fStats.pendingOrdersCount;
+    deliveredOrdersAll += fStats.deliveredOrdersCount;
+    totalCatalogValueAll += fStats.catalogValue;
+    lowStockAll += fStats.lowStockCount;
+
+    if (!fStats.isHidden) {
+      visibleCount++;
+      totalRevenueVisible += fStats.revenue;
+      totalOrdersVisible += fStats.ordersCount;
+      totalProductsVisible += fStats.productsCount;
+      pendingOrdersVisible += fStats.pendingOrdersCount;
+      deliveredOrdersVisible += fStats.deliveredOrdersCount;
+      totalCatalogValueVisible += fStats.catalogValue;
+      lowStockVisible += fStats.lowStockCount;
+    } else {
+      hiddenCount++;
+    }
+  }
+
+  // Dynamic behavior: when sub-site is hidden, global totals reflect active sites
+  const useVisible = !includeHidden;
+
+  return {
+    totalRevenue: useVisible ? totalRevenueVisible : totalRevenueAll,
+    totalOrders: useVisible ? totalOrdersVisible : totalOrdersAll,
+    totalProducts: useVisible ? totalProductsVisible : totalProductsAll,
+    pendingOrders: useVisible ? pendingOrdersVisible : pendingOrdersAll,
+    deliveredOrders: useVisible ? deliveredOrdersVisible : deliveredOrdersAll,
+    catalogValue: useVisible ? totalCatalogValueVisible : totalCatalogValueAll,
+    lowStock: useVisible ? lowStockVisible : lowStockAll,
+
+    allTotals: {
+      revenue: totalRevenueAll,
+      orders: totalOrdersAll,
+      products: totalProductsAll,
+      pendingOrders: pendingOrdersAll,
+      deliveredOrders: deliveredOrdersAll,
+      catalogValue: totalCatalogValueAll,
+      lowStock: lowStockAll
+    },
+    visibleTotals: {
+      revenue: totalRevenueVisible,
+      orders: totalOrdersVisible,
+      products: totalProductsVisible,
+      pendingOrders: pendingOrdersVisible,
+      deliveredOrders: deliveredOrdersVisible,
+      catalogValue: totalCatalogValueVisible,
+      lowStock: lowStockVisible
+    },
+    sitesCount: Object.keys(filiales).length,
+    activeSitesCount: visibleCount,
+    hiddenSitesCount: hiddenCount,
+    isAnySiteHidden: hiddenCount > 0,
+    filiales,
+    siteVisibility: siteVisibilityData,
+    lastUpdated: new Date().toISOString()
+  };
+}
+
 // Sourcing: Sources de prospection (Instagram, TikTok, Facebook, grossistes, etc.)
 export let sourcesData = [
   {
@@ -532,6 +707,7 @@ export function handleApiRequest(req, res, next) {
         const body = await getBody();
         if (body && typeof body === 'object') {
           siteVisibilityData = { ...siteVisibilityData, ...body };
+          broadcastDataChanged('visibility_changed', 'all');
         }
         return sendJson(200, siteVisibilityData);
       }
@@ -540,54 +716,24 @@ export function handleApiRequest(req, res, next) {
         const body = await getBody();
         if (siteVisibilityData[siteKey]) {
           siteVisibilityData[siteKey] = { ...siteVisibilityData[siteKey], ...body };
+          broadcastDataChanged('visibility_changed', siteKey);
           return sendJson(200, siteVisibilityData[siteKey]);
         }
         return sendJson(404, { message: 'Site introuvable' });
       }
 
-      // --- GLOBAL MULTISHOP ENDPOINTS (ADMIN PROTECTED) ---
+      // --- STATISTIQUES EN TEMPS RÉEL (100% ISSUES DE LA BASE DE DONNÉES) ---
       if (endpoint === '/global/stats' && req.method === 'GET') {
-        const authUser = getAuthenticatedUser(req);
-        if (!authUser || (authUser.role !== 'ADMIN' && authUser.role !== 'SUPER_ADMIN')) {
-          return sendJson(403, { error: 'Forbidden', message: 'Accès interdit. Droits administrateur requis pour consulter les statistiques financières.' });
-        }
-
-        const stats = {
-          totalRevenue: 0,
-          totalOrders: 0,
-          totalProducts: 0,
-          pendingOrders: 0,
-          filiales: {}
-        };
-
-        for (const [key, s] of Object.entries(storesData)) {
-          if (!s) continue;
-          const sRevenue = (s.orders || []).filter(o => o.status !== 'Annulée').reduce((sum, o) => sum + (o.total || 0), 0);
-          const sOrders = (s.orders || []).length;
-          const sProducts = (s.products || []).length;
-          const sPending = (s.orders || []).filter(o => o.status === 'En attente' || o.status === 'Expédiée').length;
-
-          stats.totalRevenue += sRevenue;
-          stats.totalOrders += sOrders;
-          stats.totalProducts += sProducts;
-          stats.pendingOrders += sPending;
-
-          stats.filiales[key] = {
-            key,
-            name: s.name,
-            filialeType: s.filialeType,
-            revenue: sRevenue,
-            ordersCount: sOrders,
-            productsCount: sProducts,
-            pendingOrdersCount: sPending,
-            brandsCount: (s.brands || []).length,
-            categoriesCount: (s.categories || []).length,
-            packsCount: (s.packs || []).length,
-            messagesCount: (s.contactMessages || []).length
-          };
-        }
-
+        const includeHidden = parsedUrl.query.includeHidden === 'true';
+        const stats = calculateGlobalStats({ includeHidden });
         return sendJson(200, stats);
+      }
+
+      if ((endpoint === '/stats' || endpoint === '/admin/stats') && req.method === 'GET') {
+        const targetShopKey = parsedUrl.query.shop || shopKey || 'nutrition';
+        const sStats = calculateShopStats(targetShopKey);
+        if (sStats) return sendJson(200, sStats);
+        return sendJson(404, { message: 'Boutique introuvable' });
       }
 
       if (endpoint === '/global/products' && req.method === 'GET') {
@@ -636,6 +782,7 @@ export function handleApiRequest(req, res, next) {
           filialeKey
         }, filialeKey);
         targetStore.products.unshift(newProduct);
+        broadcastDataChanged('product_created', filialeKey);
         return sendJson(201, newProduct);
       }
 
@@ -661,6 +808,7 @@ export function handleApiRequest(req, res, next) {
               body.fournisseurNom = body.fournisseurNom;
             }
             s.products[idx] = enrichProductWithFiliale({ ...s.products[idx], ...body }, s.key);
+            broadcastDataChanged('product_updated', s.key);
             return sendJson(200, s.products[idx]);
           }
         }
@@ -1005,6 +1153,7 @@ export function handleApiRequest(req, res, next) {
           const idx = s.orders.findIndex(o => o.id === orderId);
           if (idx !== -1) {
             s.orders[idx] = { ...s.orders[idx], ...body };
+            broadcastDataChanged('order_updated', s.key);
             return sendJson(200, s.orders[idx]);
           }
         }
@@ -1017,7 +1166,10 @@ export function handleApiRequest(req, res, next) {
       }
       if (endpoint === '/site-visibility' && (req.method === 'POST' || req.method === 'PUT')) {
         const body = await getBody();
-        siteVisibilityData = { ...siteVisibilityData, ...body };
+        if (body && typeof body === 'object') {
+          siteVisibilityData = { ...siteVisibilityData, ...body };
+          broadcastDataChanged('visibility_changed', 'all');
+        }
         return sendJson(200, siteVisibilityData);
       }
 
@@ -1254,6 +1406,7 @@ export function handleApiRequest(req, res, next) {
           images: body.images?.length ? body.images : [body.imageUrl || 'https://picsum.photos/400/400']
         }, shop.key);
         shop.products.unshift(newProduct);
+        broadcastDataChanged('product_created', shop.key);
         return sendJson(201, newProduct);
       }
 
@@ -1277,6 +1430,7 @@ export function handleApiRequest(req, res, next) {
             shop.products[index].fournisseurNom = body.fournisseurNom;
           }
           shop.products[index] = enrichProductWithFiliale({ ...shop.products[index], ...body }, shop.key);
+          broadcastDataChanged('product_updated', shop.key);
           return sendJson(200, shop.products[index]);
         }
         return sendJson(404, { message: 'Produit non trouvé' });
@@ -1285,6 +1439,7 @@ export function handleApiRequest(req, res, next) {
       if (endpoint.startsWith('/products/') && req.method === 'DELETE') {
         const id = parseInt(endpoint.replace('/products/', ''), 10);
         shop.products = shop.products.filter(p => p.id !== id);
+        broadcastDataChanged('product_deleted', shop.key);
         return sendJson(200, { message: 'Produit supprimé' });
       }
 
@@ -1297,6 +1452,7 @@ export function handleApiRequest(req, res, next) {
         if (!shop.categories) shop.categories = [];
         const newCategory = { id: Date.now(), ...body };
         shop.categories.push(newCategory);
+        broadcastDataChanged('category_created', shop.key);
         return sendJson(201, newCategory);
       }
       if (endpoint.startsWith('/categories/') && (req.method === 'PUT' || req.method === 'PATCH')) {
@@ -1306,10 +1462,12 @@ export function handleApiRequest(req, res, next) {
         const index = shop.categories.findIndex(c => c.name === catIdentifier || String(c.id) === catIdentifier || c.slug === catIdentifier);
         if (index !== -1) {
           shop.categories[index] = { ...shop.categories[index], ...body };
+          broadcastDataChanged('category_updated', shop.key);
           return sendJson(200, shop.categories[index]);
         } else {
           const created = { id: Date.now(), name: catIdentifier, ...body };
           shop.categories.push(created);
+          broadcastDataChanged('category_created', shop.key);
           return sendJson(200, created);
         }
       }
@@ -1317,6 +1475,7 @@ export function handleApiRequest(req, res, next) {
         const catIdentifier = decodeURIComponent(endpoint.replace('/categories/', ''));
         if (!shop.categories) shop.categories = [];
         shop.categories = shop.categories.filter(c => c.name !== catIdentifier && String(c.id) !== catIdentifier && c.slug !== catIdentifier);
+        broadcastDataChanged('category_deleted', shop.key);
         return sendJson(200, { message: 'Catégorie supprimée avec succès' });
       }
 
@@ -1335,6 +1494,7 @@ export function handleApiRequest(req, res, next) {
         if (!shop.packs) shop.packs = [];
         const newPack = { id: Date.now(), ...body };
         shop.packs.push(newPack);
+        broadcastDataChanged('pack_created', shop.key);
         return sendJson(201, newPack);
       }
       if (endpoint.startsWith('/packs/') && (req.method === 'PUT' || req.method === 'PATCH')) {
@@ -1344,6 +1504,7 @@ export function handleApiRequest(req, res, next) {
         const index = shop.packs.findIndex(p => p.id === id);
         if (index !== -1) {
           shop.packs[index] = { ...shop.packs[index], ...body, id };
+          broadcastDataChanged('pack_updated', shop.key);
           return sendJson(200, shop.packs[index]);
         }
         return sendJson(404, { message: 'Pack non trouvé' });
@@ -1352,6 +1513,7 @@ export function handleApiRequest(req, res, next) {
         const id = parseInt(endpoint.replace('/packs/', ''), 10);
         if (!shop.packs) shop.packs = [];
         shop.packs = shop.packs.filter(p => p.id !== id);
+        broadcastDataChanged('pack_deleted', shop.key);
         return sendJson(200, { message: 'Pack supprimé avec succès' });
       }
 
@@ -1414,19 +1576,54 @@ export function handleApiRequest(req, res, next) {
         const authUser = getAuthenticatedUser(req);
         const customerName = authUser 
           ? `${authUser.firstName} ${authUser.lastName}`.trim() 
-          : (body.customerInfo?.firstName ? `${body.customerInfo.firstName} ${body.customerInfo.lastName || ''}`.trim() : 'Client Invité');
+          : (body.customerInfo?.firstName ? `${body.customerInfo.firstName} ${body.customerInfo.lastName || ''}`.trim() : (body.customer?.name || body.customerName || 'Client Invité'));
+        const orderId = body.orderNumber || body.id || `ORD-${shop.key.toUpperCase()}-${Date.now().toString().slice(-5)}`;
+        const totalAmount = Number(body.totalAmount ?? body.total ?? 0);
         const newOrder = {
-          id: `ORD-${shop.key.toUpperCase()}-${Date.now().toString().slice(-5)}`,
+          ...body,
+          id: orderId,
+          orderNumber: orderId,
           customerName,
-          date: new Date().toISOString().split('T')[0],
-          status: 'En attente',
+          date: body.date || new Date().toISOString().split('T')[0],
+          status: body.status || 'En attente',
+          total: totalAmount,
+          totalAmount: totalAmount,
           filialeKey: shop.key,
           filialeName: shop.name,
-          userId: authUser?._id || 'guest',
-          ...body
+          userId: authUser?._id || 'guest'
         };
         shop.orders.unshift(newOrder);
+        broadcastDataChanged('order_created', shop.key);
         return sendJson(201, newOrder);
+      }
+
+      if (endpoint.startsWith('/orders/') && (req.method === 'PUT' || req.method === 'PATCH')) {
+        const orderId = endpoint.replace('/orders/', '');
+        const body = await getBody();
+        for (const s of Object.values(storesData)) {
+          if (!s || !s.orders) continue;
+          const idx = s.orders.findIndex(o => o.id === orderId);
+          if (idx !== -1) {
+            s.orders[idx] = { ...s.orders[idx], ...body };
+            broadcastDataChanged('order_updated', s.key);
+            return sendJson(200, s.orders[idx]);
+          }
+        }
+        return sendJson(404, { message: 'Commande introuvable' });
+      }
+
+      if (endpoint.startsWith('/orders/') && req.method === 'DELETE') {
+        const orderId = endpoint.replace('/orders/', '');
+        for (const s of Object.values(storesData)) {
+          if (!s || !s.orders) continue;
+          const idx = s.orders.findIndex(o => o.id === orderId);
+          if (idx !== -1) {
+            s.orders.splice(idx, 1);
+            broadcastDataChanged('order_deleted', s.key);
+            return sendJson(200, { success: true, message: 'Commande supprimée' });
+          }
+        }
+        return sendJson(404, { message: 'Commande introuvable' });
       }
 
       // --- PAYMENT ---

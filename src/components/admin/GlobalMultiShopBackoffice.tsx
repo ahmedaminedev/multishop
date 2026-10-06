@@ -16,6 +16,7 @@ import {
   isSiteHiddenInBackOffice,
   SiteVisibilityMap
 } from '../../utils/siteVisibility';
+import { getRealtimeSocket } from '../../utils/realtimeClient';
 
 // Context providers for sub-backoffices
 import { ThemeProvider as NutritionThemeProvider } from '@/templates/nutrition/components/ThemeContext';
@@ -167,13 +168,17 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   const fetchGlobalData = async () => {
     setLoading(true);
     try {
+      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers: Record<string, string> = { 'Accept': 'application/json' };
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
       const [statsRes, productsRes, ordersRes, sourcesRes, futureRes, suppliersRes] = await Promise.all([
-        fetch('/api/global/stats').then(r => r.json()).catch(() => null),
-        fetch('/api/global/products').then(r => r.json()).catch(() => []),
-        fetch('/api/global/orders').then(r => r.json()).catch(() => []),
-        fetch('/api/sources').then(r => r.json()).catch(() => []),
-        fetch('/api/future-products').then(r => r.json()).catch(() => []),
-        fetch('/api/suppliers').then(r => r.json()).catch(() => [])
+        fetch('/api/global/stats', { headers }).then(r => r.json()).catch(() => null),
+        fetch('/api/global/products', { headers }).then(r => r.json()).catch(() => []),
+        fetch('/api/global/orders', { headers }).then(r => r.json()).catch(() => []),
+        fetch('/api/sources', { headers }).then(r => r.json()).catch(() => []),
+        fetch('/api/future-products', { headers }).then(r => r.json()).catch(() => []),
+        fetch('/api/suppliers', { headers }).then(r => r.json()).catch(() => [])
       ]);
 
       if (statsRes) setStats(statsRes);
@@ -227,6 +232,44 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     fetchGlobalData();
     // Preload all filiales data in background for instant responsiveness
     ['nutrition', 'youpi'].forEach(loadFilialeData);
+
+    // Initialize Socket.IO connection for real-time background sync
+    getRealtimeSocket();
+
+    const handleRealtimeStats = (e: any) => {
+      if (e.detail && typeof e.detail === 'object' && ('totalRevenue' in e.detail || 'filiales' in e.detail)) {
+        setStats(e.detail);
+      } else {
+        fetchGlobalData();
+      }
+    };
+
+    const handleVisibilityChanged = (e: any) => {
+      if (e.detail && typeof e.detail === 'object') {
+        setSiteVisibility(e.detail);
+      }
+      fetchGlobalData();
+    };
+
+    const handleDataChanged = (e: any) => {
+      fetchGlobalData();
+      const shopKey = e.detail?.shopKey || e.detail?.shopId;
+      if (shopKey && shopKey !== 'all') {
+        loadFilialeData(shopKey);
+      } else {
+        ['nutrition', 'youpi'].forEach(loadFilialeData);
+      }
+    };
+
+    window.addEventListener('stats_updated', handleRealtimeStats);
+    window.addEventListener('multishop_data_changed', handleDataChanged);
+    window.addEventListener('site-visibility-changed', handleVisibilityChanged);
+
+    return () => {
+      window.removeEventListener('stats_updated', handleRealtimeStats);
+      window.removeEventListener('multishop_data_changed', handleDataChanged);
+      window.removeEventListener('site-visibility-changed', handleVisibilityChanged);
+    };
   }, []);
 
   const handleSelectShop = (shop: ShopContextId) => {
@@ -500,6 +543,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                 allProducts={allProducts}
                 allOrders={allOrders}
                 onNavigateToMenu={(menu) => setCurrentMenu(menu)}
+                siteVisibility={siteVisibility}
               />
             ) : (
               // Dedicated Boutique Dashboard
@@ -542,38 +586,50 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </div>
                 </div>
 
-                {/* 4 Metric Cards for this store */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                  <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
-                    <span className="text-xs font-bold text-slate-400 uppercase">Chiffre d'Affaires</span>
-                    <p className="text-2xl font-black text-slate-900 mt-1">
-                      {((stats?.filiales?.[activeShop]?.revenue) ?? 2890).toLocaleString('fr-FR')} DT
-                    </p>
-                    <span className="text-[10px] text-emerald-600 font-bold mt-2 block">↑ En progression</span>
-                  </div>
+                {/* 4 Metric Cards for this store - 100% Database Derived */}
+                {(() => {
+                  const fStats = stats?.filiales?.[activeShop];
+                  const liveOrders = filialeData[activeShop]?.orders || allOrders.filter(o => o.filialeKey === activeShop);
+                  const validLiveOrders = liveOrders.filter((o: any) => o.status !== 'Annulée' && o.status !== 'annulé');
+                  const liveRevenue = fStats?.revenue !== undefined ? fStats.revenue : validLiveOrders.reduce((sum: number, o: any) => sum + (Number(o.total || o.totalAmount) || 0), 0);
+                  const liveOrdersCount = fStats?.ordersCount !== undefined ? fStats.ordersCount : liveOrders.length;
+                  const liveProductsCount = fStats?.productsCount !== undefined ? fStats.productsCount : (filialeData[activeShop]?.products?.length || allProducts.filter(p => p.filialeKey === activeShop).length);
+                  const livePendingCount = fStats?.pendingOrdersCount !== undefined ? fStats.pendingOrdersCount : liveOrders.filter((o: any) => ['En attente', 'en_attente', 'Expédiée', 'confirmé'].includes(o.status)).length;
 
-                  <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
-                    <span className="text-xs font-bold text-slate-400 uppercase">Commandes</span>
-                    <p className="text-2xl font-black text-slate-900 mt-1">
-                      {stats?.filiales?.[activeShop]?.ordersCount ?? 12}
-                    </p>
-                    <span className="text-[10px] text-slate-400 mt-2 block">Sur cette boutique</span>
-                  </div>
+                  return (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+                        <span className="text-xs font-bold text-slate-400 uppercase">Chiffre d'Affaires</span>
+                        <p className="text-2xl font-black text-slate-900 mt-1">
+                          {liveRevenue.toLocaleString('fr-FR')} DT
+                        </p>
+                        <span className="text-[10px] text-emerald-600 font-bold mt-2 block">Flux direct base de données</span>
+                      </div>
 
-                  <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
-                    <span className="text-xs font-bold text-slate-400 uppercase">Articles Actifs</span>
-                    <p className="text-2xl font-black text-slate-900 mt-1">
-                      {stats?.filiales?.[activeShop]?.productsCount ?? 15}
-                    </p>
-                    <span className="text-[10px] text-blue-600 font-bold mt-2 block">Typage hérité</span>
-                  </div>
+                      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+                        <span className="text-xs font-bold text-slate-400 uppercase">Commandes Totales</span>
+                        <p className="text-2xl font-black text-slate-900 mt-1">
+                          {liveOrdersCount}
+                        </p>
+                        <span className="text-[10px] text-slate-400 mt-2 block">Dont {livePendingCount} en attente</span>
+                      </div>
 
-                  <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
-                    <span className="text-xs font-bold text-slate-400 uppercase">Statut Stock</span>
-                    <p className="text-2xl font-black text-emerald-600 mt-1">Opérationnel</p>
-                    <span className="text-[10px] text-slate-400 mt-2 block">Flux temps réel</span>
-                  </div>
-                </div>
+                      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+                        <span className="text-xs font-bold text-slate-400 uppercase">Articles Catalogue</span>
+                        <p className="text-2xl font-black text-slate-900 mt-1">
+                          {liveProductsCount}
+                        </p>
+                        <span className="text-[10px] text-blue-600 font-bold mt-2 block">Typage filiale actif</span>
+                      </div>
+
+                      <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
+                        <span className="text-xs font-bold text-slate-400 uppercase">Statut Console</span>
+                        <p className="text-2xl font-black text-emerald-600 mt-1">Synchronisé</p>
+                        <span className="text-[10px] text-slate-400 mt-2 block">Mise à jour en temps réel</span>
+                      </div>
+                    </div>
+                  );
+                })()}
 
                 {/* Quick Actions Shortcuts */}
                 <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
