@@ -1,5 +1,5 @@
 import React from 'react';
-import { Phone, Mail, Store, LayoutDashboard, ChevronRight, User, ShieldCheck, Wrench } from 'lucide-react';
+import { Phone, Store, LayoutDashboard, ChevronRight, User, ShieldCheck, Wrench } from 'lucide-react';
 import { FilialeId } from '../models/ProductFiliale';
 import { MultiShopLogo } from './admin/MultiShopLogo';
 import { 
@@ -22,15 +22,6 @@ export interface MultiShopStoreConfig {
 
 export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
   {
-    id: 'para',
-    name: 'PharmaShop',
-    tabLabel: 'Pharma Shop',
-    tagline: 'Santé, Phytothérapie & Soins Bio',
-    badge: 'Santé & Bio',
-    icon: '🌿',
-    enumType: 'produit_myshops_para'
-  },
-  {
     id: 'nutrition',
     name: 'Fitness Shop',
     tabLabel: 'Fitness Shop',
@@ -38,24 +29,6 @@ export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
     badge: 'Fitness & Muscu',
     icon: '🏋️‍♂️',
     enumType: 'produit_myshops_nutrition'
-  },
-  {
-    id: 'cosmetic',
-    name: 'Cosmetics Shop',
-    tabLabel: 'Cosmetics Shop',
-    tagline: 'Soins, Beauté & Parfumerie Luxe',
-    badge: 'Luxe & Beauté',
-    icon: '💄',
-    enumType: 'produit_myshops_cosmetique'
-  },
-  {
-    id: 'electro',
-    name: 'Electro Shop',
-    tabLabel: 'Electro Shop',
-    tagline: 'High-Tech & Électroménager',
-    badge: 'High-Tech',
-    icon: '🔌',
-    enumType: 'produit_myshops_electro'
   },
   {
     id: 'youpi',
@@ -131,14 +104,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
       ref={navContainerRef}
       className="sticky top-0 z-[120] w-full font-sans shadow-md select-none bg-white/95 dark:bg-slate-950/95 backdrop-blur-md border-b border-slate-200/90 dark:border-slate-800"
     >
-      {/* 
-        MULTISHOP MASTER GLOBAL NAVBAR
-        - 100% screen width fluid layout (w-full, no overflow, no clipped buttons)
-        - Sticks at the very top (sticky top-0) when scrolling
-        - Perfectly balanced height & buttons: larger and more prestigious than sub-navbars, yet fully visible on all displays
-      */}
       <nav className="w-full">
-        
         {/* Top Micro-Bar: Network status and customer service info */}
         <div className="w-full bg-slate-900 text-white px-3 sm:px-6 py-1 text-[11px] border-b border-white/10 hidden sm:block">
           <div className="w-full flex items-center justify-between gap-4">
@@ -149,7 +115,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
               </span>
               <span className="text-slate-500">|</span>
               <span className="text-slate-300 font-medium truncate">
-                Réseau Centralisé : Parapharmacie, Nutrition, Cosmétique, Électroménager
+                Réseau Centralisé : Fitness & Musculation Pro, Jouets d'Éveil YoupiShop
               </span>
             </div>
 
@@ -183,9 +149,9 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
               </div>
             </div>
 
-            {/* Center: Switcher between the sub-shops (Filters out shops that are hidden in Front-Office) */}
-            <div className="flex items-center justify-center flex-1 max-w-xl mx-1 sm:mx-2 min-w-0">
-              <div className="w-full flex items-center justify-center gap-1 sm:gap-1.5 bg-slate-100 dark:bg-slate-900/90 p-1 sm:p-1.5 rounded-xl border border-slate-200/90 dark:border-slate-800">
+            {/* Center: Switcher between the sub-shops */}
+            <div className="flex items-center justify-center flex-1 max-w-md mx-1 sm:mx-2 min-w-0">
+              <div className="w-full flex items-center justify-center gap-1 sm:gap-2 bg-slate-100 dark:bg-slate-900/90 p-1 sm:p-1.5 rounded-xl border border-slate-200/90 dark:border-slate-800">
                 {(() => {
                   const visibleStores = MULTISHOP_STORES.filter(s => !isSiteHiddenInFrontOffice(s.id, siteVisibility));
                   const storesToRender = visibleStores.length > 0 ? visibleStores : MULTISHOP_STORES;
@@ -200,7 +166,7 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                         type="button"
                         onClick={() => onSwitchShop(shop.id)}
                         aria-label={`Accéder à la boutique ${shop.name}`}
-                        className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 px-2 sm:px-3 py-1.5 sm:py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-0 ${
+                        className={`flex-1 flex items-center justify-center gap-2 px-3 py-2 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap min-w-0 ${
                           isCurrent
                             ? inMaintenance
                               ? 'bg-amber-600 text-white shadow-sm shadow-amber-500/30'
@@ -209,8 +175,8 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
                         }`}
                         title={`${shop.name} : ${inMaintenance ? '⚠️ Boutique en maintenance' : shop.tagline}`}
                       >
-                        <span className="text-sm sm:text-base shrink-0">{shop.icon}</span>
-                        <span className="truncate text-[11px] sm:text-xs font-extrabold">{shop.tabLabel}</span>
+                        <span className="text-base shrink-0">{shop.icon}</span>
+                        <span className="truncate text-xs font-extrabold">{shop.tabLabel}</span>
                         {inMaintenance ? (
                           <span className="text-[9px] bg-amber-400 text-amber-950 font-black px-1 rounded uppercase tracking-wider shrink-0 hidden md:inline">
                             Maint.
@@ -227,7 +193,6 @@ export const MultiShopGlobalNav: React.FC<MultiShopGlobalNavProps> = ({
 
             {/* Right: Master Control (SSO Unified Login & Admin backoffice link) */}
             <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-              {/* Administration button ONLY visible if user is logged in as ADMIN */}
               {currentUser && (currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && onGoToBackoffice && (
                 <button
                   type="button"

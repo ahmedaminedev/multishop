@@ -215,13 +215,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
           © 2026 YoupiShop. Tous droits réservés. Filiale du réseau <strong>MultiShop</strong> Tunisie.
         </p>
         <div className="flex items-center gap-3 text-slate-400 text-xs">
-          <span>🌿 PharmaShop</span>
-          <span>•</span>
           <span>🏋️‍♂️ Fitness Shop</span>
-          <span>•</span>
-          <span>💄 Cosmetics Shop</span>
-          <span>•</span>
-          <span>🔌 Electro Shop</span>
           <span>•</span>
           <span className="font-bold text-amber-400">🧸 YoupiShop</span>
         </div>

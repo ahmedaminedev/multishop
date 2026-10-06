@@ -18,7 +18,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
   currentUser,
   onLoginSuccess,
   onLogout,
-  currentShop = 'para',
+  currentShop = 'nutrition',
   onSwitchShop
 }) => {
   React.useEffect(() => {
@@ -71,7 +71,7 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
               </div>
             </div>
             <p className="text-xs text-slate-500">
-              Votre session est synchronisée et active sur l'ensemble du réseau (PharmaShop, Fitness Shop, Cosmetics Shop, Electro Shop).
+              Votre session est synchronisée et active sur l'ensemble du réseau (Fitness Shop & YoupiShop).
             </p>
             <div className="pt-2 flex flex-wrap justify-center gap-2.5">
               {(currentUser.role === 'ADMIN' || currentUser.role === 'SUPER_ADMIN') && (

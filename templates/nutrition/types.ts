@@ -113,7 +113,7 @@ export interface CartItem {
   quantity: number;
   originalItem: Cartable;
   selectedColor?: string; 
-  shopId?: 'para' | 'nutrition' | 'cosmetic' | 'electro' | string;
+  shopId?: 'nutrition' | 'youpi' | string;
   shopName?: string;
   shopBadge?: string;
   shopColor?: string;

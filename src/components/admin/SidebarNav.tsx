@@ -51,7 +51,7 @@ export type SidebarMenuItem =
   | 'home'
   | 'chat';
 
-export type ShopContextId = 'all' | 'para' | 'nutrition' | 'cosmetic' | 'electro' | 'youpi';
+export type ShopContextId = 'all' | 'nutrition' | 'youpi';
 
 interface SidebarNavProps {
   currentMenu: SidebarMenuItem;
@@ -66,10 +66,7 @@ interface SidebarNavProps {
 
 const SHOP_CONFIGS: Record<string, { name: string; icon: string; color: string; bg: string }> = {
   all: { name: 'Toutes les boutiques', icon: '🌐', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
-  para: { name: 'PharmaShop', icon: '🌿', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
   nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
-  cosmetic: { name: 'Cosmetics Shop', icon: '💄', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
-  electro: { name: 'Electro Shop', icon: '🔌', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
   youpi: { name: 'YoupiShop', icon: '🧸', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
 };
 
@@ -122,7 +119,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   // 2. Contextual items specific to a store
   const contextualMenuItems = [
     { id: 'categories' as SidebarMenuItem, label: 'Catégories', icon: FolderTree },
-    ...(activeShop !== 'electro' ? [{ id: 'brands' as SidebarMenuItem, label: 'Marques', icon: Tag }] : []),
+    { id: 'brands' as SidebarMenuItem, label: 'Marques', icon: Tag },
     { id: 'packs' as SidebarMenuItem, label: 'Packs & Bundles', icon: Boxes },
     { id: 'home' as SidebarMenuItem, label: "Page d'accueil & Ads", icon: Palette },
     { id: 'chat' as SidebarMenuItem, label: 'Live Chat Support', icon: MessageSquare },

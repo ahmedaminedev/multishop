@@ -1,5 +1,5 @@
 // Unified Multi-Store Cart Infrastructure
-// Synchronizes cart selections across all 4 sub-shops (Pharma Shop, Fitness Shop, Cosmetics Shop, Electro Shop)
+// Synchronizes cart selections across sub-shops (Fitness Shop, YoupiShop)
 
 export interface ShopMeta {
   id: string;
@@ -13,16 +13,6 @@ export interface ShopMeta {
 }
 
 export const SHOPS_META: Record<string, ShopMeta> = {
-  para: {
-    id: 'para',
-    name: 'Pharma Shop',
-    icon: '🌿',
-    color: '#008b5e',
-    badge: 'Santé & Bio',
-    borderColor: 'border-emerald-200 dark:border-emerald-800/60',
-    bgColor: 'bg-emerald-50/80 dark:bg-emerald-950/40',
-    textColor: 'text-emerald-800 dark:text-emerald-300'
-  },
   nutrition: {
     id: 'nutrition',
     name: 'Fitness Shop',
@@ -33,25 +23,15 @@ export const SHOPS_META: Record<string, ShopMeta> = {
     bgColor: 'bg-amber-50/80 dark:bg-amber-950/40',
     textColor: 'text-amber-800 dark:text-amber-300'
   },
-  cosmetic: {
-    id: 'cosmetic',
-    name: 'Cosmetics Shop',
-    icon: '💄',
-    color: '#ec4899',
-    badge: 'Luxe & Beauté',
-    borderColor: 'border-rose-200 dark:border-rose-800/60',
-    bgColor: 'bg-rose-50/80 dark:bg-rose-950/40',
-    textColor: 'text-rose-800 dark:text-rose-300'
-  },
-  electro: {
-    id: 'electro',
-    name: 'Electro Shop',
-    icon: '🔌',
-    color: '#3b82f6',
-    badge: 'High-Tech',
-    borderColor: 'border-blue-200 dark:border-blue-800/60',
-    bgColor: 'bg-blue-50/80 dark:bg-blue-950/40',
-    textColor: 'text-blue-800 dark:text-blue-300'
+  youpi: {
+    id: 'youpi',
+    name: 'YoupiShop',
+    icon: '🧸',
+    color: '#f59e0b',
+    badge: 'Jeux & Éveil',
+    borderColor: 'border-amber-200 dark:border-amber-800/60',
+    bgColor: 'bg-amber-50/80 dark:bg-amber-950/40',
+    textColor: 'text-amber-800 dark:text-amber-300'
   }
 };
 
@@ -61,31 +41,24 @@ export function getUnifiedCartKey(userId?: string | null): string {
   return userId ? `multishop_unified_cart_${userId}` : 'multishop_unified_cart_guest';
 }
 
-export function inferShopId(item: any, fallbackShopId: string = 'para'): string {
+export function inferShopId(item: any, fallbackShopId: string = 'nutrition'): string {
   if (item.shopId && SHOPS_META[item.shopId]) return item.shopId;
   
-  const idStr = String(item.id || '');
   const cat = String(item.originalItem?.category || item.category || '').toLowerCase();
   const name = String(item.name || '').toLowerCase();
 
-  if (cat.includes('electro') || cat.includes('informatique') || cat.includes('smartphone') || cat.includes('tv') || cat.includes('audio') || name.includes('tv') || name.includes('samsung') || name.includes('apple') || name.includes('montre connectée')) {
-    return 'electro';
+  if (cat.includes('jouet') || cat.includes('jeu') || cat.includes('lego') || cat.includes('peluche') || cat.includes('éveil') || name.includes('lego') || name.includes('peluche') || name.includes('poupée') || name.includes('figurine') || name.includes('youpi')) {
+    return 'youpi';
   }
-  if (cat.includes('cosmétique') || cat.includes('beauté') || cat.includes('parfum') || cat.includes('maquillage') || cat.includes('soin visage') || name.includes('sérum') || name.includes('rouge à lèvres') || name.includes('crème')) {
-    return 'cosmetic';
-  }
-  if (cat.includes('nutrition') || cat.includes('whey') || cat.includes('musculation') || cat.includes('protéine') || cat.includes('créatine') || cat.includes('bcaa') || name.includes('whey') || name.includes('isolate') || name.includes('mass gainer')) {
+  if (cat.includes('nutrition') || cat.includes('whey') || cat.includes('musculation') || cat.includes('protéine') || cat.includes('créatine') || cat.includes('haltère') || cat.includes('banc') || cat.includes('rack') || name.includes('whey') || name.includes('isolate') || name.includes('haltère') || name.includes('banc') || name.includes('rack')) {
     return 'nutrition';
-  }
-  if (cat.includes('pharma') || cat.includes('santé') || cat.includes('bio') || cat.includes('cure') || cat.includes('vitamine') || cat.includes('phytothérapie')) {
-    return 'para';
   }
   return fallbackShopId;
 }
 
-export function enrichCartItem(item: any, currentShopId: string = 'para'): any {
+export function enrichCartItem(item: any, currentShopId: string = 'nutrition'): any {
   const shopId = inferShopId(item, currentShopId);
-  const meta = SHOPS_META[shopId] || SHOPS_META.para;
+  const meta = SHOPS_META[shopId] || SHOPS_META.nutrition;
   return {
     ...item,
     shopId,
@@ -96,7 +69,7 @@ export function enrichCartItem(item: any, currentShopId: string = 'para'): any {
   };
 }
 
-export function loadUnifiedCart(userId?: string | null, currentShopId: string = 'para'): any[] {
+export function loadUnifiedCart(userId?: string | null, currentShopId: string = 'nutrition'): any[] {
   try {
     const key = getUnifiedCartKey(userId);
     const stored = localStorage.getItem(key);
@@ -111,7 +84,8 @@ export function loadUnifiedCart(userId?: string | null, currentShopId: string = 
     const legacyKeys = [
       userId ? `cart_${userId}` : 'cart_guest',
       'cart_guest',
-      'electroShopCart'
+      'nutritionShopCart',
+      'youpiShopCart'
     ];
 
     const mergedMap = new Map<string, any>();
@@ -123,7 +97,7 @@ export function loadUnifiedCart(userId?: string | null, currentShopId: string = 
           if (Array.isArray(arr)) {
             arr.forEach(item => {
               if (item && item.id) {
-                const sId = lKey === 'electroShopCart' ? 'electro' : inferShopId(item, currentShopId);
+                const sId = lKey === 'youpiShopCart' ? 'youpi' : (lKey === 'nutritionShopCart' ? 'nutrition' : inferShopId(item, currentShopId));
                 const enriched = enrichCartItem({ ...item, shopId: sId }, sId);
                 const uniqueKey = `${enriched.id}_${enriched.selectedColor || ''}`;
                 if (mergedMap.has(uniqueKey)) {
@@ -173,8 +147,8 @@ export function groupCartByShop(items: any[]): GroupedShopCart[] {
   const groups: Record<string, GroupedShopCart> = {};
 
   items.forEach(item => {
-    const sId = inferShopId(item, 'para');
-    const meta = SHOPS_META[sId] || SHOPS_META.para;
+    const sId = inferShopId(item, 'nutrition');
+    const meta = SHOPS_META[sId] || SHOPS_META.nutrition;
     if (!groups[sId]) {
       groups[sId] = {
         meta,

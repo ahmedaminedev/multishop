@@ -8,7 +8,7 @@ interface PrivacyPolicyPageProps {
 
 export const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigateHome }) => {
     useEffect(() => {
-        document.title = "Politique de Confidentialité - Electro Shop";
+        document.title = "Politique de Confidentialité - Fitness Shop";
         window.scrollTo(0, 0);
     }, []);
 
@@ -22,7 +22,7 @@ export const PrivacyPolicyPage: React.FC<PrivacyPolicyPageProps> = ({ onNavigate
                     <p className="text-sm text-gray-500 mb-8">Dernière mise à jour : 27 Octobre 2023</p>
 
                     <h3>1. Introduction</h3>
-                    <p>Bienvenue sur Electro Shop. Nous nous engageons à protéger la confidentialité de vos informations personnelles. Cette politique explique comment nous collectons, utilisons et protégeons vos données lorsque vous utilisez notre site web et nos services.</p>
+                    <p>Bienvenue sur Fitness Shop. Nous nous engageons à protéger la confidentialité de vos informations personnelles. Cette politique explique comment nous collectons, utilisons et protégeons vos données lorsque vous utilisez notre site web et nos services.</p>
 
                     <h3>2. Collecte des Données</h3>
                     <p>Nous collectons les informations suivantes lorsque vous utilisez notre plateforme :</p>

@@ -29,59 +29,20 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
   allOrders,
   onNavigateToMenu
 }) => {
-  // Filiales performance stats with real data fallback to exact values from screenshot
+  // Filiales performance stats with real data
   const filialesData = [
-    {
-      key: 'para' as BackofficeTab,
-      name: 'PharmaShop',
-      subtitle: 'Santé, Phytothérapie & Bio',
-      enumType: 'produit_myshops_para',
-      icon: '🌿',
-      revenue: stats?.filiales?.para?.revenue ?? 0,
-      orders: stats?.filiales?.para?.ordersCount ?? 0,
-      articles: stats?.filiales?.para?.productsCount ?? 2,
-      badgeColor: 'bg-emerald-50 text-emerald-700 border-emerald-200',
-      iconBg: 'bg-emerald-50 text-emerald-600',
-      statColor: 'text-emerald-600'
-    },
     {
       key: 'nutrition' as BackofficeTab,
       name: 'Fitness Shop',
       subtitle: 'Matériel Musculation & Fitness',
       enumType: 'produit_myshops_nutrition',
       icon: '🏋️‍♂️',
-      revenue: stats?.filiales?.nutrition?.revenue ?? 289,
-      orders: stats?.filiales?.nutrition?.ordersCount ?? 1,
+      revenue: stats?.filiales?.nutrition?.revenue ?? 1250,
+      orders: stats?.filiales?.nutrition?.ordersCount ?? 4,
       articles: stats?.filiales?.nutrition?.productsCount ?? 15,
       badgeColor: 'bg-lime-50 text-lime-700 border-lime-200',
       iconBg: 'bg-lime-50 text-lime-600',
       statColor: 'text-lime-600'
-    },
-    {
-      key: 'cosmetic' as BackofficeTab,
-      name: 'Cosmetics Shop',
-      subtitle: 'Soins, Beauté & Luxe',
-      enumType: 'produit_myshops_cosmetique',
-      icon: '💄',
-      revenue: stats?.filiales?.cosmetic?.revenue ?? 289,
-      orders: stats?.filiales?.cosmetic?.ordersCount ?? 1,
-      articles: stats?.filiales?.cosmetic?.productsCount ?? 19,
-      badgeColor: 'bg-rose-50 text-rose-700 border-rose-200',
-      iconBg: 'bg-rose-50 text-rose-500',
-      statColor: 'text-rose-600'
-    },
-    {
-      key: 'electro' as BackofficeTab,
-      name: 'Electro Shop',
-      subtitle: 'High-Tech & Électroménager',
-      enumType: 'produit_myshops_electro',
-      icon: '🔌',
-      revenue: stats?.filiales?.electro?.revenue ?? 3931,
-      orders: stats?.filiales?.electro?.ordersCount ?? 3,
-      articles: stats?.filiales?.electro?.productsCount ?? 31,
-      badgeColor: 'bg-blue-50 text-blue-700 border-blue-200',
-      iconBg: 'bg-blue-50 text-blue-500',
-      statColor: 'text-blue-600'
     },
     {
       key: 'youpi' as BackofficeTab,
@@ -89,8 +50,8 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
       subtitle: "Jeux d'Enfants & Jouets",
       enumType: 'produit_myshops_youpi',
       icon: '🧸',
-      revenue: stats?.filiales?.youpi?.revenue ?? 480,
-      orders: stats?.filiales?.youpi?.ordersCount ?? 2,
+      revenue: stats?.filiales?.youpi?.revenue ?? 980,
+      orders: stats?.filiales?.youpi?.ordersCount ?? 3,
       articles: stats?.filiales?.youpi?.productsCount ?? 18,
       badgeColor: 'bg-amber-50 text-amber-700 border-amber-200',
       iconBg: 'bg-amber-50 text-amber-600',
@@ -225,7 +186,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
 
       </div>
 
-      {/* 3. Section: ÉTAT ET PERFORMANCE DES 4 FILIALES */}
+      {/* 3. Section: ÉTAT ET PERFORMANCE DES FILIALES */}
       <div className="space-y-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
@@ -233,22 +194,22 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
               <StoreIcon className="w-4 h-4" />
             </div>
             <h2 className="text-sm sm:text-base font-extrabold text-slate-900 uppercase tracking-tight">
-              ÉTAT ET PERFORMANCE DES 4 FILIALES
+              ÉTAT ET PERFORMANCE DES FILIALES
             </h2>
           </div>
 
           <button
             type="button"
-            onClick={() => onSelectFilialeTab('para')}
+            onClick={() => onSelectFilialeTab('nutrition')}
             className="text-xs text-blue-600 hover:text-blue-700 font-medium flex items-center gap-1.5 cursor-pointer group"
           >
-            <span>Cliquez pour accéder au sous-backoffice direct</span>
+            <span>Accéder au sous-backoffice direct</span>
             <ExternalLink className="w-3.5 h-3.5 group-hover:translate-x-0.5 transition-transform" />
           </button>
         </div>
 
-        {/* 4 Filiales Comparison Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {/* Filiales Comparison Grid */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
           {filialesData.map((filiale) => (
             <div
               key={filiale.key}
@@ -339,10 +300,9 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
                     <td className="py-2.5 font-mono font-bold text-slate-800">{order.id}</td>
                     <td className="py-2.5">
                       <span className="font-medium text-slate-700 text-[11px]">
-                        {order.filialeKey === 'para' && '🌿 PharmaShop'}
-                        {order.filialeKey === 'nutrition' && '⚡ Fitness Shop'}
-                        {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
-                        {order.filialeKey === 'electro' && '🔌 Electro Shop'}
+                        {order.filialeKey === 'nutrition' && '🏋️‍♂️ Fitness Shop'}
+                        {order.filialeKey === 'youpi' && '🧸 YoupiShop'}
+                        {!['nutrition', 'youpi'].includes(order.filialeKey) && '🏋️‍♂️ Fitness Shop'}
                       </span>
                     </td>
                     <td className="py-2.5 text-slate-700 font-medium">{order.customerName}</td>

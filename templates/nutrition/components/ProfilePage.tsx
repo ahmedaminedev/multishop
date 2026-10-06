@@ -99,7 +99,7 @@ export const ProfilePage: React.FC<ProfilePageProps> = ({ user, onNavigateHome, 
     const [activeTab, setActiveTab] = useState<ProfileTab>('info');
 
     useEffect(() => {
-        document.title = `Mon Profil - Electro Shop`;
+        document.title = `Mon Profil - Fitness Shop`;
         const style = document.createElement('style');
         style.innerHTML = `
         @keyframes fadeIn {

@@ -7,21 +7,133 @@ const require = createRequire(import.meta.url);
 
 // In-memory data store per shop
 export const storesData = {
-  para: null,
   nutrition: null,
-  cosmetic: null,
-  electro: null,
   youpi: null,
 };
 
 // Global in-memory chat sessions store per shop
 export const chatSessionsStore = {
-  para: new Map(),
   nutrition: new Map(),
-  cosmetic: new Map(),
-  electro: new Map(),
   youpi: new Map()
 };
+
+// Real-Time WebSocket & SSE Architecture
+export let globalSocketIo = null;
+export const sseClients = new Set();
+
+export function setSocketServer(io) {
+  globalSocketIo = io;
+  if (!io) return;
+  io.on('connection', (socket) => {
+    // Deliver immediate 100% database-derived live stats upon connection
+    socket.emit('stats:updated', computeGlobalStats());
+    socket.emit('visibility:updated', siteVisibilityData);
+    socket.on('request_stats', () => {
+      socket.emit('stats:updated', computeGlobalStats());
+    });
+  });
+}
+
+/**
+ * 100% Database-calculated live statistics
+ * Dynamically re-aggregates whenever orders, products or site visibility changes.
+ * Excludes hidden sub-sites from active totals while preserving separate filiale cards.
+ */
+export function computeGlobalStats() {
+  const stats = {
+    totalRevenue: 0,
+    totalOrders: 0,
+    totalProducts: 0,
+    pendingOrders: 0,
+    activeStoresCount: 0,
+    totalStoresCount: Object.keys(storesData).length,
+    siteVisibility: siteVisibilityData,
+    filiales: {},
+    allStoresGross: {
+      revenue: 0,
+      ordersCount: 0,
+      productsCount: 0,
+      pendingOrdersCount: 0
+    }
+  };
+
+  for (const [key, s] of Object.entries(storesData)) {
+    if (!s) continue;
+    const isHidden = Boolean(siteVisibilityData[key]?.is_hidden);
+    const orders = Array.isArray(s.orders) ? s.orders : [];
+    const products = Array.isArray(s.products) ? s.products : [];
+
+    // Strict 100% calculation from actual database records:
+    const sRevenue = orders
+      .filter(o => o.status !== 'Annulée')
+      .reduce((sum, o) => sum + (Number(o.total) || 0), 0);
+    const sOrders = orders.length;
+    const sProducts = products.length;
+    const sPending = orders.filter(o => o.status === 'En attente' || o.status === 'Expédiée').length;
+    const sDelivered = orders.filter(o => o.status === 'Livrée').length;
+    const sCancelled = orders.filter(o => o.status === 'Annulée').length;
+
+    stats.filiales[key] = {
+      key,
+      name: s.name,
+      filialeType: s.filialeType,
+      revenue: Math.round(sRevenue * 100) / 100,
+      ordersCount: sOrders,
+      productsCount: sProducts,
+      pendingOrdersCount: sPending,
+      deliveredOrdersCount: sDelivered,
+      cancelledOrdersCount: sCancelled,
+      brandsCount: (s.brands || []).length,
+      categoriesCount: (s.categories || []).length,
+      packsCount: (s.packs || []).length,
+      messagesCount: (s.contactMessages || []).length,
+      isHidden,
+      visibility: siteVisibilityData[key] || { is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout' }
+    };
+
+    // Gross totals across all stores
+    stats.allStoresGross.revenue += sRevenue;
+    stats.allStoresGross.ordersCount += sOrders;
+    stats.allStoresGross.productsCount += sProducts;
+    stats.allStoresGross.pendingOrdersCount += sPending;
+
+    // USER REQUIREMENT: If a sub-site is hidden, global totals dynamically adjust!
+    if (!isHidden) {
+      stats.totalRevenue += sRevenue;
+      stats.totalOrders += sOrders;
+      stats.totalProducts += sProducts;
+      stats.pendingOrders += sPending;
+      stats.activeStoresCount += 1;
+    }
+  }
+
+  stats.totalRevenue = Math.round(stats.totalRevenue * 100) / 100;
+  stats.allStoresGross.revenue = Math.round(stats.allStoresGross.revenue * 100) / 100;
+  return stats;
+}
+
+/**
+ * Broadcast real-time update to all connected WebSocket clients & SSE streams
+ */
+export function broadcastRealtimeUpdate(eventType = 'general', payload = {}) {
+  const freshStats = computeGlobalStats();
+  if (globalSocketIo) {
+    globalSocketIo.emit('stats:updated', freshStats);
+    globalSocketIo.emit('visibility:updated', siteVisibilityData);
+    globalSocketIo.emit('data:updated', { type: eventType, payload, stats: freshStats, timestamp: Date.now() });
+  }
+
+  if (sseClients.size > 0) {
+    const sseMessage = `data: ${JSON.stringify({ type: 'stats:updated', eventType, stats: freshStats, visibility: siteVisibilityData, timestamp: Date.now() })}\n\n`;
+    for (const client of sseClients) {
+      try {
+        client.write(sseMessage);
+      } catch {
+        sseClients.delete(client);
+      }
+    }
+  }
+}
 
 // Seed realistic client chat sessions for YoupiShop
 chatSessionsStore.youpi.set('client_youpi_1', {
@@ -80,10 +192,7 @@ export function recordChatMessage(shopKey, data) {
 
 // Visibilité et disponibilité des boutiques (Gestion avancée Front-office / Back-office / Maintenance)
 export let siteVisibilityData = {
-  para: { siteId: 'para', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🌿 PharmaShop est temporairement en maintenance technique. Notre équipe prépare de nouveaux produits.' },
   nutrition: { siteId: 'nutrition', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🏋️‍♂️ Fitness Shop est temporairement en maintenance technique pour réapprovisionnement.' },
-  cosmetic: { siteId: 'cosmetic', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '💄 Cosmetics Shop est en maintenance technique. Réouverture imminente.' },
-  electro: { siteId: 'electro', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🔌 Electro Shop est temporairement en maintenance pour mise à jour de notre catalogue.' },
   youpi: { siteId: 'youpi', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🧸 YoupiShop est en maintenance pour préparer de nouveaux jeux et jouets d\'éveil.' }
 };
 
@@ -153,57 +262,21 @@ export let futureProductsData = [
   },
   {
     id: 'fut-2',
-    nom: 'Sérum Rétinol Végétal Bakuchiol 2% Haute Tolérance',
-    image: 'https://images.unsplash.com/photo-1620916566398-39f1143ab7be?q=80&w=600',
-    lien: 'https://tiktok.com/@beauty_glow_paris/video/retinol',
-    prix_source: 38,
-    quantite: 30,
-    quantite_enstock: 30,
-    sourceId: 'src-2',
-    sourceNom: 'Fournisseur TikTok Trend @beauty_glow_paris',
-    site: 'cosmetic',
+    nom: 'Jeu de Construction Circuit Billes en Bois Écologique',
+    image: 'https://images.unsplash.com/photo-1596461404969-9ae70f2830c1?q=80&w=600',
+    lien: 'https://youpi-toys-maghreb.tn/circuit-billes',
+    prix_source: 42,
+    quantite: 20,
+    quantite_enstock: 20,
+    sourceId: 'src-1',
+    sourceNom: 'Youpi Toys & Games Maghreb Import',
+    site: 'youpi',
     is_futur_site: false,
     futur_site: '',
-    categorie: 'Soins Visage & Rituels',
+    categorie: 'Éveil & Bébé',
     statut: 'en_prospection',
-    notes: 'Produit tendance virale beauté, packaging flacon verre ambré.',
+    notes: 'Jouet éducatif d\'éveil en bois certifié FSC. Norme CE EN-71.',
     dateCreation: '2026-02-18T16:20:00.000Z'
-  },
-  {
-    id: 'fut-3',
-    nom: 'Diffuseur d\'Huiles Essentielles Ultrasonique Bois Zen',
-    image: 'https://images.unsplash.com/photo-1608571423902-eed4a5ad8108?q=80&w=600',
-    lien: 'https://biosante-maghreb.com/diffuseur',
-    prix_source: 45,
-    quantite: 15,
-    quantite_enstock: 15,
-    sourceId: 'src-4',
-    sourceNom: 'Laboratoire Bio Santé Méditerranée',
-    site: 'parashop',
-    is_futur_site: false,
-    futur_site: '',
-    categorie: 'Phytothérapie & Bio',
-    statut: 'en_prospection',
-    notes: 'Design scandinave avec LED relaxantes. Efficacité aromathérapie.',
-    dateCreation: '2026-02-22T08:45:00.000Z'
-  },
-  {
-    id: 'fut-4',
-    nom: 'Casque Audio Spatial Sans Fil Réduction Bruit Active',
-    image: 'https://images.unsplash.com/photo-1505740420928-5e560c06d30e?q=80&w=600',
-    lien: 'https://facebook.com/hightech.tunis/audio',
-    prix_source: 110,
-    quantite: 10,
-    quantite_enstock: 10,
-    sourceId: 'src-3',
-    sourceNom: 'Grossiste HighTech Rue d\'Athènes',
-    site: 'electro',
-    is_futur_site: false,
-    futur_site: '',
-    categorie: 'Multimédia & Son',
-    statut: 'en_prospection',
-    notes: 'Autonomie 40 heures. Qualité audio Hi-Res certifiée.',
-    dateCreation: '2026-02-25T11:10:00.000Z'
   },
   {
     id: 'fut-5',
@@ -250,39 +323,6 @@ export let suppliersData = [
     ]
   },
   {
-    id: 'frn-2',
-    nom: 'Cosmetica Pharma Import & Logistique',
-    localisation: 'Les Berges du Lac 1, Tunis',
-    lien: 'https://cosmeticapharma.tn',
-    image: 'https://images.unsplash.com/photo-1522337360788-8b13dee7a37e?q=80&w=300',
-    telephone: '+216 70 600 700',
-    notes: 'Importateur agréé pour soins dermatologiques, sérums et parapharmacie de luxe.',
-    dateCreation: '2026-01-12T09:30:00.000Z',
-    historique_achats: [
-      {
-        id: 'ach-102',
-        date: '2026-02-20',
-        type: 'produit_existant',
-        items: [
-          { productId: 1, nom: 'Sérum Éclat Vitamine C Liposomale - 15%', quantite: 35, prixAchat: 45, site: 'para', siteName: 'PharmaShop' }
-        ],
-        montantTotal: 1575,
-        notes: 'Lots scellés sous atmosphère contrôlée avec DLUO 2028.'
-      }
-    ]
-  },
-  {
-    id: 'frn-3',
-    nom: 'Electro Maghreb Central',
-    localisation: 'Avenue de Carthage, Tunis',
-    lien: 'https://electromaghreb.tn',
-    image: 'https://images.unsplash.com/photo-1550009158-9ebf69173e03?q=80&w=300',
-    telephone: '+216 71 250 350',
-    notes: 'Grossiste officiel électroménager et petit multimédia connecté avec garantie constructeur.',
-    dateCreation: '2026-02-01T10:00:00.000Z',
-    historique_achats: []
-  },
-  {
     id: 'frn-4',
     nom: 'Youpi Toys & Games Maghreb Import',
     localisation: 'Zone Portuaire Radès, Ben Arous',
@@ -307,19 +347,9 @@ export let suppliersData = [
   }
 ];
 
-let activeShop = 'para';
-
+let activeShop = 'nutrition';
 
 export const FILIALE_MAP = {
-  para: {
-    key: 'para',
-    folder: 'templates/para',
-    legacyFolder: 'ParaShop-main',
-    name: 'PharmaShop',
-    filialeType: 'produit_myshops_para',
-    accentColor: '#008b5e',
-    badge: 'Santé & Bio'
-  },
   nutrition: {
     key: 'nutrition',
     folder: 'templates/nutrition',
@@ -328,24 +358,6 @@ export const FILIALE_MAP = {
     filialeType: 'produit_myshops_nutrition',
     accentColor: '#84cc16',
     badge: 'Fitness & Muscu'
-  },
-  cosmetic: {
-    key: 'cosmetic',
-    folder: 'templates/cosmetic',
-    legacyFolder: 'cosmeticshop-main',
-    name: 'Cosmetics Shop',
-    filialeType: 'produit_myshops_cosmetique',
-    accentColor: '#e11d48',
-    badge: 'Luxe & Beauté'
-  },
-  electro: {
-    key: 'electro',
-    folder: 'templates/electro',
-    legacyFolder: 'electro_shop-main',
-    name: 'Electro Shop',
-    filialeType: 'produit_myshops_electro',
-    accentColor: '#2563eb',
-    badge: 'High-Tech'
   },
   youpi: {
     key: 'youpi',
@@ -360,7 +372,7 @@ export const FILIALE_MAP = {
 
 function enrichProductWithFiliale(product, filialeKey) {
   const p = { ...product };
-  const filiale = FILIALE_MAP[filialeKey];
+  const filiale = FILIALE_MAP[filialeKey] || FILIALE_MAP.nutrition;
   p.filialeType = filiale.filialeType;
   p.filialeName = filiale.name;
   p.filialeKey = filialeKey;
@@ -368,31 +380,13 @@ function enrichProductWithFiliale(product, filialeKey) {
   if (product.fournisseurId) p.fournisseurId = product.fournisseurId;
   if (product.fournisseurNom) p.fournisseurNom = product.fournisseurNom;
 
-  if (filialeKey === 'electro') {
-    p.garantieMois = p.garantieMois || (p.price > 500 ? 36 : 24);
-    p.puissanceWatts = p.puissanceWatts || (p.name.includes('Four') || p.name.includes('Cuisinière') ? '2800W' : p.name.includes('Aspirateur') ? '1800W' : '1200W');
-    p.classeEnergetique = p.classeEnergetique || (p.price > 800 ? 'A+++' : 'A++');
-    p.referenceTechnique = p.referenceTechnique || `AUX-${(p.brand || 'TECH').slice(0, 3).toUpperCase()}-${p.id}`;
-    p.voltage = p.voltage || '220-240V / 50Hz';
-  } else if (filialeKey === 'nutrition') {
+  if (filialeKey === 'nutrition') {
     p.poidsKg = p.poidsKg || (p.name.includes('2x10kg') ? 20 : p.name.includes('50kg') ? 50 : p.name.includes('2.2') ? 2.2 : 1.0);
     p.garantieMois = p.garantieMois || (p.price > 500 ? 36 : p.price > 150 ? 24 : 12);
     p.chargeMaxKg = p.chargeMaxKg || (p.name.includes('Rack') ? 600 : p.name.includes('Banc') ? 450 : undefined);
     p.matiere = p.matiere || (p.name.includes('Haltère') ? 'Caoutchouc & Fonte' : p.name.includes('Rack') ? 'Acier Carbone 75x75mm' : undefined);
     p.goutSaveur = p.goutSaveur || (p.name.includes('Whey') ? 'Chocolat Belge' : p.name.includes('Créatine') ? 'Neutre' : undefined);
     p.objectifSportif = p.objectifSportif || (p.name.includes('Tapis') ? 'Endurance Cardio & Brûle-graisses' : 'Force & Hypertrophie Musculaire');
-  } else if (filialeKey === 'cosmetic') {
-    p.teinte = p.teinte || (p.category?.includes('Lèvres') ? 'Rouge Carmin 04' : p.category?.includes('Teint') ? 'Beige Doré 02' : 'Universel');
-    p.volumeMl = p.volumeMl || (p.category?.includes('Parfum') ? 100 : p.category?.includes('Soin') ? 50 : 30);
-    p.hypoallergenique = p.hypoallergenique !== undefined ? p.hypoallergenique : true;
-    p.effetSoin = p.effetSoin || (p.name.includes('Sérum') ? 'Anti-âge & Éclat' : 'Hydratation 48h');
-    p.parfumNotes = p.parfumNotes || 'Rose Damascena, Musc blanc et Vanille';
-  } else if (filialeKey === 'para') {
-    p.posologie = p.posologie || '1 à 2 prises par jour de préférence le matin';
-    p.compositionBio = p.compositionBio !== undefined ? p.compositionBio : true;
-    p.certification = p.certification || 'Certifié Bio ECOCERT & Norme ISO 22000';
-    p.formeGalenique = p.formeGalenique || (p.name.includes('Huile') ? 'Huile végétale pure' : p.name.includes('Sérum') ? 'Flacon compte-gouttes' : 'Gélules végétales');
-    p.typePeauOuBesoin = p.typePeauOuBesoin || 'Peaux sensibles & Défenses immunitaires';
   } else if (filialeKey === 'youpi') {
     p.trancheAge = p.trancheAge || '3 - 8 ans';
     p.materiauPrincipal = p.materiauPrincipal || 'Bois naturel certifié FSC & Plastique sans BPA';
@@ -417,13 +411,7 @@ export async function initStores() {
       const rawProducts = Array.isArray(data.allProducts) ? JSON.parse(JSON.stringify(data.allProducts)) : [];
       const defaultSupplier = key === 'nutrition' 
         ? { id: 'frn-1', nom: 'Tunisie Fitness & Sport Distribution' }
-        : key === 'para'
-        ? { id: 'frn-2', nom: 'Cosmetica Pharma Import & Logistique' }
-        : key === 'cosmetic'
-        ? { id: 'frn-2', nom: 'Cosmetica Pharma Import & Logistique' }
-        : key === 'youpi'
-        ? { id: 'frn-4', nom: 'Youpi Toys & Games Maghreb Import' }
-        : { id: 'frn-3', nom: 'Electro Maghreb Central' };
+        : { id: 'frn-4', nom: 'Youpi Toys & Games Maghreb Import' };
 
       const products = rawProducts.map((prod, i) => {
         const withSupplier = {
@@ -618,8 +606,8 @@ export function handleApiRequest(req, res, next) {
 
   const endpoint = pathname.replace(/^\/api/, '');
   const cookies = parseCookies(req.headers.cookie);
-  const shopKey = req.headers['x-shop-id'] || parsedUrl.query.shop || cookies.shop || activeShop || 'para';
-  const shop = storesData[shopKey] || storesData.para || storesData.nutrition || storesData.cosmetic || storesData.electro;
+  const shopKey = req.headers['x-shop-id'] || parsedUrl.query.shop || cookies.shop || activeShop || 'nutrition';
+  const shop = storesData[shopKey] || storesData.nutrition || storesData.youpi;
 
   // Set permissive CORS headers for iframe & preview environments
   const origin = req.headers.origin || '*';
@@ -751,8 +739,8 @@ export function handleApiRequest(req, res, next) {
 
       if (endpoint === '/global/products' && req.method === 'POST') {
         const body = await getBody();
-        const filialeKey = body.filialeKey || 'para';
-        const targetStore = storesData[filialeKey] || storesData.para;
+        const filialeKey = body.filialeKey || 'nutrition';
+        const targetStore = storesData[filialeKey] || storesData.nutrition;
         const newId = body.id || (Date.now() + Math.floor(Math.random() * 1000));
         const newProduct = enrichProductWithFiliale({
           id: newId,
@@ -896,14 +884,12 @@ export function handleApiRequest(req, res, next) {
           return { error: 'Validation Error', message: 'Veuillez sélectionner au moins un article avec sa quantité.' };
         }
 
-        const validFilialeKeys = ['para', 'nutrition', 'cosmetic', 'electro'];
+        const validFilialeKeys = ['nutrition', 'youpi'];
         const mapToFilialeKey = (siteStr) => {
           if (!siteStr) return null;
           const s = String(siteStr).toLowerCase();
-          if (s === 'para' || s === 'parashop') return 'para';
           if (s === 'nutrition' || s === 'fitnessshop') return 'nutrition';
-          if (s === 'cosmetic' || s === 'cosmetics') return 'cosmetic';
-          if (s === 'electro' || s === 'electroshop') return 'electro';
+          if (s === 'youpi' || s === 'youpishop') return 'youpi';
           return null;
         };
 

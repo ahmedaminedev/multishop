@@ -1,42 +1,21 @@
 /**
  * Modélisation du catalogue MultiShop avec héritage orienté objet
- * Classe de base Produit et sous-classes ProduitFiliale par filiale
+ * Classe de base Produit et sous-classes ProduitFiliale par filiale (Fitness Shop & YoupiShop)
  */
 
 export enum FilialeType {
-  PRODUIT_MYSHOPS_ELECTRO = 'produit_myshops_electro',
   PRODUIT_MYSHOPS_NUTRITION = 'produit_myshops_nutrition',
-  PRODUIT_MYSHOPS_COSMETIQUE = 'produit_myshops_cosmetique',
-  PRODUIT_MYSHOPS_PARA = 'produit_myshops_para',
   PRODUIT_MYSHOPS_YOUPI = 'produit_myshops_youpi'
 }
 
-export type FilialeId = 'electro' | 'nutrition' | 'cosmetic' | 'para' | 'youpi';
+export type FilialeId = 'nutrition' | 'youpi';
 
 export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; badgeColor: string; icon: string }> = {
-  [FilialeType.PRODUIT_MYSHOPS_ELECTRO]: {
-    id: 'electro',
-    name: 'Electro Shop',
-    badgeColor: 'bg-blue-100 text-blue-800 border-blue-300 dark:bg-blue-900/40 dark:text-blue-300',
-    icon: '🔌'
-  },
   [FilialeType.PRODUIT_MYSHOPS_NUTRITION]: {
     id: 'nutrition',
     name: 'Fitness Shop',
     badgeColor: 'bg-lime-100 text-lime-900 border-lime-300 dark:bg-zinc-800 dark:text-lime-400',
     icon: '⚡'
-  },
-  [FilialeType.PRODUIT_MYSHOPS_COSMETIQUE]: {
-    id: 'cosmetic',
-    name: 'Cosmetics Shop',
-    badgeColor: 'bg-rose-100 text-rose-800 border-rose-300 dark:bg-rose-900/40 dark:text-rose-300',
-    icon: '💄'
-  },
-  [FilialeType.PRODUIT_MYSHOPS_PARA]: {
-    id: 'para',
-    name: 'PharmaShop',
-    badgeColor: 'bg-emerald-100 text-emerald-800 border-emerald-300 dark:bg-emerald-900/40 dark:text-emerald-300',
-    icon: '🌿'
   },
   [FilialeType.PRODUIT_MYSHOPS_YOUPI]: {
     id: 'youpi',
@@ -47,7 +26,7 @@ export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; 
 };
 
 /**
- * Classe de base Produit (commune à tout le groupe MultiShop)
+ * Classe de base Produit (commune au groupe MultiShop)
  */
 export class Produit {
   id: number;
@@ -105,7 +84,7 @@ export class Produit {
 export type TypeVenteSource = 'engros' | 'detail' | 'les_deux';
 
 /**
- * Classe SourceProduit : pour tracer l'origine de prospection (Instagram, TikTok, Facebook, grossiste...)
+ * Classe SourceProduit : pour tracer l'origine de prospection
  */
 export class SourceProduit {
   id: string;
@@ -147,7 +126,7 @@ export class FutureProduit {
   quantite_enstock?: number;
   sourceId: string;
   sourceNom?: string;
-  site: string; // 'fitnessshop' | 'parashop' | 'cosmetic' | 'electro' | 'autre'
+  site: string; // 'fitnessshop' | 'youpi' | 'autre'
   is_futur_site: boolean;
   futur_site?: string;
   categorie: string;
@@ -229,7 +208,6 @@ export class Fournisseur {
   }
 }
 
-
 /**
  * Classe abstraite ProduitFiliale qui hérite de Produit
  */
@@ -253,37 +231,7 @@ export abstract class ProduitFiliale extends Produit {
 }
 
 /**
- * Filiale Électroménager & High-Tech
- */
-export class ProduitElectro extends ProduitFiliale {
-  garantieMois: number;
-  puissanceWatts?: string;
-  classeEnergetique?: string;
-  referenceTechnique?: string;
-  voltage?: string;
-
-  constructor(data: any) {
-    super(data, FilialeType.PRODUIT_MYSHOPS_ELECTRO, 'Electro Shop');
-    this.garantieMois = data.garantieMois || 24;
-    this.puissanceWatts = data.puissanceWatts || '2000W';
-    this.classeEnergetique = data.classeEnergetique || 'A++';
-    this.referenceTechnique = data.referenceTechnique || `REF-${this.brand.slice(0, 3).toUpperCase()}-${this.id}`;
-    this.voltage = data.voltage || '220-240V / 50Hz';
-  }
-
-  getSpecificAttributes() {
-    return {
-      'Garantie constructeur': `${this.garantieMois} mois`,
-      'Puissance nominale': this.puissanceWatts,
-      'Classe énergétique': this.classeEnergetique,
-      'Référence technique': this.referenceTechnique,
-      'Tension électrique': this.voltage
-    };
-  }
-}
-
-/**
- * Filiale Nutrition Sportive & Fitness
+ * Filiale Nutrition Sportive & Fitness (Fitness Shop)
  */
 export class ProduitNutrition extends ProduitFiliale {
   goutSaveur: string;
@@ -308,66 +256,6 @@ export class ProduitNutrition extends ProduitFiliale {
       'Protéines / portion': this.proteinesParPortion,
       'Objectif ciblé': this.objectifSportif,
       'Énergie (100g)': `${this.valeurEnergetiqueKcal} kcal`
-    };
-  }
-}
-
-/**
- * Filiale Cosmétique & Parfumerie de Luxe
- */
-export class ProduitCosmetique extends ProduitFiliale {
-  teinte?: string;
-  volumeMl: number;
-  hypoallergenique: boolean;
-  effetSoin: string;
-  parfumNotes?: string;
-
-  constructor(data: any) {
-    super(data, FilialeType.PRODUIT_MYSHOPS_COSMETIQUE, 'Cosmetics Shop');
-    this.teinte = data.teinte || 'Naturel / Universel';
-    this.volumeMl = data.volumeMl || 50;
-    this.hypoallergenique = data.hypoallergenique !== undefined ? data.hypoallergenique : true;
-    this.effetSoin = data.effetSoin || 'Hydratation profonde & Éclat';
-    this.parfumNotes = data.parfumNotes || 'Floral doux et poudré';
-  }
-
-  getSpecificAttributes() {
-    return {
-      'Teinte / Nuance': this.teinte,
-      'Contenance': `${this.volumeMl} ml`,
-      'Hypoallergénique': this.hypoallergenique ? 'Oui (Testé sous contrôle dermatologique)' : 'Non',
-      'Effet recherché': this.effetSoin,
-      'Pyramide olfactive': this.parfumNotes
-    };
-  }
-}
-
-/**
- * Filiale Parapharmacie & Phytothérapie Naturelle
- */
-export class ProduitPara extends ProduitFiliale {
-  posologie: string;
-  compositionBio: boolean;
-  certification: string;
-  formeGalenique: string;
-  typePeauOuBesoin: string;
-
-  constructor(data: any) {
-    super(data, FilialeType.PRODUIT_MYSHOPS_PARA, 'PharmaShop');
-    this.posologie = data.posologie || '2 prises par jour avec un grand verre d\'eau';
-    this.compositionBio = data.compositionBio !== undefined ? data.compositionBio : true;
-    this.certification = data.certification || 'Certifié Bio ECOCERT & ISO 22000';
-    this.formeGalenique = data.formeGalenique || 'Gélules végétales';
-    this.typePeauOuBesoin = data.typePeauOuBesoin || 'Immunité, Vitalité & Équilibre';
-  }
-
-  getSpecificAttributes() {
-    return {
-      'Posologie conseillée': this.posologie,
-      'Composition Biologique': this.compositionBio ? '100% Bio & Naturel' : 'Formule Pharmaceutique Standard',
-      'Certifications': this.certification,
-      'Forme galénique': this.formeGalenique,
-      'Cible / Besoin': this.typePeauOuBesoin
     };
   }
 }
@@ -406,19 +294,13 @@ export class ProduitYoupi extends ProduitFiliale {
  * Factory pour instancier la bonne sous-classe selon le filialeType
  */
 export function createProduitFiliale(data: any, defaultFilialeType?: FilialeType): ProduitFiliale {
-  const type = data.filialeType || defaultFilialeType || FilialeType.PRODUIT_MYSHOPS_PARA;
+  const type = data.filialeType || defaultFilialeType || FilialeType.PRODUIT_MYSHOPS_NUTRITION;
 
   switch (type) {
-    case FilialeType.PRODUIT_MYSHOPS_ELECTRO:
-      return new ProduitElectro(data);
-    case FilialeType.PRODUIT_MYSHOPS_NUTRITION:
-      return new ProduitNutrition(data);
-    case FilialeType.PRODUIT_MYSHOPS_COSMETIQUE:
-      return new ProduitCosmetique(data);
     case FilialeType.PRODUIT_MYSHOPS_YOUPI:
       return new ProduitYoupi(data);
-    case FilialeType.PRODUIT_MYSHOPS_PARA:
+    case FilialeType.PRODUIT_MYSHOPS_NUTRITION:
     default:
-      return new ProduitPara(data);
+      return new ProduitNutrition(data);
   }
 }

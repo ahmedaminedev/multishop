@@ -15,24 +15,24 @@ const seedData = async () => {
   try {
     // 1. Users (Admin & Client)
     // Force delete admin to ensure clean password hash generation
-    await User.deleteOne({ email: 'admin@cosmeticsshop.com' });
+    await User.deleteOne({ email: 'admin@multishop.tn' });
     
     await User.create({
       firstName: 'Super',
       lastName: 'Admin',
-      email: 'admin@cosmeticsshop.com',
+      email: 'admin@multishop.tn',
       password: 'password123',
       role: 'ADMIN',
       phone: '00000000'
     });
-    console.log('Admin recréé (Email: admin@cosmeticsshop.com, MDP: password123)');
+    console.log('Admin recréé (Email: admin@multishop.tn, MDP: password123)');
 
-    let clientUser = await User.findOne({ email: 'client@cosmeticsshop.com' });
+    let clientUser = await User.findOne({ email: 'client@multishop.tn' });
     if (!clientUser) {
       clientUser = await User.create({
         firstName: 'John',
         lastName: 'Doe',
-        email: 'client@cosmeticsshop.com',
+        email: 'client@multishop.tn',
         password: 'password123',
         role: 'CUSTOMER',
         phone: '12345678',

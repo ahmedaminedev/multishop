@@ -8,7 +8,7 @@ const FutureProductSchema = new mongoose.Schema({
   quantite_enstock: { type: Number, default: 0 },
   sourceId: { type: mongoose.Schema.Types.ObjectId, ref: 'ProductSource', required: true },
   sourceNom: { type: String, trim: true },
-  site: { type: String, trim: true }, // 'fitnessshop' / 'parashop' / 'cosmetic' / 'electro' / 'autre'
+  site: { type: String, trim: true }, // 'fitnessshop' / 'youpi' / 'autre'
   is_futur_site: { type: Boolean, default: false },
   futur_site: { type: String, trim: true }, // Rempli si "site non existant" est coché
   categorie: { type: String, trim: true },

@@ -14,10 +14,7 @@ import {
 } from './src/utils/siteVisibility';
 
 // Lazy load each shop application template
-const ParaShopApp = React.lazy(() => import('./templates/para/App'));
 const NutritionShopApp = React.lazy(() => import('./templates/nutrition/App'));
-const CosmeticShopApp = React.lazy(() => import('./templates/cosmetic/App'));
-const ElectroShopApp = React.lazy(() => import('./templates/electro/App'));
 const YoupiShopApp = React.lazy(() => import('./templates/youpi/App'));
 
 export type AppMode = 'backoffice' | 'frontoffice';
@@ -36,10 +33,7 @@ export const App: React.FC = () => {
 
   const [backofficeScope, setBackofficeScope] = useState<BackofficeScope>(() => {
     const hash = window.location.hash;
-    if (hash.startsWith('#/admin/para')) return 'para';
     if (hash.startsWith('#/admin/nutrition')) return 'nutrition';
-    if (hash.startsWith('#/admin/cosmetic')) return 'cosmetic';
-    if (hash.startsWith('#/admin/electro')) return 'electro';
     if (hash.startsWith('#/admin/youpi')) return 'youpi';
     return 'hq';
   });
@@ -47,14 +41,14 @@ export const App: React.FC = () => {
   const [currentShop, setCurrentShop] = useState<FilialeId>(() => {
     const params = new URLSearchParams(window.location.search);
     const shopParam = params.get('shop') as FilialeId;
-    if (shopParam && ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(shopParam)) {
+    if (shopParam && ['nutrition', 'youpi'].includes(shopParam)) {
       return shopParam;
     }
     const saved = localStorage.getItem('multishop_active_shop') as FilialeId;
-    if (saved && ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(saved)) {
+    if (saved && ['nutrition', 'youpi'].includes(saved)) {
       return saved;
     }
-    return 'para';
+    return 'nutrition';
   });
 
   // Single Unified User State (SSO across all 5 shops & backoffice)
@@ -77,18 +71,9 @@ export const App: React.FC = () => {
     const handleHash = () => {
       const hash = window.location.hash;
       setIsClientAuthRoute(hash.startsWith('#/login') || hash.startsWith('#/register'));
-      if (hash.startsWith('#/admin/para')) {
-        setAppMode('backoffice');
-        setBackofficeScope('para');
-      } else if (hash.startsWith('#/admin/nutrition')) {
+      if (hash.startsWith('#/admin/nutrition')) {
         setAppMode('backoffice');
         setBackofficeScope('nutrition');
-      } else if (hash.startsWith('#/admin/cosmetic')) {
-        setAppMode('backoffice');
-        setBackofficeScope('cosmetic');
-      } else if (hash.startsWith('#/admin/electro')) {
-        setAppMode('backoffice');
-        setBackofficeScope('electro');
       } else if (hash.startsWith('#/admin/youpi')) {
         setAppMode('backoffice');
         setBackofficeScope('youpi');
@@ -179,20 +164,14 @@ export const App: React.FC = () => {
         document.title = 'MultiShop | Backoffice Général Groupe';
       } else {
         const titles: Record<FilialeId, string> = {
-          para: 'PharmaShop | Administration Dédiée',
           nutrition: 'Fitness Shop | Administration Dédiée',
-          cosmetic: 'Cosmetics Shop | Administration Dédiée',
-          electro: 'Electro Shop | Administration Dédiée',
           youpi: 'YoupiShop | Administration Dédiée'
         };
         document.title = titles[backofficeScope] || 'MultiShop Backoffice';
       }
     } else {
       const titles: Record<FilialeId, string> = {
-        para: 'PharmaShop | Parapharmacie & Soins Bio',
         nutrition: 'Fitness Shop | Équipements de Musculation & Fitness Pro',
-        cosmetic: 'Cosmetics Shop | Beauté, Soins & Luxe',
-        electro: 'Electro Shop | High-Tech & Électroménager',
         youpi: "YoupiShop | Jouets d'Éveil & Jeux d'Enfants"
       };
       document.title = titles[currentShop] || 'MultiShop Network';
@@ -229,7 +208,7 @@ export const App: React.FC = () => {
     window.location.hash = '#/';
   };
 
-  const VALID_FILIALES: FilialeId[] = ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'];
+  const VALID_FILIALES: FilialeId[] = ['nutrition', 'youpi'];
 
   const handleGoToStorefront = (shopId?: any) => {
     if (typeof shopId === 'string' && VALID_FILIALES.includes(shopId as FilialeId)) {
@@ -348,10 +327,7 @@ export const App: React.FC = () => {
                       </div>
                     }
                   >
-                    {currentShop === 'para' && <ParaShopApp key="para-app" />}
                     {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
-                    {currentShop === 'cosmetic' && <CosmeticShopApp key="cosmetic-app" />}
-                    {currentShop === 'electro' && <ElectroShopApp key="electro-app" />}
                     {currentShop === 'youpi' && <YoupiShopApp key="youpi-app" />}
                   </Suspense>
                 )}

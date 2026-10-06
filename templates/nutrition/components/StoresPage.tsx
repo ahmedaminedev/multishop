@@ -12,7 +12,7 @@ interface StoresPageProps {
 export const StoresPage: React.FC<StoresPageProps> = ({ onNavigateHome, stores }) => {
     
     useEffect(() => {
-        document.title = "Nos Magasins - Electro Shop";
+        document.title = "Nos Magasins - Fitness Shop";
     }, []);
 
     return (

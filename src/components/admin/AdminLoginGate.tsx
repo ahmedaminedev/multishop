@@ -263,7 +263,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
 
       {/* Bottom Footer Info */}
       <div className="max-w-6xl mx-auto w-full text-center py-2 text-[11px] text-slate-500">
-        MultiShop Groupe • Réseau Parapharmacie, Nutrition, Cosmétique & Électroménager • Espace Protégé
+        MultiShop Groupe • Réseau Fitness Shop & YoupiShop • Espace Protégé
       </div>
 
     </div>

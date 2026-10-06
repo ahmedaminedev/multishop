@@ -43,10 +43,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
   const shopTabs = [
     { id: 'all', label: 'Toutes', icon: '🌐' },
-    { id: 'para', label: 'PharmaShop', icon: '🌿' },
     { id: 'nutrition', label: 'Fitness Shop', icon: '⚡' },
-    { id: 'cosmetic', label: 'Cosmetics', icon: '💄' },
-    { id: 'electro', label: 'Electro', icon: '🔌' },
     { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
   ];
 
@@ -59,7 +56,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
             GESTION DES COMMANDES <span className="text-blue-600">CENTRALISÉES</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Visualisez et traitez les commandes clients de PharmaShop, Fitness Shop, Cosmetics Shop, Electro Shop et YoupiShop
+            Visualisez et traitez les commandes clients de Fitness Shop et YoupiShop
           </p>
         </div>
 
@@ -107,10 +104,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
           className="px-3 py-2 rounded-xl bg-slate-50 border border-slate-200 text-xs font-semibold text-slate-700 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
         >
           <option value="all">Toutes les Boutiques</option>
-          <option value="para">🌿 PharmaShop</option>
           <option value="nutrition">⚡ Fitness Shop</option>
-          <option value="cosmetic">💄 Cosmetics Shop</option>
-          <option value="electro">🔌 Electro Shop</option>
+          <option value="youpi">🧸 YoupiShop</option>
         </select>
 
         {/* Status Filter */}
@@ -156,11 +151,9 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
                     <td className="py-3 px-4 font-mono font-bold text-slate-900">{order.id}</td>
                     <td className="py-3 px-4">
                       <span className="font-semibold text-slate-700">
-                        {order.filialeKey === 'para' && '🌿 PharmaShop'}
                         {order.filialeKey === 'nutrition' && '⚡ Fitness Shop'}
-                        {order.filialeKey === 'cosmetic' && '💄 Cosmetics'}
-                        {order.filialeKey === 'electro' && '🔌 Electro Shop'}
                         {order.filialeKey === 'youpi' && '🧸 YoupiShop'}
+                        {!['nutrition', 'youpi'].includes(order.filialeKey) && '⚡ Fitness Shop'}
                       </span>
                     </td>
                     <td className="py-3 px-4">

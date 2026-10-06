@@ -12,7 +12,7 @@ const sendEmail = async (options) => {
   });
 
   const message = {
-    from: `${process.env.FROM_NAME || 'Electro Shop'} <${process.env.FROM_EMAIL || 'noreply@electroshop.com'}>`,
+    from: `${process.env.FROM_NAME || 'MultiShop'} <${process.env.FROM_EMAIL || 'noreply@multishop.tn'}>`,
     to: options.email,
     subject: options.subject,
     text: options.message,

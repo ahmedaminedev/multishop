@@ -63,10 +63,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
 }) => {
   const allPromos = [
     { id: '1', title: 'Offre de Bienvenue Printemps', desc: '-15% sur la première commande avec le code SPRING15', scope: 'all', code: 'SPRING15', uses: 24, exp: '31 Déc 2026', badge: 'ACTIVE', badgeColor: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
-    { id: '2', title: 'Pack Puissance & Tech', desc: 'Livraison express gratuite dès 150 DT d\'achats combinés.', scope: 'nutrition', code: 'POWERTECH', uses: 12, exp: '15 Nov 2026', badge: 'FLASH SALE', badgeColor: 'text-amber-600 bg-amber-50 border-amber-200' },
-    { id: '3', title: 'Duo Beauté & Soin Visage', desc: '1 Masque régénérant offert pour 2 crèmes achetées.', scope: 'cosmetic', code: 'GLOW50', uses: 38, exp: '20 Oct 2026', badge: 'OFFRE BEAUTÉ', badgeColor: 'text-rose-600 bg-rose-50 border-rose-200' },
-    { id: '4', title: 'Remise Tech Électro', desc: '-10% sur tout le rayon petit électroménager cuisine.', scope: 'electro', code: 'ELECTRO10', uses: 19, exp: '01 Déc 2026', badge: 'TECH DEAL', badgeColor: 'text-blue-600 bg-blue-50 border-blue-200' },
-    { id: '5', title: 'Immunité & Phytothérapie', desc: '-20% sur la gamme compléments alimentaires Bio.', scope: 'para', code: 'PHYTO20', uses: 45, exp: '30 Nov 2026', badge: 'SANTÉ BIO', badgeColor: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
+    { id: '2', title: 'Pack Puissance & Musculation', desc: 'Livraison express gratuite dès 150 DT d\'achats combinés.', scope: 'nutrition', code: 'POWERTECH', uses: 12, exp: '15 Nov 2026', badge: 'FLASH SALE', badgeColor: 'text-amber-600 bg-amber-50 border-amber-200' },
     { id: '6', title: 'Offre Anniversaire Enfants & Jouets', desc: '-10% sur tous les jeux d\'éveil, Lego et coffrets avec le code YOUPI10', scope: 'youpi', code: 'YOUPI10', uses: 28, exp: '31 Déc 2026', badge: 'JEUX & JOUETS', badgeColor: 'text-amber-700 bg-amber-50 border-amber-200' },
   ];
 
@@ -80,7 +77,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
             CAMPAGNES & PROMOTIONS <span className="text-blue-600">GROUPE</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Gérez les offres spéciales, remises flash et codes promos pour les 5 boutiques du réseau
+            Gérez les offres spéciales, remises flash et codes promos pour les 2 boutiques du réseau
           </p>
         </div>
 
@@ -142,10 +139,7 @@ const MessagesSubView: React.FC<MessagesSubViewProps> = ({
   shopTabs
 }) => {
   const allMessages = [
-    { id: '1', author: 'Mehdi Ben Salah', email: 'mehdi.bensalah@gmail.com', shop: '⚡ Fitness Shop', shopKey: 'nutrition', text: 'Bonjour, quel est le délai de livraison pour la Whey Isolate sur Sousse ?', time: 'Il y a 2h' },
-    { id: '2', author: 'Sonia Triki', email: 'sonia.triki@yahoo.fr', shop: '💄 Cosmetics', shopKey: 'cosmetic', text: 'Le sérum à l\'acide hyaluronique convient-il aux peaux très sensibles ?', time: 'Hier' },
-    { id: '3', author: 'Khaled Mansouri', email: 'khaled.m@gmail.com', shop: '🔌 Electro', shopKey: 'electro', text: 'La machine à café expresso est-elle garantie 2 ans avec facture ?', time: 'Il y a 2 jours' },
-    { id: '4', author: 'Amina Cherif', email: 'amina.cherif@outlook.com', shop: '🌿 PharmaShop', shopKey: 'para', text: 'Est-il possible de préparer une commande click & collect pour cet après-midi ?', time: 'Il y a 3 jours' },
+    { id: '1', author: 'Mehdi Ben Salah', email: 'mehdi.bensalah@gmail.com', shop: '⚡ Fitness Shop', shopKey: 'nutrition', text: 'Bonjour, quel est le délai de livraison pour le rack de musculation sur Sousse ?', time: 'Il y a 2h' },
     { id: '5', author: 'Inès Trabelsi', email: 'ines.trabelsi@gmail.com', shop: '🧸 YoupiShop', shopKey: 'youpi', text: 'Bonjour, avez-vous le pack Montessori et la boîte de briques 850 pièces en stock immédiat ?', time: 'Il y a 4h' }
   ];
 
@@ -266,12 +260,12 @@ interface ReportsSubViewProps {
 const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
   const filialesList = [
     {
-      key: 'electro',
-      name: 'Electro Shop',
-      icon: '🔌',
-      barColor: 'bg-blue-600',
-      textColor: 'text-blue-600',
-      revenue: stats?.filiales?.electro?.revenue ?? 3931
+      key: 'nutrition',
+      name: 'Fitness Shop',
+      icon: '🏋️‍♂️',
+      barColor: 'bg-lime-500',
+      textColor: 'text-lime-600',
+      revenue: stats?.filiales?.nutrition?.revenue ?? 2890
     },
     {
       key: 'youpi',
@@ -279,31 +273,7 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
       icon: '🧸',
       barColor: 'bg-amber-500',
       textColor: 'text-amber-600',
-      revenue: stats?.filiales?.youpi?.revenue ?? 228
-    },
-    {
-      key: 'nutrition',
-      name: 'Fitness Shop',
-      icon: '⚡',
-      barColor: 'bg-lime-500',
-      textColor: 'text-lime-600',
-      revenue: stats?.filiales?.nutrition?.revenue ?? 289
-    },
-    {
-      key: 'cosmetic',
-      name: 'Cosmetics Shop',
-      icon: '💄',
-      barColor: 'bg-rose-500',
-      textColor: 'text-rose-600',
-      revenue: stats?.filiales?.cosmetic?.revenue ?? 289
-    },
-    {
-      key: 'para',
-      name: 'PharmaShop',
-      icon: '🌿',
-      barColor: 'bg-emerald-500',
-      textColor: 'text-emerald-600',
-      revenue: stats?.filiales?.para?.revenue ?? 0
+      revenue: stats?.filiales?.youpi?.revenue ?? 1450
     }
   ];
 
@@ -354,7 +324,7 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
           <div className="p-4 bg-slate-50 rounded-xl space-y-1">
             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Chiffre d'Affaires Global</p>
             <p className="text-2xl font-black text-slate-900">{totalRev.toLocaleString()} DT</p>
-            <p className="text-[11px] text-slate-500">Totalité des 5 filiales (Pharma, Fitness, Cosmetic, Electro, Youpi)</p>
+            <p className="text-[11px] text-slate-500">Totalité des 2 filiales (Fitness Shop & YoupiShop)</p>
           </div>
         </div>
       </div>
@@ -366,10 +336,7 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
 /* 6. SETTINGS SUB-VIEW (Site Visibility & Availability)                    */
 /* ========================================================================= */
 const STORE_ITEMS = [
-  { id: 'para', name: 'PharmaShop', icon: '🌿', tagline: 'Santé, Phytothérapie & Soins Bio', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
   { id: 'nutrition', name: 'Fitness Shop', icon: '🏋️‍♂️', tagline: 'Équipements de Musculation & Fitness', color: 'text-lime-700 bg-lime-50 border-lime-200' },
-  { id: 'cosmetic', name: 'Cosmetics Shop', icon: '💄', tagline: 'Soins, Beauté & Parfumerie Luxe', color: 'text-rose-700 bg-rose-50 border-rose-200' },
-  { id: 'electro', name: 'Electro Shop', icon: '🔌', tagline: 'High-Tech & Électroménager', color: 'text-blue-700 bg-blue-50 border-blue-200' },
   { id: 'youpi', name: 'YoupiShop', icon: '🧸', tagline: "Jeux d'Enfants & Jouets Éducatifs", color: 'text-amber-700 bg-amber-50 border-amber-200' },
 ];
 
@@ -760,10 +727,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
 
   const shopTabs: ShopTab[] = [
     { id: 'all', label: 'Toutes', icon: '🌐' },
-    { id: 'para', label: 'Pharma', icon: '🌿' },
-    { id: 'nutrition', label: 'Fitness', icon: '⚡' },
-    { id: 'cosmetic', label: 'Cosmetic', icon: '💄' },
-    { id: 'electro', label: 'Electro', icon: '🔌' },
+    { id: 'nutrition', label: 'Fitness', icon: '🏋️‍♂️' },
     { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
   ];
 

@@ -22,27 +22,6 @@ const DEFAULT_CATEGORIES_BY_SITE: Record<string, string[]> = {
     'Nutrition Sportive & Whey',
     'Accessoires & Bandes'
   ],
-  parashop: [
-    'Sérums & Soins Visage',
-    'Vitamines & Compléments',
-    'Phytothérapie & Bio',
-    'Hygiène & Corps',
-    'Défenses Immunitaires'
-  ],
-  cosmetic: [
-    'Soins Visage & Rituels',
-    'Maquillage & Teint',
-    'Parfumerie de Luxe',
-    'Soins Anti-Âge & Peptides',
-    'Sérums Éclat'
-  ],
-  electro: [
-    'Multimédia & Son',
-    'Gros Électroménager',
-    'Petit Électroménager',
-    'Smartphones & Accessoires',
-    'Gaming & TV'
-  ],
   youpi: [
     'Éveil & Bébé',
     'Construction & Lego',
@@ -55,9 +34,6 @@ const DEFAULT_CATEGORIES_BY_SITE: Record<string, string[]> = {
 
 const SITE_OPTIONS = [
   { id: 'fitnessshop', label: 'Fitness Shop (Équipements & Muscu)', filialeKey: 'nutrition', color: 'text-lime-700 bg-lime-50 border-lime-200' },
-  { id: 'parashop', label: 'PharmaShop (Parapharmacie & Bio)', filialeKey: 'para', color: 'text-emerald-700 bg-emerald-50 border-emerald-200' },
-  { id: 'cosmetic', label: 'Cosmetics Shop (Beauté & Luxe)', filialeKey: 'cosmetic', color: 'text-rose-700 bg-rose-50 border-rose-200' },
-  { id: 'electro', label: 'Electro Shop (High-Tech & Maison)', filialeKey: 'electro', color: 'text-blue-700 bg-blue-50 border-blue-200' },
   { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', filialeKey: 'youpi', color: 'text-amber-700 bg-amber-50 border-amber-200' }
 ];
 
@@ -234,9 +210,7 @@ export const FutureProductsView: React.FC<FutureProductsViewProps> = ({
         >
           <option value="all">Tous les sites cibles</option>
           <option value="fitnessshop">⚡ Fitness Shop</option>
-          <option value="parashop">🌿 PharmaShop</option>
-          <option value="cosmetic">💄 Cosmetics Shop</option>
-          <option value="electro">🔌 Electro Shop</option>
+          <option value="youpi">🧸 YoupiShop</option>
           <option value="non_existant">⚠️ Futurs sites (non existants)</option>
         </select>
 

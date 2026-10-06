@@ -40,7 +40,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
   currentUser,
   onLoginSuccess,
   onLogout,
-  currentShop = 'para',
+  currentShop = 'nutrition',
   onSwitchShop,
   initialMode = 'login'
 }) => {
@@ -351,7 +351,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
 
               {/* Subtitle (Hidden on ultra-small mobile) */}
               <p className="hidden sm:block text-xs text-slate-600 leading-relaxed mt-1.5 max-w-sm">
-                Accédez à votre compte pour suivre vos commandes, vos rituels et vos adresses sur l'ensemble de nos 4 boutiques officielles.
+                Accédez à votre compte pour suivre vos commandes, vos favoris et vos adresses sur l'ensemble de nos boutiques officielles.
               </p>
 
               {/* 3 Perks: Responsive Grid */}
@@ -709,7 +709,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
 
       {/* Footer copyright */}
       <footer className="relative z-20 py-2.5 text-center text-[11px] text-slate-400">
-        MultiShop Tunisie © 2026 • Réseau officiel PharmaShop, Fitness Shop, Cosmetics & Electro
+        MultiShop Tunisie © 2026 • Réseau officiel Fitness Shop & YoupiShop
       </footer>
 
       {/* Forgot Password Modal */}

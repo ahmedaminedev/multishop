@@ -96,10 +96,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
 
   const shopTabs = [
     { id: 'all', label: 'Toutes les filiales', icon: '🌐' },
-    { id: 'para', label: 'PharmaShop', icon: '🌿' },
     { id: 'nutrition', label: 'Fitness Shop', icon: '⚡' },
-    { id: 'cosmetic', label: 'Cosmetics Shop', icon: '💄' },
-    { id: 'electro', label: 'Electro Shop', icon: '🔌' },
     { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
   ];
 
@@ -115,8 +112,8 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
 
   // Open modal to create a new product
   const handleOpenCreateModal = () => {
-    const defaultShop = filialeFilter !== 'all' ? filialeFilter : 'para';
-    const cfg = FILIALE_CONFIG[FILIALE_CONFIG[`produit_myshops_${defaultShop}` as FilialeType] ? `produit_myshops_${defaultShop}` as FilialeType : FilialeType.PRODUIT_MYSHOPS_PARA];
+    const defaultShop = filialeFilter !== 'all' ? filialeFilter : 'nutrition';
+    const cfg = FILIALE_CONFIG[FILIALE_CONFIG[`produit_myshops_${defaultShop}` as FilialeType] ? `produit_myshops_${defaultShop}` as FilialeType : FilialeType.PRODUIT_MYSHOPS_NUTRITION];
 
     setEditingProduct({
       id: undefined,
@@ -485,7 +482,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
                 </tr>
               ) : (
                 filteredProducts.map((prod) => {
-                  const cfg = FILIALE_CONFIG[prod.filialeType as FilialeType] || FILIALE_CONFIG[FilialeType.PRODUIT_MYSHOPS_PARA];
+                  const cfg = FILIALE_CONFIG[prod.filialeType as FilialeType] || FILIALE_CONFIG[FilialeType.PRODUIT_MYSHOPS_NUTRITION];
                   const stockQty = prod.quantité_enstock ?? prod.quantity ?? 0;
                   const isInBoutique = prod.existe_dans_boutique !== false;
                   const supplier = localSuppliers.find(s => s.id === prod.fournisseurId) || 
@@ -666,19 +663,16 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
               {isCreatingNew && (
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
                   <label className="block text-slate-700 font-bold mb-2">Boutique / Filiale de destination *</label>
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2">
+                  <div className="grid grid-cols-2 gap-2">
                     {[
-                      { key: 'para', name: 'PharmaShop', icon: '🌿' },
                       { key: 'nutrition', name: 'Fitness Shop', icon: '⚡' },
-                      { key: 'cosmetic', name: 'Cosmetics', icon: '💄' },
-                      { key: 'electro', name: 'Electro', icon: '🔌' },
                       { key: 'youpi', name: 'YoupiShop', icon: '🧸' },
                     ].map((f) => (
                       <button
                         key={f.key}
                         type="button"
                         onClick={() => {
-                          const cfg = FILIALE_CONFIG[`produit_myshops_${f.key}` as FilialeType] || FILIALE_CONFIG[FilialeType.PRODUIT_MYSHOPS_PARA];
+                          const cfg = FILIALE_CONFIG[`produit_myshops_${f.key}` as FilialeType] || FILIALE_CONFIG[FilialeType.PRODUIT_MYSHOPS_NUTRITION];
                           setEditingProduct({
                             ...editingProduct,
                             filialeKey: f.key,

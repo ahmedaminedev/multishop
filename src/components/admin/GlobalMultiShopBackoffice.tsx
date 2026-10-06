@@ -18,29 +18,11 @@ import {
 } from '../../utils/siteVisibility';
 
 // Context providers for sub-backoffices
-import { ThemeProvider as ParaThemeProvider } from '@/templates/para/components/ThemeContext';
-import { ToastProvider as ParaToastProvider } from '@/templates/para/components/ToastContext';
-import { CartProvider as ParaCartProvider } from '@/templates/para/components/CartContext';
-import { FavoritesProvider as ParaFavoritesProvider } from '@/templates/para/components/FavoritesContext';
-import { CompareProvider as ParaCompareProvider } from '@/templates/para/components/CompareContext';
-
 import { ThemeProvider as NutritionThemeProvider } from '@/templates/nutrition/components/ThemeContext';
 import { ToastProvider as NutritionToastProvider } from '@/templates/nutrition/components/ToastContext';
 import { CartProvider as NutritionCartProvider } from '@/templates/nutrition/components/CartContext';
 import { FavoritesProvider as NutritionFavoritesProvider } from '@/templates/nutrition/components/FavoritesContext';
 import { CompareProvider as NutritionCompareProvider } from '@/templates/nutrition/components/CompareContext';
-
-import { ThemeProvider as CosmeticThemeProvider } from '@/templates/cosmetic/components/ThemeContext';
-import { ToastProvider as CosmeticToastProvider } from '@/templates/cosmetic/components/ToastContext';
-import { CartProvider as CosmeticCartProvider } from '@/templates/cosmetic/components/CartContext';
-import { FavoritesProvider as CosmeticFavoritesProvider } from '@/templates/cosmetic/components/FavoritesContext';
-import { CompareProvider as CosmeticCompareProvider } from '@/templates/cosmetic/components/CompareContext';
-
-import { ThemeProvider as ElectroThemeProvider } from '@/templates/electro/components/ThemeContext';
-import { ToastProvider as ElectroToastProvider } from '@/templates/electro/components/ToastContext';
-import { CartProvider as ElectroCartProvider } from '@/templates/electro/components/CartContext';
-import { FavoritesProvider as ElectroFavoritesProvider } from '@/templates/electro/components/FavoritesContext';
-import { CompareProvider as ElectroCompareProvider } from '@/templates/electro/components/CompareContext';
 
 import { ThemeProvider as YoupiThemeProvider } from '@/templates/youpi/components/ThemeContext';
 import { ToastProvider as YoupiToastProvider } from '@/templates/youpi/components/ToastContext';
@@ -49,10 +31,7 @@ import { FavoritesProvider as YoupiFavoritesProvider } from '@/templates/youpi/c
 import { CompareProvider as YoupiCompareProvider } from '@/templates/youpi/components/CompareContext';
 
 // Lazy loaded sub-backoffices (used with hideSidebar=true for contextual pages)
-const ParaAdminPage = React.lazy(() => import('@/templates/para/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const NutritionAdminPage = React.lazy(() => import('@/templates/nutrition/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
-const CosmeticAdminPage = React.lazy(() => import('@/templates/cosmetic/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
-const ElectroAdminPage = React.lazy(() => import('@/templates/electro/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const YoupiAdminPage = React.lazy(() => import('@/templates/youpi/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 class SubAdminErrorBoundary extends React.Component<{ filialeName: string; onBackToHq: () => void; children: React.ReactNode }, { hasError: boolean; error: any }> {
@@ -99,10 +78,7 @@ interface GlobalBackofficeProps {
 }
 
 const BOUTIQUES_META: Record<string, { name: string; icon: string; subtitle: string; color: string; bg: string }> = {
-  para: { name: 'PharmaShop', icon: '🌿', subtitle: 'Parapharmacie, Phytothérapie & Soins Bio', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
   nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', subtitle: 'Équipements de Musculation, Cardio & Fitness', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
-  cosmetic: { name: 'Cosmetics Shop', icon: '💄', subtitle: 'Beauté, Cosmétique & Parfumerie de Luxe', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
-  electro: { name: 'Electro Shop', icon: '🔌', subtitle: 'Électroménager, Multimédia & High-Tech', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
   youpi: { name: 'YoupiShop', icon: '🧸', subtitle: "Jeux d'Enfants, Jouets & Éveil", color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
 };
 
@@ -121,14 +97,14 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     const hash = window.location.hash;
     if (hash.startsWith('#/admin/')) {
       const s = hash.replace('#/admin/', '').trim();
-      if (['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].includes(s)) return s as ShopContextId;
+      if (['nutrition', 'youpi'].includes(s)) return s as ShopContextId;
     }
     return 'all';
   });
 
   // Current active navigation menu item in sidebar
   const [currentMenu, setCurrentMenu] = useState<SidebarMenuItem>('dashboard');
-  const [contextualShopOverride, setContextualShopOverride] = useState<FilialeId>('para');
+  const [contextualShopOverride, setContextualShopOverride] = useState<FilialeId>('nutrition');
   const [isMobileSidebarOpen, setIsMobileSidebarOpen] = useState(false);
   const [siteVisibility, setSiteVisibility] = useState<SiteVisibilityMap>(getCachedSiteVisibility);
 
@@ -143,7 +119,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   // If current contextual shop was hidden from Backoffice, switch to first visible
   useEffect(() => {
     if (activeShop === 'all' && isSiteHiddenInBackOffice(contextualShopOverride, siteVisibility)) {
-      const firstAvailable = (['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[]).find(
+      const firstAvailable = (['nutrition', 'youpi'] as FilialeId[]).find(
         fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)
       );
       if (firstAvailable) {
@@ -184,10 +160,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
   // Filiale data cache for sub-admin pages
   const [filialeData, setFilialeData] = useState<Record<string, any>>({
-    para: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
     nutrition: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
-    cosmetic: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
-    electro: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
     youpi: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
   });
 
@@ -253,7 +226,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   useEffect(() => {
     fetchGlobalData();
     // Preload all filiales data in background for instant responsiveness
-    ['para', 'nutrition', 'cosmetic', 'electro', 'youpi'].forEach(loadFilialeData);
+    ['nutrition', 'youpi'].forEach(loadFilialeData);
   }, []);
 
   const handleSelectShop = (shop: ShopContextId) => {
@@ -299,7 +272,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
           method: 'PUT',
           headers: {
             'Content-Type': 'application/json',
-            'x-shop-id': product.filialeKey || 'para'
+            'x-shop-id': product.filialeKey || 'nutrition'
           },
           body: JSON.stringify(product)
         });
@@ -308,7 +281,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'x-shop-id': product.filialeKey || 'para'
+            'x-shop-id': product.filialeKey || 'nutrition'
           },
           body: JSON.stringify(product)
         });
@@ -469,7 +442,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             onLoginSuccess(user, token);
           }
         }}
-        onGoToStorefront={() => onGoToStorefront('para')}
+        onGoToStorefront={() => onGoToStorefront('nutrition')}
       />
     );
   }
@@ -477,7 +450,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   // Check if current menu is contextual to a store
   const isContextualMenu = ['categories', 'brands', 'packs', 'home', 'chat'].includes(currentMenu);
   const targetBoutiqueKey: FilialeId = activeShop === 'all' ? contextualShopOverride : (activeShop as FilialeId);
-  const targetBoutiqueMeta = BOUTIQUES_META[targetBoutiqueKey] || BOUTIQUES_META.para;
+  const targetBoutiqueMeta = BOUTIQUES_META[targetBoutiqueKey] || BOUTIQUES_META.nutrition;
 
   return (
     <div className="min-h-screen bg-[#f8fafc] text-slate-800 flex font-sans">
@@ -574,7 +547,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
                     <span className="text-xs font-bold text-slate-400 uppercase">Chiffre d'Affaires</span>
                     <p className="text-2xl font-black text-slate-900 mt-1">
-                      {((stats?.filiales?.[activeShop]?.revenue) ?? (activeShop === 'electro' ? 3931 : 289)).toLocaleString('fr-FR')} DT
+                      {((stats?.filiales?.[activeShop]?.revenue) ?? 2890).toLocaleString('fr-FR')} DT
                     </p>
                     <span className="text-[10px] text-emerald-600 font-bold mt-2 block">↑ En progression</span>
                   </div>
@@ -582,7 +555,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
                     <span className="text-xs font-bold text-slate-400 uppercase">Commandes</span>
                     <p className="text-2xl font-black text-slate-900 mt-1">
-                      {stats?.filiales?.[activeShop]?.ordersCount ?? (activeShop === 'electro' ? 3 : 1)}
+                      {stats?.filiales?.[activeShop]?.ordersCount ?? 12}
                     </p>
                     <span className="text-[10px] text-slate-400 mt-2 block">Sur cette boutique</span>
                   </div>
@@ -590,7 +563,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
                     <span className="text-xs font-bold text-slate-400 uppercase">Articles Actifs</span>
                     <p className="text-2xl font-black text-slate-900 mt-1">
-                      {stats?.filiales?.[activeShop]?.productsCount ?? (activeShop === 'electro' ? 31 : (activeShop === 'cosmetic' ? 19 : 15))}
+                      {stats?.filiales?.[activeShop]?.productsCount ?? 15}
                     </p>
                     <span className="text-[10px] text-blue-600 font-bold mt-2 block">Typage hérité</span>
                   </div>
@@ -749,7 +722,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar">
-                    {((['para', 'nutrition', 'cosmetic', 'electro', 'youpi'] as FilialeId[])
+                    {((['nutrition', 'youpi'] as FilialeId[])
                       .filter(fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)))
                       .map((fKey) => {
                       const fMeta = BOUTIQUES_META[fKey];
@@ -765,8 +738,8 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                               : 'text-slate-600 hover:text-slate-900 hover:bg-white'
                           }`}
                         >
-                          <span>{fMeta.icon}</span>
-                          <span>{fMeta.name}</span>
+                          <span>{fMeta?.icon}</span>
+                          <span>{fMeta?.name}</span>
                         </button>
                       );
                     })}
@@ -776,50 +749,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
               {/* Render the contextual module cleanly without any secondary sidebar */}
               <div className="bg-white border border-slate-100 rounded-2xl p-5 shadow-xs">
-                
-                {/* 1. PharmaShop Sub-Pages */}
-                {targetBoutiqueKey === 'para' && (
-                  <SubAdminErrorBoundary filialeName="PharmaShop" onBackToHq={() => setCurrentMenu('dashboard')}>
-                    <ParaThemeProvider>
-                      <ParaToastProvider>
-                        <ParaCartProvider>
-                          <ParaFavoritesProvider>
-                            <ParaCompareProvider>
-                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module PharmaShop...</div>}>
-                                <ParaAdminPage
-                                  hideSidebar={true}
-                                  forcedPage={currentMenu as any}
-                                  onNavigateHome={() => onGoToStorefront('para')}
-                                  onLogout={onLogout}
-                                  productsData={filialeData.para.products}
-                                  setProductsData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, products: typeof data === 'function' ? data(prev.para.products) : data } }))}
-                                  categoriesData={filialeData.para.categories}
-                                  setCategoriesData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, categories: typeof data === 'function' ? data(prev.para.categories) : data } }))}
-                                  packsData={filialeData.para.packs}
-                                  setPacksData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, packs: typeof data === 'function' ? data(prev.para.packs) : data } }))}
-                                  ordersData={filialeData.para.orders}
-                                  setOrdersData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, orders: typeof data === 'function' ? data(prev.para.orders) : data } }))}
-                                  messagesData={filialeData.para.messages}
-                                  setMessagesData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, messages: typeof data === 'function' ? data(prev.para.messages) : data } }))}
-                                  advertisementsData={filialeData.para.ads}
-                                  setAdvertisementsData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, ads: typeof data === 'function' ? data(prev.para.ads) : data } }))}
-                                  promotionsData={filialeData.para.promos}
-                                  setPromotionsData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, promos: typeof data === 'function' ? data(prev.para.promos) : data } }))}
-                                  storesData={filialeData.para.stores}
-                                  setStoresData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, stores: typeof data === 'function' ? data(prev.para.stores) : data } }))}
-                                  brandsData={filialeData.para.brands}
-                                  setBrandsData={(data) => setFilialeData(prev => ({ ...prev, para: { ...prev.para, brands: typeof data === 'function' ? data(prev.para.brands) : data } }))}
-                                />
-                              </Suspense>
-                            </ParaCompareProvider>
-                          </ParaFavoritesProvider>
-                        </ParaCartProvider>
-                      </ParaToastProvider>
-                    </ParaThemeProvider>
-                  </SubAdminErrorBoundary>
-                )}
-
-                {/* 2. Fitness Shop Sub-Pages */}
+                {/* 1. Fitness Shop Sub-Pages */}
                 {targetBoutiqueKey === 'nutrition' && (
                   <SubAdminErrorBoundary filialeName="Fitness Shop" onBackToHq={() => setCurrentMenu('dashboard')}>
                     <NutritionThemeProvider>
@@ -861,89 +791,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </SubAdminErrorBoundary>
                 )}
 
-                {/* 3. Cosmetics Shop Sub-Pages */}
-                {targetBoutiqueKey === 'cosmetic' && (
-                  <SubAdminErrorBoundary filialeName="Cosmetics Shop" onBackToHq={() => setCurrentMenu('dashboard')}>
-                    <CosmeticThemeProvider>
-                      <CosmeticToastProvider>
-                        <CosmeticCartProvider>
-                          <CosmeticFavoritesProvider>
-                            <CosmeticCompareProvider>
-                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module Cosmetics...</div>}>
-                                <CosmeticAdminPage
-                                  hideSidebar={true}
-                                  forcedPage={currentMenu as any}
-                                  onNavigateHome={() => onGoToStorefront('cosmetic')}
-                                  onLogout={onLogout}
-                                  productsData={filialeData.cosmetic.products}
-                                  setProductsData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, products: typeof data === 'function' ? data(prev.cosmetic.products) : data } }))}
-                                  categoriesData={filialeData.cosmetic.categories}
-                                  setCategoriesData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, categories: typeof data === 'function' ? data(prev.cosmetic.categories) : data } }))}
-                                  packsData={filialeData.cosmetic.packs}
-                                  setPacksData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, packs: typeof data === 'function' ? data(prev.cosmetic.packs) : data } }))}
-                                  ordersData={filialeData.cosmetic.orders}
-                                  setOrdersData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, orders: typeof data === 'function' ? data(prev.cosmetic.orders) : data } }))}
-                                  messagesData={filialeData.cosmetic.messages}
-                                  setMessagesData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, messages: typeof data === 'function' ? data(prev.cosmetic.messages) : data } }))}
-                                  advertisementsData={filialeData.cosmetic.ads}
-                                  setAdvertisementsData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, ads: typeof data === 'function' ? data(prev.cosmetic.ads) : data } }))}
-                                  promotionsData={filialeData.cosmetic.promos}
-                                  setPromotionsData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, promos: typeof data === 'function' ? data(prev.cosmetic.promos) : data } }))}
-                                  storesData={filialeData.cosmetic.stores}
-                                  setStoresData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, stores: typeof data === 'function' ? data(prev.cosmetic.stores) : data } }))}
-                                  brandsData={filialeData.cosmetic.brands}
-                                  setBrandsData={(data) => setFilialeData(prev => ({ ...prev, cosmetic: { ...prev.cosmetic, brands: typeof data === 'function' ? data(prev.cosmetic.brands) : data } }))}
-                                />
-                              </Suspense>
-                            </CosmeticCompareProvider>
-                          </CosmeticFavoritesProvider>
-                        </CosmeticCartProvider>
-                      </CosmeticToastProvider>
-                    </CosmeticThemeProvider>
-                  </SubAdminErrorBoundary>
-                )}
-
-                {/* 4. Electro Shop Sub-Pages */}
-                {targetBoutiqueKey === 'electro' && (
-                  <SubAdminErrorBoundary filialeName="Electro Shop" onBackToHq={() => setCurrentMenu('dashboard')}>
-                    <ElectroThemeProvider>
-                      <ElectroToastProvider>
-                        <ElectroCartProvider>
-                          <ElectroFavoritesProvider>
-                            <ElectroCompareProvider>
-                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module Electro...</div>}>
-                                <ElectroAdminPage
-                                  hideSidebar={true}
-                                  forcedPage={currentMenu as any}
-                                  onNavigateHome={() => onGoToStorefront('electro')}
-                                  onLogout={onLogout}
-                                  productsData={filialeData.electro.products}
-                                  setProductsData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, products: typeof data === 'function' ? data(prev.electro.products) : data } }))}
-                                  categoriesData={filialeData.electro.categories}
-                                  setCategoriesData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, categories: typeof data === 'function' ? data(prev.electro.categories) : data } }))}
-                                  packsData={filialeData.electro.packs}
-                                  setPacksData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, packs: typeof data === 'function' ? data(prev.electro.packs) : data } }))}
-                                  ordersData={filialeData.electro.orders}
-                                  setOrdersData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, orders: typeof data === 'function' ? data(prev.electro.orders) : data } }))}
-                                  messagesData={filialeData.electro.messages}
-                                  setMessagesData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, messages: typeof data === 'function' ? data(prev.electro.messages) : data } }))}
-                                  advertisementsData={filialeData.electro.ads}
-                                  setAdvertisementsData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, ads: typeof data === 'function' ? data(prev.electro.ads) : data } }))}
-                                  promotionsData={filialeData.electro.promos}
-                                  setPromotionsData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, promos: typeof data === 'function' ? data(prev.electro.promos) : data } }))}
-                                  storesData={filialeData.electro.stores}
-                                  setStoresData={(data) => setFilialeData(prev => ({ ...prev, electro: { ...prev.electro, stores: typeof data === 'function' ? data(prev.electro.stores) : data } }))}
-                                />
-                              </Suspense>
-                            </ElectroCompareProvider>
-                          </ElectroFavoritesProvider>
-                        </ElectroCartProvider>
-                      </ElectroToastProvider>
-                    </ElectroThemeProvider>
-                  </SubAdminErrorBoundary>
-                )}
-
-                {/* 5. YoupiShop Sub-Pages */}
+                {/* 2. YoupiShop Sub-Pages */}
                 {targetBoutiqueKey === 'youpi' && (
                   <SubAdminErrorBoundary filialeName="YoupiShop" onBackToHq={() => setCurrentMenu('dashboard')}>
                     <YoupiThemeProvider>

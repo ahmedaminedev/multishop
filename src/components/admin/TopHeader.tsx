@@ -11,7 +11,7 @@ import {
   SiteVisibilityMap
 } from '../../utils/siteVisibility';
 
-export type BackofficeTab = 'all' | 'para' | 'nutrition' | 'cosmetic' | 'electro' | 'youpi';
+export type BackofficeTab = 'all' | 'nutrition' | 'youpi';
 
 interface TopHeaderProps {
   activeShop: ShopContextId;
@@ -48,11 +48,8 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
 
   const allShopOptions: { id: ShopContextId; label: string; icon: string; badge: string; color: string }[] = [
     { id: 'all', label: 'Toutes les boutiques (Consolidé)', icon: '🌐', badge: 'GROUPE HQ', color: 'text-blue-600' },
-    { id: 'para', label: 'PharmaShop (Parapharmacie)', icon: '🌿', badge: 'FILIALE 1', color: 'text-emerald-600' },
-    { id: 'nutrition', label: 'Fitness Shop (Équipements & Muscu)', icon: '🏋️‍♂️', badge: 'FILIALE 2', color: 'text-lime-600' },
-    { id: 'cosmetic', label: 'Cosmetics Shop (Beauté & Soins)', icon: '💄', badge: 'FILIALE 3', color: 'text-rose-600' },
-    { id: 'electro', label: 'Electro Shop (Tech & Maison)', icon: '🔌', badge: 'FILIALE 4', color: 'text-blue-600' },
-    { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', icon: '🧸', badge: 'FILIALE 5', color: 'text-amber-600' },
+    { id: 'nutrition', label: 'Fitness Shop (Équipements & Muscu)', icon: '🏋️‍♂️', badge: 'FILIALE 1', color: 'text-lime-600' },
+    { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', icon: '🧸', badge: 'FILIALE 2', color: 'text-amber-600' },
   ];
 
   // User Requirement 2: Filter out sites that are hidden in Backoffice (Disparition de la console d'administration)
@@ -187,9 +184,9 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
         <button
           type="button"
           onClick={() => {
-            let target: FilialeId = activeShop === 'all' ? 'para' : (activeShop as FilialeId);
+            let target: FilialeId = activeShop === 'all' ? 'nutrition' : (activeShop as FilialeId);
             if (isSiteHiddenInFrontOffice(target, siteVisibility)) {
-              const firstVisible = (['para', 'nutrition', 'cosmetic', 'electro'] as FilialeId[]).find(
+              const firstVisible = (['nutrition', 'youpi'] as FilialeId[]).find(
                 id => !isSiteHiddenInFrontOffice(id, siteVisibility)
               );
               if (firstVisible) target = firstVisible;

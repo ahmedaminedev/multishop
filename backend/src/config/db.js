@@ -4,7 +4,7 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     mongoose.set('bufferCommands', false);
-    const conn = await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/parashop");
+    const conn = await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/multishop");
     console.log(`MongoDB Connecté: ${conn.connection.host}`);
   } catch (error) {
     console.error(`Erreur MongoDB: ${error.message}`);

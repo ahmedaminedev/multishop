@@ -12,33 +12,12 @@ export interface SiteVisibilityItem {
 export type SiteVisibilityMap = Record<string, SiteVisibilityItem>;
 
 export const DEFAULT_SITE_VISIBILITY: SiteVisibilityMap = {
-  para: {
-    siteId: 'para',
-    is_hidden: false,
-    scope: 'frontoffice',
-    mode: 'cacher_tout',
-    maintenance_message: '🌿 PharmaShop est temporairement en maintenance technique. Notre équipe prépare de nouveaux produits de santé et bio.'
-  },
   nutrition: {
     siteId: 'nutrition',
     is_hidden: false,
     scope: 'frontoffice',
     mode: 'cacher_tout',
     maintenance_message: '🏋️‍♂️ Fitness Shop fait l\'objet d\'une mise à jour de catalogue et réapprovisionnement technique.'
-  },
-  cosmetic: {
-    siteId: 'cosmetic',
-    is_hidden: false,
-    scope: 'frontoffice',
-    mode: 'cacher_tout',
-    maintenance_message: '💄 Cosmetics Shop est temporairement indisponible pour maintenance technique.'
-  },
-  electro: {
-    siteId: 'electro',
-    is_hidden: false,
-    scope: 'frontoffice',
-    mode: 'cacher_tout',
-    maintenance_message: '🔌 Electro Shop effectue une maintenance de son infrastructure. Retour très bientôt.'
   },
   youpi: {
     siteId: 'youpi',

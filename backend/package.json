@@ -1,7 +1,7 @@
 {
-  "name": "electro-shop-backend",
+  "name": "multishop-backend",
   "version": "1.0.0",
-  "description": "API Backend pour Electro Shop",
+  "description": "API Backend pour MultiShop (Fitness Shop & YoupiShop)",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",

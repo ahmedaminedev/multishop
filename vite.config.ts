@@ -72,32 +72,15 @@ function multishopProductionPlugin() {
       const req = ctx?.req;
       const url = ctx?.originalUrl || req?.originalUrl || req?.url || '/';
       
-      let shop = 'para';
-      if (url.includes('shop=nutrition')) shop = 'nutrition';
-      else if (url.includes('shop=cosmetic')) shop = 'cosmetic';
-      else if (url.includes('shop=electro')) shop = 'electro';
-      else if (url.includes('shop=youpi')) shop = 'youpi';
+      let shop = 'nutrition';
+      if (url.includes('shop=youpi')) shop = 'youpi';
+      else if (url.includes('shop=nutrition')) shop = 'nutrition';
 
       const shopMeta: Record<string, { title: string; desc: string; image: string }> = {
-        para: {
-          title: 'PharmaShop | Parapharmacie & Soins Bio Tunisie',
-          desc: 'Compléments alimentaires, micronutrition, phytothérapie et soins certifiés. Livraison express en Tunisie.',
-          image: '/favicon.svg'
-        },
         nutrition: {
           title: 'Fitness Shop | Nutrition Sportive & Équipements Fitness Tunisie',
           desc: 'Whey isolate, créatine, barres protéinées et matériel de musculation professionnel.',
           image: '/src/assets/images/hero_fitness_athlete_1790951685544.jpg'
-        },
-        cosmetic: {
-          title: 'Cosmetics Shop | Beauté, Rituels & Soins Visage Tunisie',
-          desc: 'Cosmétique haute tolérance, parfumerie fine, sérums anti-âge et maquillage haut de gamme.',
-          image: '/favicon.svg'
-        },
-        electro: {
-          title: 'Electro Shop | High-Tech & Petit Électroménager Tunisie',
-          desc: 'Smartphones, TV 4K, robots culinaires et son haute-fidélité garantis 24 mois.',
-          image: '/favicon.svg'
         },
         youpi: {
           title: "YoupiShop | Jeux d'Enfants & Jouets d'Éveil Tunisie",
@@ -106,7 +89,7 @@ function multishopProductionPlugin() {
         }
       };
 
-      const meta = shopMeta[shop] || shopMeta.para;
+      const meta = shopMeta[shop] || shopMeta.nutrition;
       let resHtml = html;
 
       resHtml = resHtml.replace(/<title>.*?<\/title>/, `<title>${meta.title}</title>`);

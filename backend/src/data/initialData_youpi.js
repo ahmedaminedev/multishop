@@ -423,6 +423,84 @@ const sampleOrders = [
         paymentMethod: 'Paiement à la livraison (Espèces)',
         status: 'Expédiée',
         date: '2026-04-01'
+    },
+    {
+        id: 'CMD-YOUPI-103',
+        orderNumber: 'CMD-YOUPI-103',
+        customerName: 'Sonia Riahi',
+        customerEmail: 'sonia.riahi@yahoo.fr',
+        customer: {
+            name: 'Sonia Riahi',
+            email: 'sonia.riahi@yahoo.fr',
+            phone: '+216 50 112 334',
+            address: 'Les Berges du Lac 2, Tunis'
+        },
+        items: [
+            {
+                id: 403,
+                name: 'Pack Éveil Naissance Montessori',
+                quantity: 1,
+                price: 129,
+                imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
+            }
+        ],
+        total: 129,
+        totalAmount: 129,
+        paymentMethod: 'Paiement en ligne (Carte Bancaire)',
+        status: 'Livrée',
+        date: '2026-04-02'
+    },
+    {
+        id: 'CMD-YOUPI-104',
+        orderNumber: 'CMD-YOUPI-104',
+        customerName: 'Amine Ferjani',
+        customerEmail: 'amine.ferjani@gmail.com',
+        customer: {
+            name: 'Amine Ferjani',
+            email: 'amine.ferjani@gmail.com',
+            phone: '+216 93 445 667',
+            address: 'Route de Téniour, Sfax'
+        },
+        items: [
+            {
+                id: 407,
+                name: 'Fusée Spatiale & Station Lunaire',
+                quantity: 1,
+                price: 159,
+                imageUrl: '/src/assets/images/category_youpi_lego_1791240056376.jpg'
+            }
+        ],
+        total: 159,
+        totalAmount: 159,
+        paymentMethod: 'Paiement à la livraison',
+        status: 'En attente',
+        date: '2026-04-05'
+    },
+    {
+        id: 'CMD-YOUPI-105',
+        orderNumber: 'CMD-YOUPI-105',
+        customerName: 'Olfa Khemir',
+        customerEmail: 'olfa.khemir@gmail.com',
+        customer: {
+            name: 'Olfa Khemir',
+            email: 'olfa.khemir@gmail.com',
+            phone: '+216 26 778 990',
+            address: 'Hammamet Sud, Nabeul'
+        },
+        items: [
+            {
+                id: 402,
+                name: 'Pack Grand Architecte Créatif 850 pcs',
+                quantity: 1,
+                price: 249,
+                imageUrl: '/src/assets/images/category_youpi_lego_1791240056376.jpg'
+            }
+        ],
+        total: 249,
+        totalAmount: 249,
+        paymentMethod: 'Paiement à la livraison',
+        status: 'En attente',
+        date: '2026-04-06'
     }
 ];
 

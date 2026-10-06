@@ -21,15 +21,11 @@ interface SuppliersViewProps {
   initialTargetFutureProduct?: FutureProduit | null;
 }
 
-const VALID_NETWORK_SITES = ['fitnessshop', 'nutrition', 'parashop', 'para', 'cosmetic', 'electro', 'youpi', 'youpishop'];
+const VALID_NETWORK_SITES = ['fitnessshop', 'nutrition', 'youpi', 'youpishop'];
 
 const SITE_LABELS: Record<string, { name: string; color: string; bg: string }> = {
   fitnessshop: { name: 'Fitness Shop', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   nutrition: { name: 'Fitness Shop', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
-  parashop: { name: 'PharmaShop', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  para: { name: 'PharmaShop', color: 'text-emerald-700', bg: 'bg-emerald-50 border-emerald-200' },
-  cosmetic: { name: 'Cosmetics Shop', color: 'text-rose-700', bg: 'bg-rose-50 border-rose-200' },
-  electro: { name: 'Electro Shop', color: 'text-blue-700', bg: 'bg-blue-50 border-blue-200' },
   youpi: { name: 'YoupiShop', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
   youpishop: { name: 'YoupiShop', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
 };
@@ -595,7 +591,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                     <input
                       type="text"
                       required
-                      placeholder="Ex: Tunisie Fitness Distribution, Laboratoire Cosmetica..."
+                      placeholder="Ex: Tunisie Fitness Distribution, Jouets & Compagnie..."
                       value={editingSupplier.nom || ''}
                       onChange={(e) => setEditingSupplier({ ...editingSupplier, nom: e.target.value })}
                       className="w-full px-3 py-2 rounded-xl bg-white border border-slate-200 text-xs font-medium focus:ring-2 focus:ring-emerald-500"
@@ -786,9 +782,6 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                       >
                         <option value="all">Toutes les boutiques ({products.length})</option>
                         <option value="nutrition">⚡ Fitness Shop</option>
-                        <option value="para">🌿 PharmaShop</option>
-                        <option value="cosmetic">💄 Cosmetics Shop</option>
-                        <option value="electro">🔌 Electro Shop</option>
                         <option value="youpi">🧸 YoupiShop</option>
                       </select>
                     </div>
@@ -917,7 +910,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                         <span>Règles d'Affectation des Futurs Produits (Option 2) :</span>
                       </p>
                       <p className="text-[11px] text-purple-800 mt-1 leading-relaxed">
-                        1. Si un futur produit est lié à un <strong>site qui n'existe pas</strong> dans les boutiques actives du réseau (PharmaShop, FitnessShop, CosmeticsShop, ElectroShop), le système affiche un message d'alerte et bloque son affectation.<br />
+                        1. Si un futur produit est lié à un <strong>site qui n'existe pas</strong> dans les boutiques actives du réseau (Fitness Shop, YoupiShop), le système affiche un message d'alerte et bloque son affectation.<br />
                         2. Pour les produits dont le site et la catégorie existent, vous indiquez la <strong>quantité en stock</strong>. Ils s'enregistrent en base comme de nouveaux produits en stock avec le statut <strong>"Hors boutique" par défaut</strong> (existe_dans_boutique = false) afin que vous puissiez compléter et valider leurs fiches avant publication.
                       </p>
                     </div>
@@ -1259,9 +1252,6 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                   >
                     <option value="all">Toutes les boutiques ({products.length})</option>
                     <option value="nutrition">⚡ Fitness Shop</option>
-                    <option value="para">🌿 PharmaShop</option>
-                    <option value="cosmetic">💄 Cosmetics Shop</option>
-                    <option value="electro">🔌 Electro Shop</option>
                     <option value="youpi">🧸 YoupiShop</option>
                   </select>
                 </div>

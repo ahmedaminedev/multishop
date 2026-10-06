@@ -1,8 +1,8 @@
 // Multi-Shop Filiale Resolver Middleware
-// Identifies the active boutique (para, nutrition, cosmetic, electro)
-// from Request Headers, Cookies, Query parameters, or defaults to 'para'.
+// Identifies the active boutique (nutrition, youpi)
+// from Request Headers, Cookies, Query parameters, or defaults to 'nutrition'.
 
-const ALLOWED_SHOPS = ['para', 'nutrition', 'cosmetic', 'electro'];
+const ALLOWED_SHOPS = ['nutrition', 'youpi'];
 
 function shopResolver(req, res, next) {
   let shopId = req.headers['x-shop-id'] || 
@@ -10,7 +10,7 @@ function shopResolver(req, res, next) {
                req.query?.shop;
 
   if (!shopId || !ALLOWED_SHOPS.includes(shopId)) {
-    shopId = 'para';
+    shopId = 'nutrition';
   }
 
   req.shopId = shopId;
@@ -19,3 +19,4 @@ function shopResolver(req, res, next) {
 }
 
 module.exports = shopResolver;
+
