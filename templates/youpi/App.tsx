@@ -15,6 +15,7 @@ import { Footer } from './components/Footer';
 import { PacksPage } from './components/PacksPage';
 import { BlogPage } from './components/BlogPage';
 import { StoresPage } from './components/StoresPage';
+import { ProductDetailPage } from './components/ProductDetailPage';
 import { Product, Pack, Store, BlogPost, Category, Advertisements } from './types';
 import { api } from './utils/api';
 
@@ -25,7 +26,7 @@ export const YoupiShopApp: React.FC<{
   onOpenAuthModal?: () => void;
   currentUser?: any;
 }> = ({ onOpenAuthModal, currentUser }) => {
-  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout'>('home');
+  const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout' | 'product-detail'>('home');
   const [products, setProducts] = useState<Product[]>(initialData.allProducts as any);
   const [categories, setCategories] = useState<Category[]>(initialData.categories as any);
   const [packs, setPacks] = useState<Pack[]>(initialData.packs as any);
@@ -64,7 +65,7 @@ export const YoupiShopApp: React.FC<{
     loadData();
   }, []);
 
-  const handleNavigate = (view: 'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout') => {
+  const handleNavigate = (view: 'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout' | 'product-detail') => {
     setCurrentView(view);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
@@ -72,6 +73,12 @@ export const YoupiShopApp: React.FC<{
   const handleCategorySelect = (category: string) => {
     setSelectedCategory(category);
     setCurrentView('catalog');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  const handleProductSelect = (product: Product) => {
+    setSelectedProduct(product);
+    setCurrentView('product-detail');
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
@@ -124,7 +131,7 @@ export const YoupiShopApp: React.FC<{
                         products={products}
                         selectedCategory={selectedCategory}
                         onSelectCategory={setSelectedCategory}
-                        onSelectProduct={setSelectedProduct}
+                        onSelectProduct={handleProductSelect}
                         searchQuery={searchQuery}
                       />
 
@@ -177,8 +184,22 @@ export const YoupiShopApp: React.FC<{
                       products={products}
                       selectedCategory={selectedCategory}
                       onSelectCategory={setSelectedCategory}
-                      onSelectProduct={setSelectedProduct}
+                      onSelectProduct={handleProductSelect}
                       searchQuery={searchQuery}
+                    />
+                  )}
+
+                  {/* PRODUCT DETAIL VIEW */}
+                  {currentView === 'product-detail' && selectedProduct && (
+                    <ProductDetailPage
+                      product={selectedProduct}
+                      allProducts={products}
+                      onNavigateHome={() => handleNavigate('home')}
+                      onNavigateCatalog={(cat) => {
+                        if (cat) setSelectedCategory(cat);
+                        handleNavigate('catalog');
+                      }}
+                      onSelectProduct={handleProductSelect}
                     />
                   )}
 

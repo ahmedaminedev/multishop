@@ -6,20 +6,29 @@ import { useFavorites } from './FavoritesContext';
 
 interface ProductCardProps {
   product: Product;
-  onSelect: (product: Product) => void;
+  onSelect?: (product: Product) => void;
+  onSelectProduct?: (product: Product) => void;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect, onSelectProduct }) => {
   const { addToCart } = useCart();
   const { toggleFavorite, isFavorite } = useFavorites();
   const fav = isFavorite(product.id);
+
+  const handleSelect = () => {
+    if (typeof onSelect === 'function') {
+      onSelect(product);
+    } else if (typeof onSelectProduct === 'function') {
+      onSelectProduct(product);
+    }
+  };
 
   return (
     <div className="group relative bg-white dark:bg-slate-900 rounded-3xl border border-slate-200/80 dark:border-slate-800 shadow-xs hover:shadow-xl hover:border-amber-400/60 dark:hover:border-amber-500/60 transition-all duration-300 flex flex-col overflow-hidden">
       
       {/* Visual Image Slot (65-75% height) */}
       <div 
-        onClick={() => onSelect(product)}
+        onClick={handleSelect}
         className="relative h-56 sm:h-64 w-full bg-[#f8fafc] dark:bg-slate-800/50 p-4 flex items-center justify-center overflow-hidden cursor-pointer"
       >
         <img
@@ -73,7 +82,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onSelect }) =
 
           {/* Product Title */}
           <h3 
-            onClick={() => onSelect(product)}
+            onClick={handleSelect}
             className="font-bold text-sm sm:text-base text-slate-900 dark:text-white line-clamp-2 hover:text-amber-500 transition-colors cursor-pointer leading-snug"
             title={product.name}
           >

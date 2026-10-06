@@ -9,6 +9,7 @@ import { BlogPage } from '../BlogPage';
 import { StoresPage } from '../StoresPage';
 import { Footer } from '../Footer';
 import { CartSidebar } from '../CartSidebar';
+import { ProductDetailPage } from '../ProductDetailPage';
 import {
   Maximize2,
   Minimize2,
@@ -28,7 +29,7 @@ import {
   MessageSquare
 } from 'lucide-react';
 
-export type YoupiSubsitePreviewPage = 'home' | 'catalog' | 'packs' | 'blog' | 'stores';
+export type YoupiSubsitePreviewPage = 'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'product-detail';
 
 interface SubsiteLiveFullscreenModalProps {
   isOpen: boolean;
@@ -79,6 +80,11 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
     }
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [isOpen, onClose]);
+
+  const handleProductSelect = (p: Product) => {
+    setSelectedProduct(p);
+    setCurrentPage('product-detail');
+  };
 
   if (!isOpen) return null;
 
@@ -313,7 +319,7 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
                     products={products}
                     selectedCategory={selectedCategory}
                     onSelectCategory={setSelectedCategory}
-                    onSelectProduct={setSelectedProduct}
+                    onSelectProduct={handleProductSelect}
                     searchQuery={searchQuery}
                   />
 
@@ -370,10 +376,24 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
                     products={products}
                     selectedCategory={selectedCategory}
                     onSelectCategory={setSelectedCategory}
-                    onSelectProduct={setSelectedProduct}
+                    onSelectProduct={handleProductSelect}
                     searchQuery={searchQuery}
                   />
                 </div>
+              )}
+
+              {/* PRODUCT DETAIL VIEW */}
+              {currentPage === 'product-detail' && selectedProduct && (
+                <ProductDetailPage
+                  product={selectedProduct}
+                  allProducts={products}
+                  onNavigateHome={() => setCurrentPage('home')}
+                  onNavigateCatalog={(cat) => {
+                    if (cat) setSelectedCategory(cat);
+                    setCurrentPage('catalog');
+                  }}
+                  onSelectProduct={handleProductSelect}
+                />
               )}
 
               {/* 3. PACKS VIEW */}

@@ -6,17 +6,17 @@ import { Search, SlidersHorizontal, Package, Sparkles } from 'lucide-react';
 interface ProductGridSectionProps {
   products: Product[];
   selectedCategory: string;
-  onSelectCategory: (cat: string) => void;
-  onSelectProduct: (product: Product) => void;
-  searchQuery: string;
+  onSelectCategory?: (cat: string) => void;
+  onSelectProduct?: (product: Product) => void;
+  searchQuery?: string;
 }
 
 export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
   products,
   selectedCategory,
-  onSelectCategory,
-  onSelectProduct,
-  searchQuery
+  onSelectCategory = () => {},
+  onSelectProduct = () => {},
+  searchQuery = ''
 }) => {
   const [selectedAge, setSelectedAge] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'populaire' | 'prix-asc' | 'prix-desc'>('populaire');
@@ -166,6 +166,7 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
               <ProductCard
                 key={product.id}
                 product={product}
+                onSelect={onSelectProduct}
                 onSelectProduct={onSelectProduct}
               />
             ))}
