@@ -272,67 +272,13 @@ const sampleOrders = [
     { 
         id: 'IF-9901', 
         customerName: 'Sami Tounsi', 
-        customerEmail: 'sami.tounsi@gmail.com',
-        phone: '+216 22 111 222',
-        date: '2026-03-15', 
+        date: '2023-11-12', 
         total: 289, 
         status: 'Livrée', 
         itemCount: 1,
         items: [{ ...allProducts[0], productId: 1, quantity: 1, price: 289 }],
         shippingAddress: { id: 1, type: 'Domicile', street: 'Av Bourguiba', city: 'Sfax', postalCode: '3000', isDefault: true },
         paymentMethod: 'Paiement à la livraison'
-    },
-    { 
-        id: 'IF-9902', 
-        customerName: 'Karim Mansouri', 
-        customerEmail: 'karim.m@gmail.com',
-        phone: '+216 98 444 555',
-        date: '2026-03-22', 
-        total: 450, 
-        status: 'Expédiée', 
-        itemCount: 1,
-        items: [{ ...allProducts[1], productId: 2, quantity: 1, price: 450 }],
-        shippingAddress: { id: 2, type: 'Domicile', street: 'Ennasr 2', city: 'Tunis', postalCode: '2037', isDefault: true },
-        paymentMethod: 'Carte Bancaire'
-    },
-    { 
-        id: 'IF-9903', 
-        customerName: 'Yassine Dridi', 
-        customerEmail: 'yassine.d@outlook.com',
-        phone: '+216 55 777 888',
-        date: '2026-03-29', 
-        total: 169, 
-        status: 'En attente', 
-        itemCount: 1,
-        items: [{ ...allProducts[0], productId: 101, quantity: 1, price: 169 }],
-        shippingAddress: { id: 3, type: 'Domicile', street: 'Kantaoui', city: 'Sousse', postalCode: '4089', isDefault: true },
-        paymentMethod: 'Paiement à la livraison'
-    },
-    { 
-        id: 'IF-9904', 
-        customerName: 'Meriem Trabelsi', 
-        customerEmail: 'meriem.t@gmail.com',
-        phone: '+216 28 333 444',
-        date: '2026-04-01', 
-        total: 340, 
-        status: 'Livrée', 
-        itemCount: 2,
-        items: [{ ...allProducts[0], productId: 102, quantity: 2, price: 170 }],
-        shippingAddress: { id: 4, type: 'Domicile', street: 'Les Berges du Lac', city: 'Tunis', postalCode: '1053', isDefault: true },
-        paymentMethod: 'Carte Bancaire'
-    },
-    { 
-        id: 'IF-9905', 
-        customerName: 'Khaled Bouazizi', 
-        customerEmail: 'khaled.b@yahoo.fr',
-        phone: '+216 20 999 111',
-        date: '2026-04-04', 
-        total: 890, 
-        status: 'En attente', 
-        itemCount: 1,
-        items: [{ ...allProducts[2] || allProducts[0], productId: 103, quantity: 1, price: 890 }],
-        shippingAddress: { id: 5, type: 'Domicile', street: 'Cité Olympique', city: 'Radès', postalCode: '2040', isDefault: true },
-        paymentMethod: 'Virement Bancaire'
     }
 ];
 
