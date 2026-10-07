@@ -15,9 +15,16 @@ import { CartProvider as YoupiCartProvider } from '@/templates/youpi/components/
 import { FavoritesProvider as YoupiFavoritesProvider } from '@/templates/youpi/components/FavoritesContext';
 import { CompareProvider as YoupiCompareProvider } from '@/templates/youpi/components/CompareContext';
 
+import { ThemeProvider as DariThemeProvider } from '@/templates/dari/components/ThemeContext';
+import { ToastProvider as DariToastProvider } from '@/templates/dari/components/ToastContext';
+import { CartProvider as DariCartProvider } from '@/templates/dari/components/CartContext';
+import { FavoritesProvider as DariFavoritesProvider } from '@/templates/dari/components/FavoritesContext';
+import { CompareProvider as DariCompareProvider } from '@/templates/dari/components/CompareContext';
+
 // Lazy loaded sub-backoffices
 const NutritionAdminPage = React.lazy(() => import('@/templates/nutrition/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const YoupiAdminPage = React.lazy(() => import('@/templates/youpi/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const DariAdminPage = React.lazy(() => import('@/templates/dari/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 export interface FilialeMeta {
   id: FilialeId;
@@ -50,6 +57,16 @@ export const FILIALES_CONFIG: Record<FilialeId, FilialeMeta> = {
     colorName: 'amber',
     badgeClass: 'bg-amber-50 text-amber-800 border-amber-200',
     headerAccent: 'text-amber-700'
+  },
+  dari: {
+    id: 'dari',
+    name: 'DariShop',
+    subtitle: 'Maison, Déco & Mobilier',
+    tagline: 'Mobilier contemporain, Luminaires & Décoration • produit_myshops_dari',
+    icon: '🏠',
+    colorName: 'indigo',
+    badgeClass: 'bg-indigo-50 text-indigo-800 border-indigo-200',
+    headerAccent: 'text-indigo-700'
   }
 };
 
@@ -70,7 +87,7 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
   currentUser,
   onLogout
 }) => {
-  const safeShopId: FilialeId = (typeof filialeId === 'string' && ['nutrition', 'youpi'].includes(filialeId as FilialeId))
+  const safeShopId: FilialeId = (typeof filialeId === 'string' && ['nutrition', 'youpi', 'dari'].includes(filialeId as FilialeId))
     ? (filialeId as FilialeId)
     : 'nutrition';
   const meta = FILIALES_CONFIG[safeShopId] || FILIALES_CONFIG.nutrition;
@@ -228,7 +245,7 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
     }));
   };
 
-  const filialeKeys: FilialeId[] = ['nutrition', 'youpi'];
+  const filialeKeys: FilialeId[] = ['nutrition', 'youpi', 'dari'];
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col font-sans w-full">
@@ -473,6 +490,41 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
                   </YoupiCartProvider>
                 </YoupiToastProvider>
               </YoupiThemeProvider>
+            )}
+
+            {safeShopId === 'dari' && (
+              <DariThemeProvider>
+                <DariToastProvider>
+                  <DariCartProvider>
+                    <DariFavoritesProvider>
+                      <DariCompareProvider>
+                        <DariAdminPage
+                          onNavigateHome={() => onGoToStorefront('dari')}
+                          onLogout={onLogout}
+                          productsData={data.products}
+                          setProductsData={setProductsData}
+                          categoriesData={data.categories}
+                          setCategoriesData={setCategoriesData}
+                          packsData={data.packs}
+                          setPacksData={setPacksData}
+                          ordersData={data.orders}
+                          setOrdersData={setOrdersData}
+                          messagesData={data.messages}
+                          setMessagesData={setMessagesData}
+                          advertisementsData={data.ads}
+                          setAdvertisementsData={setAdvertisementsData}
+                          promotionsData={data.promos}
+                          setPromotionsData={setPromotionsData}
+                          storesData={data.stores}
+                          setStoresData={setStoresData}
+                          brandsData={data.brands}
+                          setBrandsData={setBrandsData}
+                        />
+                      </DariCompareProvider>
+                    </DariFavoritesProvider>
+                  </DariCartProvider>
+                </DariToastProvider>
+              </DariThemeProvider>
             )}
           </Suspense>
         )}

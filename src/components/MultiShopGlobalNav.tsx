@@ -38,6 +38,15 @@ export const MULTISHOP_STORES: MultiShopStoreConfig[] = [
     badge: 'Jeux & Jouets',
     icon: '🧸',
     enumType: 'produit_myshops_youpi'
+  },
+  {
+    id: 'dari',
+    name: 'DariShop',
+    tabLabel: 'DariShop',
+    tagline: 'Maison, Décoration & Mobilier Contemporain',
+    badge: 'Maison & Déco',
+    icon: '🏠',
+    enumType: 'produit_myshops_dari'
   }
 ];
 

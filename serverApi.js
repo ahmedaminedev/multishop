@@ -9,13 +9,29 @@ const require = createRequire(import.meta.url);
 export const storesData = {
   nutrition: null,
   youpi: null,
+  dari: null
 };
 
 // Global in-memory chat sessions store per shop
 export const chatSessionsStore = {
   nutrition: new Map(),
-  youpi: new Map()
+  youpi: new Map(),
+  dari: new Map()
 };
+
+// Seed realistic client chat sessions for DariShop
+chatSessionsStore.dari.set('client_dari_1', {
+  _id: 'chat-dari-1',
+  userId: 'client_dari_1',
+  userName: 'Nadia Cherif',
+  userEmail: 'nadia.cherif@gmail.com',
+  lastUpdated: new Date(Date.now() - 1000 * 60 * 10).toISOString(),
+  messages: [
+    { sender: 'client', content: 'Bonjour ! Le canapé 3 places velours côtelé existe-t-il aussi en vert sauge ou terracotta ?', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 20).toISOString(), read: true },
+    { sender: 'admin', content: 'Bonjour Nadia ! 🏠 Oui absolument, nous avons 4 coloris disponibles : Écru, Vert Sauge, Terracotta et Gris Perle. Vous pouvez également voir les nuanciers de tissus dans notre showroom du Lac 2.', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 15).toISOString(), read: true },
+    { sender: 'client', content: 'C\'est parfait ! Est-ce que la livraison avec montage à l\'étage est incluse sur Tunis ?', type: 'text', timestamp: new Date(Date.now() - 1000 * 60 * 10).toISOString(), read: false }
+  ]
+});
 
 // Seed realistic client chat sessions for YoupiShop
 chatSessionsStore.youpi.set('client_youpi_1', {
@@ -75,7 +91,8 @@ export function recordChatMessage(shopKey, data) {
 // Visibilité et disponibilité des boutiques (Gestion avancée Front-office / Back-office / Maintenance)
 export let siteVisibilityData = {
   nutrition: { siteId: 'nutrition', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🏋️‍♂️ Fitness Shop est temporairement en maintenance technique pour réapprovisionnement.' },
-  youpi: { siteId: 'youpi', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🧸 YoupiShop est en maintenance pour préparer de nouveaux jeux et jouets d\'éveil.' }
+  youpi: { siteId: 'youpi', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🧸 YoupiShop est en maintenance pour préparer de nouveaux jeux et jouets d\'éveil.' },
+  dari: { siteId: 'dari', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🏠 DariShop est en maintenance technique pour préparer les nouvelles collections maison & décoration.' }
 };
 
 // Global Socket.IO instance for real-time live events across all shops
@@ -424,6 +441,15 @@ export const FILIALE_MAP = {
     filialeType: 'produit_myshops_youpi',
     accentColor: '#f59e0b',
     badge: 'Jeux & Jouets d\'enfant'
+  },
+  dari: {
+    key: 'dari',
+    folder: 'templates/dari',
+    legacyFolder: 'dari_shop-main',
+    name: 'DariShop',
+    filialeType: 'produit_myshops_dari',
+    accentColor: '#4f46e5',
+    badge: 'Maison & Décoration'
   }
 };
 
@@ -450,6 +476,11 @@ function enrichProductWithFiliale(product, filialeKey) {
     p.normeSecurite = p.normeSecurite || 'Conforme normes CE & EN-71';
     p.nbJoueurs = p.nbJoueurs || '1 à 4 joueurs';
     p.pilesRequises = p.pilesRequises !== undefined ? p.pilesRequises : false;
+  } else if (filialeKey === 'dari') {
+    p.pieceMaison = p.pieceMaison || (p.name.includes('Canapé') || p.name.includes('Table') ? 'Salon & Séjour' : p.name.includes('Miroir') ? 'Chambre & Entrée' : 'Toute la maison');
+    p.materiauPrincipal = p.materiauPrincipal || (p.name.includes('Velours') ? 'Velours côtelé & Hêtre massif' : p.name.includes('Chêne') ? 'Chêne naturel & Céramique' : 'Matériaux nobles durables');
+    p.styleDeco = p.styleDeco || 'Contemporain & Cosy';
+    p.dimensions = p.dimensions || 'Dimensions standard';
   }
 
   p.existe_dans_boutique = product.existe_dans_boutique !== undefined ? Boolean(product.existe_dans_boutique) : true;
@@ -468,6 +499,8 @@ export async function initStores() {
       const rawProducts = Array.isArray(data.allProducts) ? JSON.parse(JSON.stringify(data.allProducts)) : [];
       const defaultSupplier = key === 'nutrition' 
         ? { id: 'frn-1', nom: 'Tunisie Fitness & Sport Distribution' }
+        : key === 'dari'
+        ? { id: 'frn-3', nom: 'Maison & Décoration Tunisie Import' }
         : { id: 'frn-4', nom: 'Youpi Toys & Games Maghreb Import' };
 
       const products = rawProducts.map((prod, i) => {
@@ -1225,7 +1258,7 @@ export function handleApiRequest(req, res, next) {
       }
 
       // --- FILE & LOGO UPLOAD (Saved directly to backend disk in public/uploads) ---
-      if ((endpoint === '/upload' || endpoint === '/upload/logo') && req.method === 'POST') {
+      if ((endpoint === '/upload' || endpoint === '/upload/logo' || endpoint === '/admin/logo' || endpoint === '/logo') && req.method === 'POST') {
         const body = await getBody();
         const targetShopKey = body.shop || shopKey || 'nutrition';
         const targetStore = storesData[targetShopKey] || shop;
@@ -1279,6 +1312,8 @@ export function handleApiRequest(req, res, next) {
           targetStore.advertisements.logoConfig.logoUrl = publicUrl;
           if (body.navbarHeight) targetStore.advertisements.logoConfig.navbarHeight = body.navbarHeight;
           if (body.footerHeight) targetStore.advertisements.logoConfig.footerHeight = body.footerHeight;
+          if (body.navbarOffset !== undefined) targetStore.advertisements.logoConfig.navbarOffset = body.navbarOffset;
+          if (body.navbarPosition) targetStore.advertisements.logoConfig.navbarPosition = body.navbarPosition;
         }
 
         return sendJson(200, {
@@ -1289,7 +1324,7 @@ export function handleApiRequest(req, res, next) {
         });
       }
 
-      if ((endpoint === '/upload/logo' || endpoint === '/logo') && req.method === 'DELETE') {
+      if ((endpoint === '/upload/logo' || endpoint === '/admin/logo' || endpoint === '/logo') && req.method === 'DELETE') {
         const targetShopKey = parsedUrl.query.shop || shopKey || 'nutrition';
         const targetStore = storesData[targetShopKey] || shop;
         if (targetStore?.advertisements?.logoConfig) {

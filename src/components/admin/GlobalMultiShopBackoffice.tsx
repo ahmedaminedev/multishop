@@ -31,9 +31,16 @@ import { CartProvider as YoupiCartProvider } from '@/templates/youpi/components/
 import { FavoritesProvider as YoupiFavoritesProvider } from '@/templates/youpi/components/FavoritesContext';
 import { CompareProvider as YoupiCompareProvider } from '@/templates/youpi/components/CompareContext';
 
+import { ThemeProvider as DariThemeProvider } from '@/templates/dari/components/ThemeContext';
+import { ToastProvider as DariToastProvider } from '@/templates/dari/components/ToastContext';
+import { CartProvider as DariCartProvider } from '@/templates/dari/components/CartContext';
+import { FavoritesProvider as DariFavoritesProvider } from '@/templates/dari/components/FavoritesContext';
+import { CompareProvider as DariCompareProvider } from '@/templates/dari/components/CompareContext';
+
 // Lazy loaded sub-backoffices (used with hideSidebar=true for contextual pages)
 const NutritionAdminPage = React.lazy(() => import('@/templates/nutrition/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 const YoupiAdminPage = React.lazy(() => import('@/templates/youpi/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
+const DariAdminPage = React.lazy(() => import('@/templates/dari/components/admin/AdminPage').then(m => ({ default: m.AdminPage })));
 
 class SubAdminErrorBoundary extends React.Component<{ filialeName: string; onBackToHq: () => void; children: React.ReactNode }, { hasError: boolean; error: any }> {
   constructor(props: any) {
@@ -80,7 +87,8 @@ interface GlobalBackofficeProps {
 
 const BOUTIQUES_META: Record<string, { name: string; icon: string; subtitle: string; color: string; bg: string }> = {
   nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', subtitle: 'Équipements de Musculation, Cardio & Fitness', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
-  youpi: { name: 'YoupiShop', icon: '🧸', subtitle: "Jeux d'Enfants, Jouets & Éveil", color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
+  youpi: { name: 'YoupiShop', icon: '🧸', subtitle: "Jeux d'Enfants, Jouets & Éveil", color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
+  dari: { name: 'DariShop', icon: '🏠', subtitle: 'Maison, Décoration & Mobilier', color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-200' }
 };
 
 export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
@@ -98,7 +106,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     const hash = window.location.hash;
     if (hash.startsWith('#/admin/')) {
       const s = hash.replace('#/admin/', '').trim();
-      if (['nutrition', 'youpi'].includes(s)) return s as ShopContextId;
+      if (['nutrition', 'youpi', 'dari'].includes(s)) return s as ShopContextId;
     }
     return 'all';
   });
@@ -120,7 +128,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   // If current contextual shop was hidden from Backoffice, switch to first visible
   useEffect(() => {
     if (activeShop === 'all' && isSiteHiddenInBackOffice(contextualShopOverride, siteVisibility)) {
-      const firstAvailable = (['nutrition', 'youpi'] as FilialeId[]).find(
+      const firstAvailable = (['nutrition', 'youpi', 'dari'] as FilialeId[]).find(
         fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)
       );
       if (firstAvailable) {
@@ -163,6 +171,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   const [filialeData, setFilialeData] = useState<Record<string, any>>({
     nutrition: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
     youpi: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
+    dari: { products: [], categories: [], packs: [], orders: [], messages: [], ads: {}, promos: [], stores: [], brands: [] },
   });
 
   const fetchGlobalData = async () => {
@@ -231,7 +240,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   useEffect(() => {
     fetchGlobalData();
     // Preload all filiales data in background for instant responsiveness
-    ['nutrition', 'youpi'].forEach(loadFilialeData);
+    ['nutrition', 'youpi', 'dari'].forEach(loadFilialeData);
 
     // Initialize Socket.IO connection for real-time background sync
     getRealtimeSocket();
@@ -778,7 +787,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   </div>
 
                   <div className="flex items-center gap-1.5 bg-slate-100 p-1 rounded-xl overflow-x-auto no-scrollbar">
-                    {((['nutrition', 'youpi'] as FilialeId[])
+                    {((['nutrition', 'youpi', 'dari'] as FilialeId[])
                       .filter(fKey => !isSiteHiddenInBackOffice(fKey, siteVisibility)))
                       .map((fKey) => {
                       const fMeta = BOUTIQUES_META[fKey];
@@ -886,6 +895,48 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                         </YoupiCartProvider>
                       </YoupiToastProvider>
                     </YoupiThemeProvider>
+                  </SubAdminErrorBoundary>
+                )}
+
+                {/* 3. DariShop Sub-Pages (Contrôle total accueil & front-office) */}
+                {targetBoutiqueKey === 'dari' && (
+                  <SubAdminErrorBoundary filialeName="DariShop" onBackToHq={() => setCurrentMenu('dashboard')}>
+                    <DariThemeProvider>
+                      <DariToastProvider>
+                        <DariCartProvider>
+                          <DariFavoritesProvider>
+                            <DariCompareProvider>
+                              <Suspense fallback={<div className="p-8 text-center text-slate-400 text-xs">Chargement du module DariShop...</div>}>
+                                <DariAdminPage
+                                  hideSidebar={true}
+                                  forcedPage={currentMenu as any}
+                                  onNavigateHome={() => onGoToStorefront('dari')}
+                                  onLogout={onLogout}
+                                  productsData={filialeData.dari?.products || []}
+                                  setProductsData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, products: typeof data === 'function' ? data(prev.dari?.products || []) : data } }))}
+                                  categoriesData={filialeData.dari?.categories || []}
+                                  setCategoriesData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, categories: typeof data === 'function' ? data(prev.dari?.categories || []) : data } }))}
+                                  packsData={filialeData.dari?.packs || []}
+                                  setPacksData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, packs: typeof data === 'function' ? data(prev.dari?.packs || []) : data } }))}
+                                  ordersData={filialeData.dari?.orders || []}
+                                  setOrdersData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, orders: typeof data === 'function' ? data(prev.dari?.orders || []) : data } }))}
+                                  messagesData={filialeData.dari?.messages || []}
+                                  setMessagesData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, messages: typeof data === 'function' ? data(prev.dari?.messages || []) : data } }))}
+                                  advertisementsData={filialeData.dari?.ads || {}}
+                                  setAdvertisementsData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, ads: typeof data === 'function' ? data(prev.dari?.ads || {}) : data } }))}
+                                  promotionsData={filialeData.dari?.promos || []}
+                                  setPromotionsData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, promos: typeof data === 'function' ? data(prev.dari?.promos || []) : data } }))}
+                                  storesData={filialeData.dari?.stores || []}
+                                  setStoresData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, stores: typeof data === 'function' ? data(prev.dari?.stores || []) : data } }))}
+                                  brandsData={filialeData.dari?.brands || []}
+                                  setBrandsData={(data) => setFilialeData(prev => ({ ...prev, dari: { ...prev.dari, brands: typeof data === 'function' ? data(prev.dari?.brands || []) : data } }))}
+                                />
+                              </Suspense>
+                            </DariCompareProvider>
+                          </DariFavoritesProvider>
+                        </DariCartProvider>
+                      </DariToastProvider>
+                    </DariThemeProvider>
                   </SubAdminErrorBoundary>
                 )}
 

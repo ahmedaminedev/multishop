@@ -51,7 +51,7 @@ export type SidebarMenuItem =
   | 'home'
   | 'chat';
 
-export type ShopContextId = 'all' | 'nutrition' | 'youpi';
+export type ShopContextId = 'all' | 'nutrition' | 'youpi' | 'dari';
 
 interface SidebarNavProps {
   currentMenu: SidebarMenuItem;
@@ -67,7 +67,8 @@ interface SidebarNavProps {
 const SHOP_CONFIGS: Record<string, { name: string; icon: string; color: string; bg: string }> = {
   all: { name: 'Toutes les boutiques', icon: '🌐', color: 'text-blue-600', bg: 'bg-blue-50 border-blue-200' },
   nutrition: { name: 'Fitness Shop', icon: '🏋️‍♂️', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
-  youpi: { name: 'YoupiShop', icon: '🧸', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
+  youpi: { name: 'YoupiShop', icon: '🧸', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
+  dari: { name: 'DariShop', icon: '🏠', color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-200' }
 };
 
 export const SidebarNav: React.FC<SidebarNavProps> = ({

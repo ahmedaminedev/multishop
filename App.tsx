@@ -16,6 +16,7 @@ import {
 // Lazy load each shop application template
 const NutritionShopApp = React.lazy(() => import('./templates/nutrition/App'));
 const YoupiShopApp = React.lazy(() => import('./templates/youpi/App'));
+const DariShopApp = React.lazy(() => import('./templates/dari/App'));
 
 export type AppMode = 'backoffice' | 'frontoffice';
 export type BackofficeScope = 'hq' | FilialeId;
@@ -35,17 +36,18 @@ export const App: React.FC = () => {
     const hash = window.location.hash;
     if (hash.startsWith('#/admin/nutrition')) return 'nutrition';
     if (hash.startsWith('#/admin/youpi')) return 'youpi';
+    if (hash.startsWith('#/admin/dari')) return 'dari';
     return 'hq';
   });
 
   const [currentShop, setCurrentShop] = useState<FilialeId>(() => {
     const params = new URLSearchParams(window.location.search);
     const shopParam = params.get('shop') as FilialeId;
-    if (shopParam && ['nutrition', 'youpi'].includes(shopParam)) {
+    if (shopParam && ['nutrition', 'youpi', 'dari'].includes(shopParam)) {
       return shopParam;
     }
     const saved = localStorage.getItem('multishop_active_shop') as FilialeId;
-    if (saved && ['nutrition', 'youpi'].includes(saved)) {
+    if (saved && ['nutrition', 'youpi', 'dari'].includes(saved)) {
       return saved;
     }
     return 'nutrition';
@@ -77,6 +79,9 @@ export const App: React.FC = () => {
       } else if (hash.startsWith('#/admin/youpi')) {
         setAppMode('backoffice');
         setBackofficeScope('youpi');
+      } else if (hash.startsWith('#/admin/dari')) {
+        setAppMode('backoffice');
+        setBackofficeScope('dari');
       } else if (hash === '#/admin' || hash === '#/admin/hq') {
         setAppMode('backoffice');
         setBackofficeScope('hq');
@@ -165,14 +170,16 @@ export const App: React.FC = () => {
       } else {
         const titles: Record<FilialeId, string> = {
           nutrition: 'Fitness Shop | Administration Dédiée',
-          youpi: 'YoupiShop | Administration Dédiée'
+          youpi: 'YoupiShop | Administration Dédiée',
+          dari: 'DariShop | Administration Dédiée'
         };
         document.title = titles[backofficeScope] || 'MultiShop Backoffice';
       }
     } else {
       const titles: Record<FilialeId, string> = {
         nutrition: 'Fitness Shop | Équipements de Musculation & Fitness Pro',
-        youpi: "YoupiShop | Jouets d'Éveil & Jeux d'Enfants"
+        youpi: "YoupiShop | Jouets d'Éveil & Jeux d'Enfants",
+        dari: 'DariShop | Maison, Décoration & Mobilier Contemporain'
       };
       document.title = titles[currentShop] || 'MultiShop Network';
     }
@@ -208,7 +215,7 @@ export const App: React.FC = () => {
     window.location.hash = '#/';
   };
 
-  const VALID_FILIALES: FilialeId[] = ['nutrition', 'youpi'];
+  const VALID_FILIALES: FilialeId[] = ['nutrition', 'youpi', 'dari'];
 
   const handleGoToStorefront = (shopId?: any) => {
     if (typeof shopId === 'string' && VALID_FILIALES.includes(shopId as FilialeId)) {
@@ -329,6 +336,13 @@ export const App: React.FC = () => {
                   >
                     {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
                     {currentShop === 'youpi' && <YoupiShopApp key="youpi-app" />}
+                    {currentShop === 'dari' && (
+                      <DariShopApp
+                        key="dari-app"
+                        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                        currentUser={currentUser}
+                      />
+                    )}
                   </Suspense>
                 )}
               </main>

@@ -1,6 +1,6 @@
 {
   "name": "MultiShop Network",
-  "description": "Multi-store e-commerce platform including Fitness Shop and YoupiShop.",
+  "description": "Multi-store e-commerce platform including Fitness Shop, YoupiShop and DariShop.",
   "requestFramePermissions": [
     "camera",
     "microphone"

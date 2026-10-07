@@ -5,10 +5,11 @@
 
 export enum FilialeType {
   PRODUIT_MYSHOPS_NUTRITION = 'produit_myshops_nutrition',
-  PRODUIT_MYSHOPS_YOUPI = 'produit_myshops_youpi'
+  PRODUIT_MYSHOPS_YOUPI = 'produit_myshops_youpi',
+  PRODUIT_MYSHOPS_DARI = 'produit_myshops_dari'
 }
 
-export type FilialeId = 'nutrition' | 'youpi';
+export type FilialeId = 'nutrition' | 'youpi' | 'dari';
 
 export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; badgeColor: string; icon: string }> = {
   [FilialeType.PRODUIT_MYSHOPS_NUTRITION]: {
@@ -22,6 +23,12 @@ export const FILIALE_CONFIG: Record<FilialeType, { id: FilialeId; name: string; 
     name: 'YoupiShop',
     badgeColor: 'bg-amber-100 text-amber-900 border-amber-300 dark:bg-amber-900/40 dark:text-amber-300',
     icon: '🧸'
+  },
+  [FilialeType.PRODUIT_MYSHOPS_DARI]: {
+    id: 'dari',
+    name: 'DariShop',
+    badgeColor: 'bg-indigo-100 text-indigo-900 border-indigo-300 dark:bg-indigo-900/40 dark:text-indigo-300',
+    icon: '🏠'
   }
 };
 
@@ -291,12 +298,44 @@ export class ProduitYoupi extends ProduitFiliale {
 }
 
 /**
+ * Filiale Maison, Décoration & Mobilier (DariShop)
+ */
+export class ProduitDari extends ProduitFiliale {
+  pieceMaison: string;
+  materiauPrincipal: string;
+  styleDeco: string;
+  dimensions?: string;
+  finition?: string;
+
+  constructor(data: any) {
+    super(data, FilialeType.PRODUIT_MYSHOPS_DARI, 'DariShop');
+    this.pieceMaison = data.pieceMaison || 'Salon & Séjour';
+    this.materiauPrincipal = data.materiauPrincipal || 'Bois massif & Tissu premium';
+    this.styleDeco = data.styleDeco || 'Contemporain & Cosy';
+    this.dimensions = data.dimensions || 'Dimensions standard';
+    this.finition = data.finition || 'Finition soignée artisanale';
+  }
+
+  getSpecificAttributes() {
+    return {
+      'Pièce de la maison': this.pieceMaison,
+      'Matériau principal': this.materiauPrincipal,
+      'Style de décoration': this.styleDeco,
+      'Dimensions': this.dimensions,
+      'Finition': this.finition
+    };
+  }
+}
+
+/**
  * Factory pour instancier la bonne sous-classe selon le filialeType
  */
 export function createProduitFiliale(data: any, defaultFilialeType?: FilialeType): ProduitFiliale {
   const type = data.filialeType || defaultFilialeType || FilialeType.PRODUIT_MYSHOPS_NUTRITION;
 
   switch (type) {
+    case FilialeType.PRODUIT_MYSHOPS_DARI:
+      return new ProduitDari(data);
     case FilialeType.PRODUIT_MYSHOPS_YOUPI:
       return new ProduitYoupi(data);
     case FilialeType.PRODUIT_MYSHOPS_NUTRITION:

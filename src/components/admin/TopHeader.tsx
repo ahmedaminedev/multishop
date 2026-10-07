@@ -11,7 +11,7 @@ import {
   SiteVisibilityMap
 } from '../../utils/siteVisibility';
 
-export type BackofficeTab = 'all' | 'nutrition' | 'youpi';
+export type BackofficeTab = 'all' | 'nutrition' | 'youpi' | 'dari';
 
 interface TopHeaderProps {
   activeShop: ShopContextId;
@@ -50,6 +50,7 @@ export const TopHeader: React.FC<TopHeaderProps> = ({
     { id: 'all', label: 'Toutes les boutiques (Consolidé)', icon: '🌐', badge: 'GROUPE HQ', color: 'text-blue-600' },
     { id: 'nutrition', label: 'Fitness Shop (Équipements & Muscu)', icon: '🏋️‍♂️', badge: 'FILIALE 1', color: 'text-lime-600' },
     { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', icon: '🧸', badge: 'FILIALE 2', color: 'text-amber-600' },
+    { id: 'dari', label: 'DariShop (Maison, Déco & Mobilier)', icon: '🏠', badge: 'FILIALE 3', color: 'text-indigo-600' },
   ];
 
   // User Requirement 2: Filter out sites that are hidden in Backoffice (Disparition de la console d'administration)

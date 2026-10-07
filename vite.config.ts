@@ -30,14 +30,14 @@ function multishopProductionPlugin() {
           socket.on('admin_join', () => {
             socket.join('admin_room');
             socket.emit('stats_updated', calculateGlobalStats());
-            ['nutrition', 'youpi'].forEach(k => {
+            ['nutrition', 'youpi', 'dari'].forEach(k => {
               socket.emit(`shop_stats_updated_${k}`, calculateShopStats(k));
             });
           });
           socket.on('check_admin_status', () => socket.emit('admin_status', { online: true }));
           socket.on('request_global_stats', () => {
             socket.emit('stats_updated', calculateGlobalStats());
-            ['nutrition', 'youpi'].forEach(k => {
+            ['nutrition', 'youpi', 'dari'].forEach(k => {
               socket.emit(`shop_stats_updated_${k}`, calculateShopStats(k));
             });
           });
@@ -93,6 +93,7 @@ function multishopProductionPlugin() {
       
       let shop = 'nutrition';
       if (url.includes('shop=youpi')) shop = 'youpi';
+      else if (url.includes('shop=dari')) shop = 'dari';
       else if (url.includes('shop=nutrition')) shop = 'nutrition';
 
       const shopMeta: Record<string, { title: string; desc: string; image: string }> = {
@@ -105,6 +106,11 @@ function multishopProductionPlugin() {
           title: "YoupiShop | Jeux d'Enfants & Jouets d'Éveil Tunisie",
           desc: "Des milliers de jouets pour faire rêver vos enfants à tous les âges. Livraison 24/48h partout en Tunisie.",
           image: '/src/assets/images/hero_youpishop_toys_1791240036994.jpg'
+        },
+        dari: {
+          title: "DariShop | Mobilier & Décoration d'Intérieur Haut de Gamme Tunisie",
+          desc: "Mobilier contemporain, luminaires design et décoration raffinée pour sublimer votre intérieur.",
+          image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=1200'
         }
       };
 
