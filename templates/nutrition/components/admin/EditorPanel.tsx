@@ -7,8 +7,10 @@ import { LogoBackgroundRemoverModal } from './LogoBackgroundRemoverModal';
 
 interface EditorPanelProps {
     section: string;
-    adsConfig: Advertisements;
-    onChangeAdsConfig: (newAds: Advertisements) => void;
+    data?: any;
+    onChange?: (data: any) => void;
+    adsConfig?: Advertisements;
+    onChangeAdsConfig?: (newAds: Advertisements) => void;
     allProducts: Product[];
     allCategories?: Category[];
     allPacks?: Pack[];
@@ -16,14 +18,16 @@ interface EditorPanelProps {
 
 export const EditorPanel: React.FC<EditorPanelProps> = ({ 
     section, 
-    adsConfig, 
-    onChangeAdsConfig,
+    data,
+    onChange,
+    adsConfig = {} as Advertisements, 
+    onChangeAdsConfig = () => {},
     allProducts
 }) => {
-    const logoConfig: LogoConfig = adsConfig.logoConfig || {};
-    const fitnessHome: FitnessHomeConfig = adsConfig.fitnessHome || {};
-    const heroConfig = fitnessHome.hero || {};
-    const promoConfig = fitnessHome.promoBanner || {};
+    const logoConfig: LogoConfig = adsConfig?.logoConfig || {};
+    const fitnessHome: FitnessHomeConfig = adsConfig?.fitnessHome || {};
+    const heroConfig = fitnessHome?.hero || {};
+    const promoConfig = fitnessHome?.promoBanner || {};
 
     const [uploadError, setUploadError] = useState<string | null>(null);
     const [uploadSuccessMsg, setUploadSuccessMsg] = useState<string | null>(null);

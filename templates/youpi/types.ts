@@ -55,7 +55,7 @@ export interface Brand {
 
 export interface Pack {
     id: number;
-    name: string;
+    name?: string;
     title?: string;
     price: number;
     oldPrice?: number;
@@ -171,8 +171,12 @@ export interface Promotion {
     id: string;
     title: string;
     code: string;
-    discountPercentage: number;
-    validUntil: string;
+    discountPercentage?: number;
+    discountPercent?: number;
+    validUntil?: string;
+    startDate?: string;
+    endDate?: string;
+    active?: boolean;
 }
 
 export interface Store {
@@ -189,5 +193,7 @@ export interface BlogPost {
     date: string;
     summary: string;
     image: string;
+    author?: string;
+    category?: string;
     content?: string;
 }

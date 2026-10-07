@@ -5,6 +5,7 @@ import type { FitnessHomeHeroConfig } from '../types';
 interface HeroSectionProps {
     onExplore?: () => void;
     config?: FitnessHomeHeroConfig;
+    slides?: any;
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ onExplore, config }) => {

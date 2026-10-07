@@ -594,7 +594,7 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
                                             >
                                                 <div className="relative h-48 bg-slate-100 dark:bg-slate-800 overflow-hidden">
                                                     <img 
-                                                        src={pack.image} 
+                                                        src={pack.image || pack.imageUrl} 
                                                         alt={pack.name} 
                                                         className="w-full h-full object-cover"
                                                     />

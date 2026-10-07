@@ -1,7 +1,7 @@
 import React from 'react';
 import { Award, Truck, ShieldCheck, Headphones } from 'lucide-react';
 
-export const TrustBadges: React.FC<{ className?: string }> = ({ className = '' }) => {
+export const TrustBadges: React.FC<{ className?: string; badges?: any }> = ({ className = '', badges }) => {
     return (
         <section className={`relative w-full bg-slate-50 text-slate-800 border-y border-slate-200/90 py-7 sm:py-8 font-sans ${className}`}>
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">

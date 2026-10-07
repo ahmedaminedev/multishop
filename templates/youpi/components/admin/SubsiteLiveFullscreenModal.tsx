@@ -400,12 +400,6 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
               {currentPage === 'packs' && (
                 <PacksPage
                   packs={packs}
-                  onSelectPack={(pack) => {
-                    alert(`Pack sélectionné : ${pack.name} (${pack.price.toFixed(3)} DT)`);
-                  }}
-                  onAddToCart={(pack) => {
-                    alert(`Pack ajouté au panier : ${pack.name}`);
-                  }}
                 />
               )}
 
@@ -413,7 +407,6 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
               {currentPage === 'blog' && (
                 <BlogPage
                   posts={blogPosts}
-                  onSelectPost={() => {}}
                 />
               )}
 
@@ -437,7 +430,7 @@ export const SubsiteLiveFullscreenModal: React.FC<SubsiteLiveFullscreenModalProp
             )}
 
             {/* Cart Sidebar */}
-            <CartSidebar onCheckout={() => {}} />
+            <CartSidebar onProceedToCheckout={() => {}} />
 
           </div>
 

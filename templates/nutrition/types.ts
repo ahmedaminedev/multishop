@@ -22,6 +22,12 @@ export interface Product {
   material?: string;
   description?: string;
   quantity: number;
+  chargeMaxKg?: number;
+  poidsKg?: number;
+  matiere?: string;
+  garantieMois?: number;
+  reviewsCount?: number;
+  rating?: number;
   specifications?: { name: string; value: string; }[];
   colors?: ProductColor[]; 
   highlights?: {
@@ -83,6 +89,7 @@ export interface Pack {
   price: number;
   oldPrice: number;
   imageUrl: string;
+  image?: string;
   includedItems: string[];
   includedProductIds: number[];
   includedPackIds?: number[];
@@ -422,6 +429,12 @@ export interface Promotion {
   endDate: string; 
   productIds: number[];
   packIds: number[];
+  image?: string;
+  badge?: string;
+  title?: string;
+  description?: string;
+  discount?: number;
+  discountPercent?: number;
 }
 
 export interface SearchResultItem {
@@ -455,6 +468,7 @@ export interface Store {
     phone: string;
     email: string;
     openingHours: string;
+    hours?: string;
     mapUrl?: string;
     imageUrl: string;
     isPickupPoint: boolean;

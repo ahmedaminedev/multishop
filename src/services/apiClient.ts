@@ -231,6 +231,13 @@ export function createShopApiClient(shopId?: string) {
       // Reviews
       getReviews: (targetType: 'product' | 'pack', targetId: number) => req(`/reviews/${targetType}/${targetId}`),
       createReview: (data: { targetId: number; targetType: 'product' | 'pack'; rating: number; comment: string }) => req('/reviews', 'POST', data),
+
+      // Logo & Custom
+      uploadLogo: (dataUrl: string, config?: any) => req('/admin/logo', 'POST', { image: dataUrl, ...config }),
+      resetLogo: () => req('/admin/logo', 'DELETE'),
+
+      // Generic
+      apiRequest: req
     }
   };
 }
