@@ -1258,7 +1258,7 @@ export function handleApiRequest(req, res, next) {
       }
 
       // --- FILE & LOGO UPLOAD (Saved directly to backend disk in public/uploads) ---
-      if ((endpoint === '/upload' || endpoint === '/upload/logo' || endpoint === '/admin/logo' || endpoint === '/logo') && req.method === 'POST') {
+      if ((endpoint === '/upload' || endpoint === '/upload/logo') && req.method === 'POST') {
         const body = await getBody();
         const targetShopKey = body.shop || shopKey || 'nutrition';
         const targetStore = storesData[targetShopKey] || shop;
@@ -1312,8 +1312,6 @@ export function handleApiRequest(req, res, next) {
           targetStore.advertisements.logoConfig.logoUrl = publicUrl;
           if (body.navbarHeight) targetStore.advertisements.logoConfig.navbarHeight = body.navbarHeight;
           if (body.footerHeight) targetStore.advertisements.logoConfig.footerHeight = body.footerHeight;
-          if (body.navbarOffset !== undefined) targetStore.advertisements.logoConfig.navbarOffset = body.navbarOffset;
-          if (body.navbarPosition) targetStore.advertisements.logoConfig.navbarPosition = body.navbarPosition;
         }
 
         return sendJson(200, {
@@ -1324,7 +1322,7 @@ export function handleApiRequest(req, res, next) {
         });
       }
 
-      if ((endpoint === '/upload/logo' || endpoint === '/admin/logo' || endpoint === '/logo') && req.method === 'DELETE') {
+      if ((endpoint === '/upload/logo' || endpoint === '/logo') && req.method === 'DELETE') {
         const targetShopKey = parsedUrl.query.shop || shopKey || 'nutrition';
         const targetStore = storesData[targetShopKey] || shop;
         if (targetStore?.advertisements?.logoConfig) {

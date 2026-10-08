@@ -14,8 +14,7 @@ import {
   Lamp,
   Package,
   Sprout,
-  Tag,
-  GripVertical
+  Tag
 } from 'lucide-react';
 import { Logo } from './Logo';
 import { useCart } from './CartContext';
@@ -32,10 +31,6 @@ interface HeaderProps {
   currentUser?: any;
   categories?: Category[];
   logoConfig?: LogoConfig;
-  isDraggableLogo?: boolean;
-  onLogoDragStart?: (e: React.MouseEvent | React.TouchEvent) => void;
-  isDraggingLogo?: boolean;
-  onLogoClick?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -47,11 +42,7 @@ export const Header: React.FC<HeaderProps> = ({
   onOpenAuthModal,
   currentUser,
   categories: propCategories = [],
-  logoConfig,
-  isDraggableLogo = false,
-  onLogoDragStart,
-  isDraggingLogo = false,
-  onLogoClick
+  logoConfig
 }) => {
   const { totalItems, setIsCartOpen } = useCart();
   const { favorites } = useFavorites();
@@ -88,48 +79,10 @@ export const Header: React.FC<HeaderProps> = ({
       <div className="max-w-[1440px] mx-auto px-4 sm:px-6 lg:px-8 py-3">
         <div className="flex items-center justify-between gap-4 lg:gap-8">
           
-          {/* Logo with Dynamic Positioning and Drag Offset */}
-          {isDraggableLogo ? (
-            <div 
-              onMouseDown={onLogoDragStart}
-              onTouchStart={onLogoDragStart}
-              onClick={onLogoClick}
-              style={{
-                transform: `translateX(${logoConfig?.navbarOffset || 0}px)`,
-                cursor: isDraggingLogo ? 'grabbing' : 'grab',
-                touchAction: 'none',
-                willChange: 'transform'
-              }}
-              className={`relative shrink-0 flex items-center p-1.5 rounded-2xl select-none transition-shadow ${
-                isDraggingLogo 
-                  ? 'ring-4 ring-[#0f3e37] bg-[#0f3e37]/20 shadow-2xl z-50 scale-[1.02]' 
-                  : 'hover:ring-2 hover:ring-[#0f3e37]/70 z-40'
-              }`}
-              title="Glissez horizontalement pour déplacer librement le logo dans la Navbar"
-            >
-              <div className="mr-1.5 text-slate-400 hover:text-[#0f3e37] opacity-70 hover:opacity-100 cursor-grab">
-                <GripVertical className="w-4 h-4 text-[#0f3e37]" />
-              </div>
-
-              <Logo logoConfig={logoConfig} />
-
-              {/* Floating position indicator */}
-              <div className={`absolute -bottom-7 left-1/2 -translate-x-1/2 px-2.5 py-1 rounded-lg bg-black/95 text-white font-mono text-[10px] font-black whitespace-nowrap pointer-events-none transition-opacity shadow-xl z-50 border border-[#0f3e37]/40 ${
-                isDraggingLogo ? 'opacity-100 scale-105' : 'opacity-0 hover:opacity-100'
-              }`}>
-                Position: {logoConfig?.navbarOffset || 0}px
-              </div>
-            </div>
-          ) : (
-            <div 
-              className="shrink-0 flex items-center transition-transform duration-100"
-              style={{
-                transform: logoConfig?.navbarOffset ? `translateX(${logoConfig.navbarOffset}px)` : undefined
-              }}
-            >
-              <Logo logoConfig={logoConfig} onClick={() => onNavigate('home')} />
-            </div>
-          )}
+          {/* Logo on Left */}
+          <div className="shrink-0">
+            <Logo logoConfig={logoConfig} onClick={() => onNavigate('home')} />
+          </div>
 
           {/* Centered Wide Search Pill */}
           <div className="flex-1 max-w-2xl mx-auto hidden md:block">
