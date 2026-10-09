@@ -30,32 +30,7 @@ export const Invoice: React.FC<InvoiceProps> = ({ order, onClose }) => {
 
 
     const handlePrint = () => {
-        // For printing, we print the window contents targeted by CSS media query or a new window
-        // The current implementation opens a new window and writes HTML.
-        const printableArea = document.getElementById('invoice-printable-area');
-        if (!printableArea) return;
-
-        const printWindow = window.open('', '_blank', 'height=800,width=800');
-        if (!printWindow) {
-            alert("Veuillez autoriser les fenêtres pop-up pour imprimer la facture.");
-            return;
-        }
-
-        printWindow.document.write('<html><head><title>Facture</title>');
-        // Add Tailwind CSS for styling
-        printWindow.document.write('<script src="https://cdn.tailwindcss.com"><\/script>');
-        printWindow.document.write('</head><body>');
-        printWindow.document.write(printableArea.outerHTML); // Use outerHTML of original to preserve styles
-        printWindow.document.write('</body></html>');
-        printWindow.document.close();
-        
-        printWindow.onload = () => {
-            setTimeout(() => {
-                printWindow.focus();
-                printWindow.print();
-                printWindow.close();
-            }, 500); // Wait for styles to apply
-        };
+        window.print();
     };
 
     const handleDownload = () => {

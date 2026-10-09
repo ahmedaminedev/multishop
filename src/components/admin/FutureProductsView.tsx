@@ -52,6 +52,7 @@ export const FutureProductsView: React.FC<FutureProductsViewProps> = ({
   const [editingFutureProduct, setEditingFutureProduct] = useState<Partial<FutureProduit> | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
 
   // Sub-state for quick adding a source from inside the modal
   const [showQuickSourceForm, setShowQuickSourceForm] = useState(false);
@@ -96,8 +97,9 @@ export const FutureProductsView: React.FC<FutureProductsViewProps> = ({
   const handleFormSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!editingFutureProduct?.nom) return;
+    setFormError(null);
     if (!editingFutureProduct.sourceId) {
-      alert("Une source existante doit être obligatoirement affectée. Vous pouvez en créer une nouvelle en un clic.");
+      setFormError("Une source existante doit être obligatoirement affectée. Vous pouvez en créer une nouvelle en un clic.");
       return;
     }
 
@@ -390,6 +392,11 @@ export const FutureProductsView: React.FC<FutureProductsViewProps> = ({
             </div>
 
             <form onSubmit={handleFormSubmit} className="space-y-4 text-xs">
+              {formError && (
+                <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-red-700 text-xs font-semibold">
+                  {formError}
+                </div>
+              )}
               <div>
                 <label className="block text-slate-700 font-semibold mb-1">
                   Nom du produit repéré <span className="text-red-500">*</span>

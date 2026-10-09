@@ -56,7 +56,7 @@ const HeroForm: React.FC<{ data: HeroSlide[], onChange: (newData: HeroSlide[]) =
     }
     
     const removeSlide = (index: number) => {
-        if (data.length <= 1) { alert("Il doit y avoir au moins un slide."); return; }
+        if (data.length <= 1) return;
         onChange(data.filter((_, i) => i !== index));
         setActiveSlide(prev => Math.max(0, prev -1));
     }
@@ -91,8 +91,8 @@ const HeroForm: React.FC<{ data: HeroSlide[], onChange: (newData: HeroSlide[]) =
 
                     <ImageInput label="Image de fond" value={currentSlideData.bgImage} onChange={val => handleImageChange(val, activeSlide)} />
                     
-                    <button type="button" onClick={() => removeSlide(activeSlide)} className="text-xs text-red-500 hover:text-white font-bold uppercase tracking-wider flex items-center gap-2 border border-red-900/50 px-4 py-2 bg-red-900/10 hover:bg-red-900/30">
-                        <TrashIcon className="w-4 h-4"/> Supprimer Slide
+                    <button type="button" disabled={data.length <= 1} onClick={() => removeSlide(activeSlide)} className="text-xs text-red-500 hover:text-white disabled:opacity-40 disabled:cursor-not-allowed font-bold uppercase tracking-wider flex items-center gap-2 border border-red-900/50 px-4 py-2 bg-red-900/10 hover:bg-red-900/30">
+                        <TrashIcon className="w-4 h-4"/> Supprimer Slide (Min 1)
                     </button>
                 </div>
             )}

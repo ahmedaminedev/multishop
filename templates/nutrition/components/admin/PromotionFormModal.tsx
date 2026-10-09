@@ -57,6 +57,7 @@ export const PromotionFormModal: React.FC<PromotionFormModalProps> = ({ isOpen, 
     const [activeTab, setActiveTab] = useState<'products' | 'packs'>('products');
     const [productSearch, setProductSearch] = useState('');
     const [packSearch, setPackSearch] = useState('');
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
     
     useEffect(() => {
         if (promotion) {
@@ -86,12 +87,14 @@ export const PromotionFormModal: React.FC<PromotionFormModalProps> = ({ isOpen, 
                 if (pack) {
                     const productIdsInPack = getAllProductIdsFromPack(pack.id, allPacks);
                     if (productIdsInPack.has(productId)) {
-                        alert(`Attention : Le produit "${product.name}" est déjà inclus dans le pack sélectionné "${pack.name}".`);
+                        setErrorMessage(`Attention : Le produit "${product.name}" est déjà inclus dans le pack sélectionné "${pack.name}".`);
+                        setTimeout(() => setErrorMessage(null), 5000);
                         return;
                     }
                 }
             }
         }
+        setErrorMessage(null);
         setSelectedProductIds(prev => prev.includes(productId) ? prev.filter(id => id !== productId) : [...prev, productId]);
     };
 
@@ -103,11 +106,13 @@ export const PromotionFormModal: React.FC<PromotionFormModalProps> = ({ isOpen, 
             for (const productId of productIdsInPack) {
                 if (selectedProductIds.includes(productId)) {
                     const product = allProducts.find(p => p.id === productId);
-                    alert(`Attention : Le pack "${pack.name}" contient le produit "${product?.name}", qui est déjà sélectionné individuellement.`);
+                    setErrorMessage(`Attention : Le pack "${pack.name}" contient le produit "${product?.name}", qui est déjà sélectionné individuellement.`);
+                    setTimeout(() => setErrorMessage(null), 5000);
                     return;
                 }
             }
         }
+        setErrorMessage(null);
         setSelectedPackIds(prev => prev.includes(packId) ? prev.filter(id => id !== packId) : [...prev, packId]);
     };
 
@@ -129,6 +134,12 @@ export const PromotionFormModal: React.FC<PromotionFormModalProps> = ({ isOpen, 
                     <h2 className="text-xl font-black text-white uppercase italic tracking-wider">{promotion ? 'MODIFIER CAMPAGNE' : 'NOUVELLE CAMPAGNE'}</h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
+                
+                {errorMessage && (
+                    <div className="mx-8 mt-4 p-3 bg-red-900/50 border border-red-500 text-red-200 text-xs font-mono">
+                        {errorMessage}
+                    </div>
+                )}
                 
                 <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-8 overflow-hidden gap-8">
                     {/* Left */}

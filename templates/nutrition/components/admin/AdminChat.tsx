@@ -44,6 +44,7 @@ export const AdminChat: React.FC = () => {
     const [previewMedia, setPreviewMedia] = useState<{src: string, type: 'image' | 'video'} | null>(null);
     const [showSidebarMobile, setShowSidebarMobile] = useState(true);
     const [activeFilter, setActiveFilter] = useState<'all' | 'unread'>('all'); // Visual filter
+    const [uploadError, setUploadError] = useState<string | null>(null);
     
     const messagesEndRef = useRef<HTMLDivElement>(null);
     const fileInputRef = useRef<HTMLInputElement>(null);
@@ -120,7 +121,8 @@ export const AdminChat: React.FC = () => {
         if (file && selectedSessionId) {
             const maxSize = 5 * 1024 * 1024;
             if (file.size > maxSize) {
-                alert("Le fichier est trop volumineux (Max 5MB)");
+                setUploadError("Le fichier est trop volumineux (Max 5MB)");
+                setTimeout(() => setUploadError(null), 4000);
                 return;
             }
             const reader = new FileReader();
@@ -315,6 +317,11 @@ export const AdminChat: React.FC = () => {
 
                         {/* Input Area */}
                         <div className="p-4 bg-white dark:bg-[#080808] border-t border-gray-200 dark:border-gray-800 z-20">
+                            {uploadError && (
+                                <div className="mb-2 max-w-4xl mx-auto p-2 bg-red-900/40 border border-red-500 text-red-300 text-xs font-mono">
+                                    {uploadError}
+                                </div>
+                            )}
                             <form 
                                 onSubmit={handleSendMessage} 
                                 className="max-w-4xl mx-auto flex items-end gap-3 bg-gray-50 dark:bg-[#111] p-2 border border-gray-300 dark:border-gray-700 transition-all"

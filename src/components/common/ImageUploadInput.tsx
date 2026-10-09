@@ -21,12 +21,14 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showUrlInput, setShowUrlInput] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
 
   const processFile = (file: File) => {
     if (!file.type.startsWith('image/')) {
-      alert("Veuillez sélectionner un fichier image valide (JPG, PNG, WebP, etc.).");
+      setUploadError("Veuillez sélectionner un fichier image valide (JPG, PNG, WebP, etc.).");
       return;
     }
+    setUploadError(null);
     const reader = new FileReader();
     reader.onload = (e) => {
       const result = e.target?.result;
@@ -164,6 +166,10 @@ export const ImageUploadInput: React.FC<ImageUploadInputProps> = ({
             Lien web externe direct vers une image
           </p>
         </div>
+      )}
+
+      {uploadError && (
+        <p className="text-[11px] text-red-500 font-medium mt-1">{uploadError}</p>
       )}
 
       {helperText && (
