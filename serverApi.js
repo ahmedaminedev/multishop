@@ -1599,6 +1599,268 @@ export function generateInitialCoherentOrders() {
           statutPaiement: 'PAIEMENT_EN_ATTENTE'
         }
       ]
+    },
+    {
+      id: 'CMD-2026-000122',
+      orderNumber: 'CMD-2026-000122',
+      customerName: 'Youssef Trabelsi',
+      phone: '+216 25 778 990',
+      customerEmail: 'youssef.tr@gmail.com',
+      customerInfo: {
+        firstName: 'Youssef',
+        lastName: 'Trabelsi',
+        phone: '+216 25 778 990',
+        email: 'youssef.tr@gmail.com',
+        city: 'Tunis',
+        address: '22 Rue Habib Thameur, Tunis',
+        notes: 'Sonner au 3ème'
+      },
+      shippingAddress: {
+        street: '22 Rue Habib Thameur, Tunis',
+        city: 'Tunis',
+        governorate: 'Tunis',
+        postalCode: '1000',
+        country: 'Tunisie'
+      },
+      date: '2026-10-10',
+      heure: '11:20',
+      items: [
+        {
+          id: 1,
+          productId: 1,
+          name: 'Haltères Réglables Pro 24kg (Paire)',
+          quantity: 1,
+          price: 240,
+          shopId: 'nutrition',
+          shopName: 'Fitness Shop',
+          imageUrl: '/src/assets/images/category_halteres_poids_1790951598408.jpg'
+        },
+        {
+          id: 102,
+          productId: 102,
+          name: 'Peluche Géante Ours Câlin 100cm',
+          quantity: 1,
+          price: 80,
+          shopId: 'youpi',
+          shopName: 'YoupiShop',
+          imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
+        }
+      ],
+      itemCount: 2,
+      subtotal: 320,
+      shippingFee: 0,
+      total: 320,
+      totalAmount: 320,
+      filialeKey: 'nutrition',
+      filialeName: 'MultiShop Groupé',
+      shops: ['nutrition', 'youpi'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'ECHEC_LIVRAISON',
+      statutRetour: 'RETOUR_EN_COURS',
+      affectationLivraison: {
+        societeLivraisonId: 'soc-1',
+        societeLivraisonNom: 'Aramex Tunisie',
+        dateLivraisonPrevue: '2026-10-11',
+        creneauHoraire: '09:00 - 13:00',
+        instructions: 'Colis fragile',
+        dateAffectation: '10/10/2026 14:00',
+        administrateur: 'Super Admin'
+      },
+      echecDetails: {
+        motif: 'Client injoignable après 3 appels',
+        commentaire: 'Deuxième passage infructueux, retour initié vers le dépôt central.',
+        dateEchec: '11/10/2026 15:40'
+      },
+      retourDetails: {
+        statut: 'RETOUR_EN_COURS',
+        motif: 'Client injoignable après 3 appels',
+        commentaire: 'Colis en cours de retour au centre de tri Aramex.',
+        dateModification: '11/10/2026 16:00',
+        stockRestitue: false
+      },
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '10/10/2026',
+          heure: '11:20',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée par le client Youssef Trabelsi.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '11:50',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '14:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'AFFECTATION_LIVRAISON',
+          description: 'Affectation à Aramex Tunisie.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'AFFECTEE_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '15:40',
+          auteur: 'ADMINISTRATEUR',
+          action: 'ECHEC_LIVRAISON',
+          description: 'Échec de livraison signalé : Client injoignable après 3 appels.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'ECHEC_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '16:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'MODIFICATION_ETAT_RETOUR',
+          description: 'État du retour mis à jour : RETOUR_EN_COURS. Colis en transit retour vers dépôt central.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'ECHEC_LIVRAISON',
+          statutRetour: 'RETOUR_EN_COURS'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000118',
+      orderNumber: 'CMD-2026-000118',
+      customerName: 'Leila Mansouri',
+      phone: '+216 28 445 667',
+      customerEmail: 'leila.m@topnet.tn',
+      customerInfo: {
+        firstName: 'Leila',
+        lastName: 'Mansouri',
+        phone: '+216 28 445 667',
+        email: 'leila.m@topnet.tn',
+        city: 'Sousse',
+        address: 'Boulevard 14 Janvier, Sousse',
+        notes: ''
+      },
+      shippingAddress: {
+        street: 'Boulevard 14 Janvier, Sousse',
+        city: 'Sousse',
+        governorate: 'Sousse',
+        postalCode: '4000',
+        country: 'Tunisie'
+      },
+      date: '2026-10-09',
+      heure: '15:10',
+      items: [
+        {
+          id: 201,
+          productId: 201,
+          name: 'Canapé 3 places Velours Côtelé Écru',
+          quantity: 1,
+          price: 1300,
+          shopId: 'dari',
+          shopName: 'DariShop',
+          imageUrl: '/src/assets/images/darishop_hero_livingroom_1791384962544.jpg'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 1300,
+      shippingFee: 0,
+      total: 1300,
+      totalAmount: 1300,
+      filialeKey: 'dari',
+      filialeName: 'DariShop',
+      shops: ['dari'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'RETOUR',
+      statutRetour: 'RETOUR_RECU_EN_STOCK',
+      affectationLivraison: {
+        societeLivraisonId: 'soc-2',
+        societeLivraisonNom: 'Yalidine Express',
+        dateLivraisonPrevue: '2026-10-10',
+        creneauHoraire: '14:00 - 18:00',
+        instructions: 'Livraison meuble lourd',
+        dateAffectation: '09/10/2026 16:00',
+        administrateur: 'Super Admin'
+      },
+      echecDetails: {
+        motif: 'Refus client : Dimensions inadaptées',
+        commentaire: 'Le canapé ne passe pas dans l\'entrée de l\'appartement',
+        dateEchec: '10/10/2026 16:30'
+      },
+      retourDetails: {
+        statut: 'RETOUR_RECU_EN_STOCK',
+        motif: 'Refus client : Dimensions inadaptées',
+        commentaire: 'Réceptionné au dépôt central. Emballage intact, article remis en stock disponible.',
+        dateModification: '11/10/2026 10:15',
+        stockRestitue: true
+      },
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: false,
+      historique: [
+        {
+          date: '09/10/2026',
+          heure: '15:10',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée par le client Leila Mansouri.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '09/10/2026',
+          heure: '15:45',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '09/10/2026',
+          heure: '16:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'AFFECTATION_LIVRAISON',
+          description: 'Affectation à Yalidine Express.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'AFFECTEE_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '16:30',
+          auteur: 'ADMINISTRATEUR',
+          action: 'ECHEC_LIVRAISON',
+          description: 'Échec de livraison : Refus client (dimensions inadaptées).',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'ECHEC_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '10:15',
+          auteur: 'ADMINISTRATEUR',
+          action: 'MODIFICATION_ETAT_RETOUR',
+          description: 'État du retour mis à jour : RETOUR_RECU_EN_STOCK. Canapé réintégré en stock disponible.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'RETOUR',
+          statutRetour: 'RETOUR_RECU_EN_STOCK'
+        }
+      ]
     }
   ];
 }
@@ -3148,6 +3410,93 @@ export function handleApiRequest(req, res, next) {
           statutCommande: order.statutCommande,
           statutLivraison: 'ECHEC_LIVRAISON',
           statutPaiement: order.statutPaiement
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle Retour : Modification de l'état retour d'une commande
+      if (endpoint.match(/^\/orders\/[^\/]+\/update-return-status$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const body = await getBody();
+        const nouvelEtat = body.nouvelEtatRetour || body.statutRetour || 'RETOUR_EN_COURS';
+        const motif = body.motif || order.echecDetails?.motif || 'Retour client';
+        const commentaire = body.commentaire || '';
+
+        order.statutRetour = nouvelEtat;
+        order.statutLivraison = nouvelEtat === 'RETOUR_ANNULE' ? 'EN_LIVRAISON' : (nouvelEtat === 'ECHEC_LIVRAISON' ? 'ECHEC_LIVRAISON' : 'RETOUR');
+
+        if (!order.retourDetails) order.retourDetails = {};
+        order.retourDetails = {
+          ...order.retourDetails,
+          statut: nouvelEtat,
+          motif,
+          commentaire,
+          dateModification: new Date().toISOString()
+        };
+
+        // Si le retour est réceptionné au dépôt ou confirmé, restituer le stock en stock disponible
+        if ((nouvelEtat === 'RETOUR_RECU_EN_STOCK' || nouvelEtat === 'RETOUR_CONFIRME') && !order.retourDetails.stockRestitue) {
+          restoreOrderStock(order);
+          order.retourDetails.stockRestitue = true;
+          order.stockReserve = false;
+          broadcastDataChanged('stock_restocked', 'all');
+        }
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'MODIFICATION_ETAT_RETOUR',
+          description: `État du retour mis à jour : ${nouvelEtat}. Motif : ${motif}. ${commentaire ? `Note : ${commentaire}` : ''}`,
+          note: motif,
+          statutCommande: order.statutCommande,
+          statutLivraison: order.statutLivraison,
+          statutRetour: nouvelEtat
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle Livraison : Mise à jour de la date de livraison prévue
+      if (endpoint.match(/^\/orders\/[^\/]+\/update-delivery-date$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const body = await getBody();
+        const { dateLivraisonPrevue, creneauHoraire, notes } = body;
+
+        if (!order.affectationLivraison) order.affectationLivraison = {};
+        if (dateLivraisonPrevue) order.affectationLivraison.dateLivraisonPrevue = dateLivraisonPrevue;
+        if (creneauHoraire) order.affectationLivraison.creneauHoraire = creneauHoraire;
+        if (notes !== undefined) order.affectationLivraison.instructions = notes;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'MODIFICATION_DATE_LIVRAISON',
+          description: `Date de livraison planifiée mise à jour : ${order.affectationLivraison.dateLivraisonPrevue} (${order.affectationLivraison.creneauHoraire || 'Journée'}).`,
+          statutCommande: order.statutCommande,
+          statutLivraison: order.statutLivraison
         });
 
         broadcastDataChanged('order_updated', store.key);

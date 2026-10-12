@@ -35,6 +35,7 @@ import {
   HelpCircle
 } from 'lucide-react';
 import { centralApiRequest } from '../../services/apiClient';
+import { DeliveryCompaniesView } from './DeliveryCompaniesView';
 
 interface GlobalOrdersViewProps {
   orders: any[];
@@ -871,132 +872,14 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
         </div>
       )}
 
-      {/* VIEW 2: SOCIÉTÉS DE LIVRAISON (ENTITÉS GÉRÉES PAR L'ADMINISTRATEUR) */}
+      {/* VIEW 2: SOCIÉTÉS DE LIVRAISON (PAGE DÉDIÉE AVEC CRUD, HISTORIQUE PRODUITS, EN COURS & RETOURS) */}
       {activeTab === 'carriers' && (
-        <div className="space-y-6 animate-fadeIn">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div>
-              <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">
-                SOCIÉTÉS DE LIVRAISON PARTENAIRES
-              </h3>
-              <p className="text-xs text-slate-500">
-                Entités gérées par l'administrateur pour l'affectation et le suivi des expéditions (Règles 16, 18, 32).
-              </p>
-            </div>
-
-            <button
-              type="button"
-              onClick={() => {
-                setEditingCarrier({
-                  nom: '',
-                  telephone: '+216 ',
-                  contact: '',
-                  zones: 'Grand Tunis & Régions',
-                  delaiMoyen: '24-48h',
-                  tarifDefaut: 7,
-                  actif: true
-                });
-                setCarrierModalOpen(true);
-              }}
-              className="px-4 py-2.5 rounded-xl bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-xs flex items-center gap-2 cursor-pointer shadow-md shadow-blue-500/20"
-            >
-              <Plus className="w-4 h-4" />
-              <span>Ajouter une Société</span>
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {carriers.map((carrier) => {
-              // Count orders assigned to this carrier
-              const assignedCount = orders.filter(
-                (o) => o.affectationLivraison?.societeLivraisonId === carrier.id
-              ).length;
-
-              return (
-                <div
-                  key={carrier.id}
-                  className="bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-3xl p-5 shadow-xs flex flex-col justify-between space-y-4"
-                >
-                  <div>
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-2xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 flex items-center justify-center font-bold">
-                          <Truck className="w-5 h-5" />
-                        </div>
-                        <div>
-                          <h4 className="font-extrabold text-sm text-slate-900 dark:text-white">
-                            {carrier.nom}
-                          </h4>
-                          <span className="text-[10px] text-slate-400 font-semibold font-mono">
-                            {carrier.telephone}
-                          </span>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => toggleCarrierActive(carrier)}
-                        className={`px-2 py-0.5 rounded-full text-[10px] font-black uppercase cursor-pointer border ${
-                          carrier.actif
-                            ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
-                            : 'bg-slate-100 text-slate-500 border-slate-200'
-                        }`}
-                      >
-                        {carrier.actif ? 'Active' : 'Désactivée'}
-                      </button>
-                    </div>
-
-                    <div className="mt-4 space-y-2 text-xs text-slate-600 dark:text-slate-400 border-t border-slate-100 dark:border-slate-800 pt-3">
-                      <p className="flex justify-between">
-                        <span className="text-slate-400">Contact :</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{carrier.contact}</span>
-                      </p>
-                      <p className="flex justify-between">
-                        <span className="text-slate-400">Zones :</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200 text-right max-w-[180px] truncate">{carrier.zones}</span>
-                      </p>
-                      <p className="flex justify-between">
-                        <span className="text-slate-400">Délai estimé :</span>
-                        <span className="font-bold text-blue-600">{carrier.delaiMoyen}</span>
-                      </p>
-                      <p className="flex justify-between">
-                        <span className="text-slate-400">Tarif moyen :</span>
-                        <span className="font-black text-slate-900 dark:text-white">{carrier.tarifDefaut} DT</span>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
-                    <span className="text-[11px] font-bold text-slate-500">
-                      📦 {assignedCount} commande(s)
-                    </span>
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setEditingCarrier(carrier);
-                          setCarrierModalOpen(true);
-                        }}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 cursor-pointer"
-                        title="Modifier"
-                      >
-                        <Edit3 className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteCarrier(carrier.id)}
-                        className="p-1.5 rounded-lg text-slate-400 hover:text-rose-600 hover:bg-rose-50 cursor-pointer"
-                        title="Supprimer"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <DeliveryCompaniesView
+          orders={orders}
+          activeShop={activeShop}
+          onReloadOrders={onReloadOrders}
+          onSelectOrder={(ord) => setInspectOrder(ord)}
+        />
       )}
 
       {/* VIEW 3: COMMANDES WORKFLOW (PRIMARY VIEW) */}

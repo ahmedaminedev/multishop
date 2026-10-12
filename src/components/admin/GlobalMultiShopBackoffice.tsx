@@ -10,6 +10,7 @@ import { SourcesView } from './SourcesView';
 import { FutureProductsView } from './FutureProductsView';
 import { SuppliersView } from './SuppliersView';
 import { MultiShopBackofficeLogin } from './MultiShopBackofficeLogin';
+import { DeliveryCompaniesView } from './DeliveryCompaniesView';
 import { ArrowLeft, ExternalLink, Plus, RefreshCw, ShoppingCart, Package, Layers, Sparkles } from 'lucide-react';
 import {
   getCachedSiteVisibility,
@@ -693,13 +694,22 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             )
           )}
 
-          {/* CASE 2: COMMANDES & CARRIERS */}
-          {(currentMenu === 'orders' || (currentMenu as any) === 'carriers') && (
+          {/* CASE 2: COMMANDES */}
+          {currentMenu === 'orders' && (
             <GlobalOrdersView
               orders={allOrders}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               activeShop={activeShop}
               onSelectShop={handleSelectShop}
+              onReloadOrders={fetchGlobalData}
+            />
+          )}
+
+          {/* CASE 2.1: SOCIÉTÉS DE LIVRAISON (CRUD, AFFECTATIONS EN DÉTAIL, EN COURS, RETOURS) */}
+          {(currentMenu as any) === 'carriers' && (
+            <DeliveryCompaniesView
+              orders={allOrders}
+              activeShop={activeShop}
               onReloadOrders={fetchGlobalData}
             />
           )}
