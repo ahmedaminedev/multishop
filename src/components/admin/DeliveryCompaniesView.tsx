@@ -30,6 +30,24 @@ import {
 } from 'lucide-react';
 import { centralApiRequest } from '../../services/apiClient';
 
+export interface WorkScheduleInterval {
+  id?: string;
+  jourDebut: string;
+  jourFin: string;
+  heureDebut: string;
+  heureFin: string;
+}
+
+export const JOURS_SEMAINE = [
+  'Lundi',
+  'Mardi',
+  'Mercredi',
+  'Jeudi',
+  'Vendredi',
+  'Samedi',
+  'Dimanche'
+];
+
 export interface DeliveryCompany {
   id: string;
   nom: string;
@@ -39,6 +57,8 @@ export interface DeliveryCompany {
   delaiMoyen: string;
   tarifDefaut: number;
   actif: boolean;
+  horairesTravail?: WorkScheduleInterval[];
+  joursTravailTexte?: string;
 }
 
 interface DeliveryCompaniesViewProps {
@@ -117,7 +137,45 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
   // CRUD Handlers for Delivery Companies
   const handleSaveCarrier = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!editingCarrier || !editingCarrier.nom) return;
+    if (!editingCarrier || !editingCarrier.nom?.trim()) {
+      showToast('Le nom de la société de livraison est obligatoire.', 'error');
+      return;
+    }
+
+    const horaires = editingCarrier.horairesTravail || [];
+    if (horaires.length === 0) {
+      showToast('Veuillez ajouter au moins un intervalle de jours de travail et ses horaires.', 'error');
+      return;
+    }
+
+    // Obligation check: each day interval MUST have an hourly interval defined (start and end time)
+    for (let i = 0; i < horaires.length; i++) {
+      const slot = horaires[i];
+      if (!slot.heureDebut || !slot.heureFin) {
+        showToast(
+          `Obligation : Veuillez obligatoirement choisir l'intervalle horaire (heure de début et heure de fin) pour ${slot.jourDebut} à ${slot.jourFin}.`,
+          'error'
+        );
+        return;
+      }
+      if (slot.heureDebut >= slot.heureFin) {
+        showToast(
+          `Pour l'intervalle ${slot.jourDebut} à ${slot.jourFin}, l'heure de fin (${slot.heureFin}) doit être postérieure à l'heure de début (${slot.heureDebut}).`,
+          'error'
+        );
+        return;
+      }
+    }
+
+    const formattedJours = horaires
+      .map((h) => `${h.jourDebut === h.jourFin ? h.jourDebut : `${h.jourDebut} à ${h.jourFin}`} (${h.heureDebut} - ${h.heureFin})`)
+      .join(', ');
+
+    const payload = {
+      ...editingCarrier,
+      horairesTravail: horaires,
+      joursTravailTexte: formattedJours
+    };
 
     try {
       if (editingCarrier.id) {
@@ -125,7 +183,7 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
         const res = await fetch(`/api/delivery-companies/${editingCarrier.id}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editingCarrier)
+          body: JSON.stringify(payload)
         });
         if (res.ok) {
           showToast(`Société ${editingCarrier.nom} mise à jour avec succès.`, 'success');
@@ -135,7 +193,7 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
         const res = await fetch('/api/delivery-companies', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(editingCarrier)
+          body: JSON.stringify(payload)
         });
         if (res.ok) {
           showToast(`Nouvelle société ${editingCarrier.nom} créée avec succès.`, 'success');
@@ -476,7 +534,16 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
                 zones: '24 Gouvernorats',
                 delaiMoyen: '24-48h',
                 tarifDefaut: 7,
-                actif: true
+                actif: true,
+                horairesTravail: [
+                  {
+                    id: `slot-${Date.now()}`,
+                    jourDebut: 'Lundi',
+                    jourFin: 'Vendredi',
+                    heureDebut: '08:00',
+                    heureFin: '18:00'
+                  }
+                ]
               });
               setCarrierModalOpen(true);
             }}
@@ -778,6 +845,37 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
                         <span className="text-slate-400">Tarif par défaut :</span>
                         <span className="font-black text-slate-900 dark:text-white">{carrier.tarifDefaut} DT</span>
                       </p>
+
+                      {/* Horaires et jours de travail de la société */}
+                      <div className="pt-2 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span className="text-slate-400 flex items-center gap-1 mb-1 font-bold text-[11px]">
+                          <Clock className="w-3 h-3 text-blue-500" />
+                          <span>Jours & Horaires de travail :</span>
+                        </span>
+                        <div className="space-y-1">
+                          {carrier.horairesTravail && carrier.horairesTravail.length > 0 ? (
+                            carrier.horairesTravail.map((h, hIdx) => (
+                              <div
+                                key={hIdx}
+                                className="flex items-center justify-between px-2 py-1 rounded-lg bg-white dark:bg-slate-900 border border-slate-100 dark:border-slate-800 text-[11px]"
+                              >
+                                <span className="font-bold text-slate-700 dark:text-slate-200">
+                                  {h.jourDebut === h.jourFin ? h.jourDebut : `${h.jourDebut} à ${h.jourFin}`}
+                                </span>
+                                <span className="font-black text-blue-600 dark:text-blue-400 font-mono">
+                                  {h.heureDebut} - {h.heureFin}
+                                </span>
+                              </div>
+                            ))
+                          ) : carrier.joursTravailTexte ? (
+                            <p className="font-semibold text-slate-700 dark:text-slate-300 text-[11px]">
+                              {carrier.joursTravailTexte}
+                            </p>
+                          ) : (
+                            <p className="text-slate-400 italic text-[11px]">Lundi à Vendredi (08:00 - 18:00)</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* Summary mini metrics */}
@@ -819,7 +917,21 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
                       <button
                         type="button"
                         onClick={() => {
-                          setEditingCarrier(carrier);
+                          const existingHoraires = carrier.horairesTravail && carrier.horairesTravail.length > 0
+                            ? carrier.horairesTravail
+                            : [
+                                {
+                                  id: `slot-${Date.now()}`,
+                                  jourDebut: 'Lundi',
+                                  jourFin: 'Vendredi',
+                                  heureDebut: '08:00',
+                                  heureFin: '18:00'
+                                }
+                              ];
+                          setEditingCarrier({
+                            ...carrier,
+                            horairesTravail: existingHoraires
+                          });
                           setCarrierModalOpen(true);
                         }}
                         className="p-1.5 rounded-lg text-slate-400 hover:text-blue-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer"
@@ -1703,27 +1815,32 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
           <form
             onSubmit={handleSaveCarrier}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800"
           >
-            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex items-center gap-2.5">
                 <div className="w-9 h-9 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
                   <Truck className="w-5 h-5" />
                 </div>
-                <h3 className="font-black text-base">
-                  {editingCarrier.id ? 'Modifier la Société de Livraison' : 'Nouvelle Société de Livraison'}
-                </h3>
+                <div>
+                  <h3 className="font-black text-base">
+                    {editingCarrier.id ? 'Modifier la Société de Livraison' : 'Nouvelle Société de Livraison'}
+                  </h3>
+                  <p className="text-[11px] text-slate-400">
+                    Configuration des coordonnées, zones et créneaux horaires hebdomadaires
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
                 onClick={() => setCarrierModalOpen(false)}
-                className="w-7 h-7 rounded-full bg-slate-100 text-slate-500 flex items-center justify-center cursor-pointer text-sm font-bold"
+                className="w-7 h-7 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 flex items-center justify-center cursor-pointer text-sm font-bold hover:bg-slate-200"
               >
                 ✕
               </button>
             </div>
 
-            <div className="space-y-3 text-xs">
+            <div className="space-y-3.5 text-xs">
               <div>
                 <label className="font-bold block mb-1">Nom de la Société *</label>
                 <input
@@ -1744,7 +1861,7 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
                     value={editingCarrier.telephone || ''}
                     onChange={(e) => setEditingCarrier({ ...editingCarrier, telephone: e.target.value })}
                     placeholder="+216 -- --- ---"
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700"
+                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 font-mono"
                   />
                 </div>
                 <div>
@@ -1792,6 +1909,269 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
                 </div>
               </div>
 
+              {/* ========================================================================= */}
+              {/* SECTION: JOURS DE TRAVAIL DANS LA SEMAINE & INTERVALLES HORAIRES         */}
+              {/* ========================================================================= */}
+              <div className="pt-2 border-t border-slate-100 dark:border-slate-800 space-y-3">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <label className="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-xs">
+                      <Calendar className="w-4 h-4 text-blue-600" />
+                      <span>Jours de travail dans la semaine (Intervalles) *</span>
+                    </label>
+                    <p className="text-[11px] text-slate-500 mt-0.5">
+                      Pour chaque intervalle de jours sélectionné, un intervalle horaire s'ouvre avec obligation de saisie.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const currentSlots = editingCarrier.horairesTravail || [];
+                      setEditingCarrier({
+                        ...editingCarrier,
+                        horairesTravail: [
+                          ...currentSlots,
+                          {
+                            id: `slot-${Date.now()}`,
+                            jourDebut: 'Samedi',
+                            jourFin: 'Samedi',
+                            heureDebut: '08:30',
+                            heureFin: '13:00'
+                          }
+                        ]
+                      });
+                    }}
+                    className="px-2.5 py-1.5 rounded-xl bg-blue-50 dark:bg-blue-950/60 text-blue-600 dark:text-blue-400 hover:bg-blue-100 font-black text-[11px] flex items-center gap-1 cursor-pointer transition-colors shadow-xs"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>Ajouter un intervalle</span>
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {(editingCarrier.horairesTravail || []).map((slot, index) => {
+                    const isMissingHourly = !slot.heureDebut || !slot.heureFin;
+                    const isInvalidRange = Boolean(slot.heureDebut && slot.heureFin && slot.heureDebut >= slot.heureFin);
+
+                    return (
+                      <div
+                        key={slot.id || index}
+                        className={`p-3.5 rounded-2xl border transition-all ${
+                          isMissingHourly || isInvalidRange
+                            ? 'bg-amber-50/40 dark:bg-amber-950/20 border-amber-300 dark:border-amber-800 ring-1 ring-amber-300/50'
+                            : 'bg-slate-50 dark:bg-slate-800/60 border-slate-200 dark:border-slate-700'
+                        }`}
+                      >
+                        {/* Header of Interval */}
+                        <div className="flex items-center justify-between pb-2 mb-2 border-b border-slate-200/60 dark:border-slate-700/60">
+                          <div className="flex items-center gap-2">
+                            <span className="w-5 h-5 rounded-full bg-blue-600 text-white font-black text-[10px] flex items-center justify-center">
+                              {index + 1}
+                            </span>
+                            <span className="font-extrabold text-slate-800 dark:text-slate-200 text-xs">
+                              Intervalle de Jours : <span className="text-blue-600 dark:text-blue-400 font-bold">{slot.jourDebut}</span> à <span className="text-blue-600 dark:text-blue-400 font-bold">{slot.jourFin}</span>
+                            </span>
+                          </div>
+
+                          {(editingCarrier.horairesTravail || []).length > 1 && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = (editingCarrier.horairesTravail || []).filter((_, idx) => idx !== index);
+                                setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                              }}
+                              className="text-slate-400 hover:text-rose-600 p-1 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/30 cursor-pointer"
+                              title="Supprimer cet intervalle de jours"
+                            >
+                              <Trash2 className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+                        </div>
+
+                        {/* Quick Day Presets */}
+                        <div className="mb-2.5">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                            Raccourcis Intervalle de Jours :
+                          </span>
+                          <div className="flex flex-wrap gap-1.5">
+                            {[
+                              { label: 'Lun - Ven', start: 'Lundi', end: 'Vendredi' },
+                              { label: 'Lun - Sam', start: 'Lundi', end: 'Samedi' },
+                              { label: '7j/7 (Lun - Dim)', start: 'Lundi', end: 'Dimanche' },
+                              { label: 'Samedi uniquement', start: 'Samedi', end: 'Samedi' }
+                            ].map((preset) => {
+                              const isActive = slot.jourDebut === preset.start && slot.jourFin === preset.end;
+                              return (
+                                <button
+                                  key={preset.label}
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = [...(editingCarrier.horairesTravail || [])];
+                                    updated[index] = {
+                                      ...updated[index],
+                                      jourDebut: preset.start,
+                                      jourFin: preset.end
+                                    };
+                                    setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                                  }}
+                                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold transition-all cursor-pointer ${
+                                    isActive
+                                      ? 'bg-blue-600 text-white shadow-xs'
+                                      : 'bg-white dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 border border-slate-200 dark:border-slate-600'
+                                  }`}
+                                >
+                                  {preset.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+
+                        {/* Day Range Selectors */}
+                        <div className="grid grid-cols-2 gap-2 mb-3">
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
+                              Jour de début *
+                            </label>
+                            <select
+                              value={slot.jourDebut}
+                              onChange={(e) => {
+                                const updated = [...(editingCarrier.horairesTravail || [])];
+                                updated[index] = { ...updated[index], jourDebut: e.target.value };
+                                setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                              }}
+                              className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold text-xs"
+                            >
+                              {JOURS_SEMAINE.map((jour) => (
+                                <option key={jour} value={jour}>{jour}</option>
+                              ))}
+                            </select>
+                          </div>
+                          <div>
+                            <label className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mb-1">
+                              Jour de fin *
+                            </label>
+                            <select
+                              value={slot.jourFin}
+                              onChange={(e) => {
+                                const updated = [...(editingCarrier.horairesTravail || [])];
+                                updated[index] = { ...updated[index], jourFin: e.target.value };
+                                setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                              }}
+                              className="w-full px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 font-bold text-xs"
+                            >
+                              {JOURS_SEMAINE.map((jour) => (
+                                <option key={jour} value={jour}>{jour}</option>
+                              ))}
+                            </select>
+                          </div>
+                        </div>
+
+                        {/* OBLIGATORY HOURLY INTERVAL OPENING FOR THIS DAY RANGE */}
+                        <div className="p-3 rounded-xl bg-white dark:bg-slate-900 border-2 border-blue-500/40 dark:border-blue-500/30 shadow-xs space-y-2">
+                          <div className="flex items-center justify-between">
+                            <label className="font-black text-slate-900 dark:text-white flex items-center gap-1.5 text-[11px]">
+                              <Clock className="w-3.5 h-3.5 text-blue-600" />
+                              <span>Intervalle Horaire Obligatoire ({slot.jourDebut} - {slot.jourFin}) *</span>
+                            </label>
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-black uppercase tracking-wider bg-rose-100 text-rose-700 dark:bg-rose-950 dark:text-rose-300">
+                              Obligation
+                            </span>
+                          </div>
+
+                          {/* Quick time slots buttons */}
+                          <div className="flex flex-wrap gap-1">
+                            {[
+                              { label: '08:00 - 18:00', start: '08:00', end: '18:00' },
+                              { label: '08:30 - 17:30', start: '08:30', end: '17:30' },
+                              { label: '09:00 - 19:00', start: '09:00', end: '19:00' },
+                              { label: '08:30 - 13:00 (Matin)', start: '08:30', end: '13:00' }
+                            ].map((timePreset) => {
+                              const isSelectedTime = slot.heureDebut === timePreset.start && slot.heureFin === timePreset.end;
+                              return (
+                                <button
+                                  key={timePreset.label}
+                                  type="button"
+                                  onClick={() => {
+                                    const updated = [...(editingCarrier.horairesTravail || [])];
+                                    updated[index] = {
+                                      ...updated[index],
+                                      heureDebut: timePreset.start,
+                                      heureFin: timePreset.end
+                                    };
+                                    setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                                  }}
+                                  className={`px-2 py-0.5 rounded-lg text-[10px] font-bold cursor-pointer transition-all ${
+                                    isSelectedTime
+                                      ? 'bg-blue-600 text-white'
+                                      : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                                  }`}
+                                >
+                                  {timePreset.label}
+                                </button>
+                              );
+                            })}
+                          </div>
+
+                          <div className="grid grid-cols-2 gap-2 pt-1">
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                                Heure d'ouverture / Début *
+                              </label>
+                              <input
+                                type="time"
+                                required
+                                value={slot.heureDebut || ''}
+                                onChange={(e) => {
+                                  const updated = [...(editingCarrier.horairesTravail || [])];
+                                  updated[index] = { ...updated[index], heureDebut: e.target.value };
+                                  setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                                }}
+                                className={`w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border text-xs font-bold ${
+                                  !slot.heureDebut ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-200 dark:border-slate-700'
+                                }`}
+                              />
+                            </div>
+                            <div>
+                              <label className="text-[10px] font-bold text-slate-500 block mb-0.5">
+                                Heure de fermeture / Fin *
+                              </label>
+                              <input
+                                type="time"
+                                required
+                                value={slot.heureFin || ''}
+                                onChange={(e) => {
+                                  const updated = [...(editingCarrier.horairesTravail || [])];
+                                  updated[index] = { ...updated[index], heureFin: e.target.value };
+                                  setEditingCarrier({ ...editingCarrier, horairesTravail: updated });
+                                }}
+                                className={`w-full px-2.5 py-1.5 rounded-lg bg-slate-50 dark:bg-slate-800 border text-xs font-bold ${
+                                  !slot.heureFin ? 'border-rose-400 ring-1 ring-rose-300' : 'border-slate-200 dark:border-slate-700'
+                                }`}
+                              />
+                            </div>
+                          </div>
+
+                          {isMissingHourly && (
+                            <p className="text-[10px] font-bold text-rose-500 flex items-center gap-1 pt-0.5">
+                              <AlertTriangle className="w-3 h-3 shrink-0" />
+                              <span>Obligation : Vous devez obligatoirement choisir l'intervalle horaire pour cet intervalle de jours.</span>
+                            </p>
+                          )}
+
+                          {isInvalidRange && (
+                            <p className="text-[10px] font-bold text-amber-600 dark:text-amber-400 flex items-center gap-1 pt-0.5">
+                              <AlertTriangle className="w-3 h-3 shrink-0" />
+                              <span>L'heure de fin ({slot.heureFin}) doit être postérieure à l'heure de début ({slot.heureDebut}).</span>
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
               <div className="pt-2">
                 <label className="flex items-center gap-2 cursor-pointer font-bold">
                   <input
@@ -1805,7 +2185,7 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
               </div>
             </div>
 
-            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-100 dark:border-slate-800 sticky bottom-0 bg-white dark:bg-slate-900 pb-1">
               <button
                 type="button"
                 onClick={() => setCarrierModalOpen(false)}

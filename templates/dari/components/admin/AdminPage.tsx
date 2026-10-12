@@ -436,6 +436,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
             <ManagePacksPage
               packs={packsData}
               setPacks={setPacksData}
+              allProducts={productsData}
+              allCategories={categoriesData}
             />
           )}
 

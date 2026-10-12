@@ -98,6 +98,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
     { id: 'all', label: 'Toutes les filiales', icon: '🌐' },
     { id: 'nutrition', label: 'Fitness Shop', icon: '⚡' },
     { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
+    { id: 'dari', label: 'DariShop', icon: '🏠' },
   ];
 
   // Quick statistics
@@ -663,10 +664,11 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
               {isCreatingNew && (
                 <div className="bg-slate-50 p-3.5 rounded-2xl border border-slate-200/80">
                   <label className="block text-slate-700 font-bold mb-2">Boutique / Filiale de destination *</label>
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-3 gap-2">
                     {[
                       { key: 'nutrition', name: 'Fitness Shop', icon: '⚡' },
                       { key: 'youpi', name: 'YoupiShop', icon: '🧸' },
+                      { key: 'dari', name: 'DariShop', icon: '🏠' },
                     ].map((f) => (
                       <button
                         key={f.key}

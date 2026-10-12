@@ -21,13 +21,15 @@ interface SuppliersViewProps {
   initialTargetFutureProduct?: FutureProduit | null;
 }
 
-const VALID_NETWORK_SITES = ['fitnessshop', 'nutrition', 'youpi', 'youpishop'];
+const VALID_NETWORK_SITES = ['fitnessshop', 'nutrition', 'youpi', 'youpishop', 'dari', 'darishop'];
 
 const SITE_LABELS: Record<string, { name: string; color: string; bg: string }> = {
   fitnessshop: { name: 'Fitness Shop', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   nutrition: { name: 'Fitness Shop', color: 'text-lime-700', bg: 'bg-lime-50 border-lime-200' },
   youpi: { name: 'YoupiShop', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
-  youpishop: { name: 'YoupiShop', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' }
+  youpishop: { name: 'YoupiShop', color: 'text-amber-700', bg: 'bg-amber-50 border-amber-200' },
+  dari: { name: 'DariShop', color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-200' },
+  darishop: { name: 'DariShop', color: 'text-indigo-700', bg: 'bg-indigo-50 border-indigo-200' }
 };
 
 export const SuppliersView: React.FC<SuppliersViewProps> = ({
@@ -783,6 +785,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                         <option value="all">Toutes les boutiques ({products.length})</option>
                         <option value="nutrition">⚡ Fitness Shop</option>
                         <option value="youpi">🧸 YoupiShop</option>
+                        <option value="dari">🏠 DariShop</option>
                       </select>
                     </div>
 
@@ -1253,6 +1256,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
                     <option value="all">Toutes les boutiques ({products.length})</option>
                     <option value="nutrition">⚡ Fitness Shop</option>
                     <option value="youpi">🧸 YoupiShop</option>
+                    <option value="dari">🏠 DariShop</option>
                   </select>
                 </div>
 

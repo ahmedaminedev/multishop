@@ -105,7 +105,12 @@ export let deliveryCompaniesData = [
     zones: 'Toute la Tunisie (Grand Tunis, Sahel, Sfax, Sud)',
     delaiMoyen: '24-48h',
     tarifDefaut: 7,
-    actif: true
+    actif: true,
+    horairesTravail: [
+      { id: 'h-1', jourDebut: 'Lundi', jourFin: 'Vendredi', heureDebut: '08:00', heureFin: '18:00' },
+      { id: 'h-2', jourDebut: 'Samedi', jourFin: 'Samedi', heureDebut: '08:30', heureFin: '13:00' }
+    ],
+    joursTravailTexte: 'Lundi à Vendredi (08:00 - 18:00), Samedi (08:30 - 13:00)'
   },
   {
     id: 'soc-2',
@@ -115,7 +120,11 @@ export let deliveryCompaniesData = [
     zones: '24 Gouvernorats - Livraison à domicile et points relais',
     delaiMoyen: '24h',
     tarifDefaut: 8,
-    actif: true
+    actif: true,
+    horairesTravail: [
+      { id: 'h-1', jourDebut: 'Lundi', jourFin: 'Samedi', heureDebut: '08:00', heureFin: '18:30' }
+    ],
+    joursTravailTexte: 'Lundi à Samedi (08:00 - 18:30)'
   },
   {
     id: 'soc-3',
@@ -125,7 +134,11 @@ export let deliveryCompaniesData = [
     zones: 'Grand Tunis (Tunis, Ariana, Ben Arous, Manouba)',
     delaiMoyen: 'Même jour / 24h',
     tarifDefaut: 6,
-    actif: true
+    actif: true,
+    horairesTravail: [
+      { id: 'h-1', jourDebut: 'Lundi', jourFin: 'Dimanche', heureDebut: '07:30', heureFin: '21:00' }
+    ],
+    joursTravailTexte: 'Lundi à Dimanche (07:30 - 21:00)'
   },
   {
     id: 'soc-4',
@@ -135,7 +148,12 @@ export let deliveryCompaniesData = [
     zones: 'Sousse, Monastir, Mahdia, Kairouan',
     delaiMoyen: '24h',
     tarifDefaut: 7,
-    actif: true
+    actif: true,
+    horairesTravail: [
+      { id: 'h-1', jourDebut: 'Lundi', jourFin: 'Vendredi', heureDebut: '08:30', heureFin: '17:30' },
+      { id: 'h-2', jourDebut: 'Samedi', jourFin: 'Samedi', heureDebut: '09:00', heureFin: '14:00' }
+    ],
+    joursTravailTexte: 'Lundi à Vendredi (08:30 - 17:30), Samedi (09:00 - 14:00)'
   }
 ];
 
@@ -447,6 +465,24 @@ export let futureProductsData = [
     statut: 'en_prospection',
     notes: 'Jouet éducatif d\'éveil en bois certifié FSC. Norme CE EN-71.',
     dateCreation: '2026-02-18T16:20:00.000Z'
+  },
+  {
+    id: 'fut-3',
+    nom: 'Vase Organique Sculpture Céramique Terracotta',
+    image: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=600',
+    lien: 'https://instagram.com/ceramics_artisan_tn',
+    prix_source: 48,
+    quantite: 15,
+    quantite_enstock: 15,
+    sourceId: 'src-1',
+    sourceNom: 'Atelier Céramique Artisanale Tunis',
+    site: 'dari',
+    is_futur_site: false,
+    futur_site: '',
+    categorie: 'Décoration & Miroirs',
+    statut: 'en_prospection',
+    notes: 'Tendance déco salon organique, finition matte texturée.',
+    dateCreation: '2026-02-20T11:00:00.000Z'
   },
   {
     id: 'fut-5',
@@ -2226,12 +2262,13 @@ export function handleApiRequest(req, res, next) {
           return { error: 'Validation Error', message: 'Veuillez sélectionner au moins un article avec sa quantité.' };
         }
 
-        const validFilialeKeys = ['nutrition', 'youpi'];
+        const validFilialeKeys = ['nutrition', 'youpi', 'dari'];
         const mapToFilialeKey = (siteStr) => {
           if (!siteStr) return null;
           const s = String(siteStr).toLowerCase();
           if (s === 'nutrition' || s === 'fitnessshop') return 'nutrition';
           if (s === 'youpi' || s === 'youpishop') return 'youpi';
+          if (s === 'dari' || s === 'darishop') return 'dari';
           return null;
         };
 
@@ -2453,6 +2490,11 @@ export function handleApiRequest(req, res, next) {
       }
       if (endpoint === '/delivery-companies' && req.method === 'POST') {
         const body = await getBody();
+        const horaires = Array.isArray(body.horairesTravail) ? body.horairesTravail : [];
+        const formattedJours = body.joursTravailTexte || (horaires.length > 0
+          ? horaires.map(h => `${h.jourDebut === h.jourFin ? h.jourDebut : `${h.jourDebut} à ${h.jourFin}`} (${h.heureDebut} - ${h.heureFin})`).join(', ')
+          : '');
+
         const newCompany = {
           id: `soc-${Date.now()}`,
           nom: body.nom || 'Nouvelle Société de Livraison',
@@ -2461,7 +2503,9 @@ export function handleApiRequest(req, res, next) {
           zones: body.zones || 'Grand Tunis & Régions',
           delaiMoyen: body.delaiMoyen || '24-48h',
           tarifDefaut: Number(body.tarifDefaut) || 7,
-          actif: true
+          actif: body.actif !== false,
+          horairesTravail: horaires,
+          joursTravailTexte: formattedJours
         };
         deliveryCompaniesData.unshift(newCompany);
         broadcastDataChanged('delivery_company_created', 'all');
@@ -2472,7 +2516,17 @@ export function handleApiRequest(req, res, next) {
         const body = await getBody();
         const idx = deliveryCompaniesData.findIndex(c => c.id === cId);
         if (idx !== -1) {
-          deliveryCompaniesData[idx] = { ...deliveryCompaniesData[idx], ...body };
+          const horaires = Array.isArray(body.horairesTravail) ? body.horairesTravail : deliveryCompaniesData[idx].horairesTravail;
+          const formattedJours = body.joursTravailTexte || (horaires && horaires.length > 0
+            ? horaires.map(h => `${h.jourDebut === h.jourFin ? h.jourDebut : `${h.jourDebut} à ${h.jourFin}`} (${h.heureDebut} - ${h.heureFin})`).join(', ')
+            : deliveryCompaniesData[idx].joursTravailTexte || '');
+
+          deliveryCompaniesData[idx] = {
+            ...deliveryCompaniesData[idx],
+            ...body,
+            horairesTravail: horaires,
+            joursTravailTexte: formattedJours
+          };
           broadcastDataChanged('delivery_company_updated', 'all');
           return sendJson(200, deliveryCompaniesData[idx]);
         }

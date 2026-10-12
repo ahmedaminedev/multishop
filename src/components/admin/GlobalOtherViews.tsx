@@ -65,6 +65,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
     { id: '1', title: 'Offre de Bienvenue Printemps', desc: '-15% sur la première commande avec le code SPRING15', scope: 'all', code: 'SPRING15', uses: 24, exp: '31 Déc 2026', badge: 'ACTIVE', badgeColor: 'text-emerald-600 bg-emerald-50 border-emerald-200' },
     { id: '2', title: 'Pack Puissance & Musculation', desc: 'Livraison express gratuite dès 150 DT d\'achats combinés.', scope: 'nutrition', code: 'POWERTECH', uses: 12, exp: '15 Nov 2026', badge: 'FLASH SALE', badgeColor: 'text-amber-600 bg-amber-50 border-amber-200' },
     { id: '6', title: 'Offre Anniversaire Enfants & Jouets', desc: '-10% sur tous les jeux d\'éveil, Lego et coffrets avec le code YOUPI10', scope: 'youpi', code: 'YOUPI10', uses: 28, exp: '31 Déc 2026', badge: 'JEUX & JOUETS', badgeColor: 'text-amber-700 bg-amber-50 border-amber-200' },
+    { id: '7', title: 'Offre Contemporaine Salon & Déco', desc: '-15% sur les canapés, tables basses et luminaires avec le code DARI15', scope: 'dari', code: 'DARI15', uses: 19, exp: '31 Déc 2026', badge: 'MAISON & DÉCO', badgeColor: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
   ];
 
   const filteredPromos = allPromos.filter(p => filterShop === 'all' || p.scope === 'all' || p.scope === filterShop);
@@ -77,7 +78,7 @@ const PromotionsSubView: React.FC<PromotionsSubViewProps> = ({
             CAMPAGNES & PROMOTIONS <span className="text-blue-600">GROUPE</span>
           </h2>
           <p className="text-xs text-slate-500 font-medium">
-            Gérez les offres spéciales, remises flash et codes promos pour les 2 boutiques du réseau
+            Gérez les offres spéciales, remises flash et codes promos pour les 3 boutiques du réseau (Fitness Shop, YoupiShop & DariShop)
           </p>
         </div>
 
@@ -140,7 +141,8 @@ const MessagesSubView: React.FC<MessagesSubViewProps> = ({
 }) => {
   const allMessages = [
     { id: '1', author: 'Mehdi Ben Salah', email: 'mehdi.bensalah@gmail.com', shop: '⚡ Fitness Shop', shopKey: 'nutrition', text: 'Bonjour, quel est le délai de livraison pour le rack de musculation sur Sousse ?', time: 'Il y a 2h' },
-    { id: '5', author: 'Inès Trabelsi', email: 'ines.trabelsi@gmail.com', shop: '🧸 YoupiShop', shopKey: 'youpi', text: 'Bonjour, avez-vous le pack Montessori et la boîte de briques 850 pièces en stock immédiat ?', time: 'Il y a 4h' }
+    { id: '5', author: 'Inès Trabelsi', email: 'ines.trabelsi@gmail.com', shop: '🧸 YoupiShop', shopKey: 'youpi', text: 'Bonjour, avez-vous le pack Montessori et la boîte de briques 850 pièces en stock immédiat ?', time: 'Il y a 4h' },
+    { id: '7', author: 'Nadia Cherif', email: 'nadia.cherif@gmail.com', shop: '🏠 DariShop', shopKey: 'dari', text: 'Bonjour, le canapé 3 places velours côtelé est-il livrable sur Tunis avec montage à l\'étage ?', time: 'Il y a 30min' },
   ];
 
   const filteredMessages = allMessages.filter(m => filterShop === 'all' || m.shopKey === filterShop);
@@ -230,10 +232,10 @@ const UsersSubView: React.FC = () => {
               <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
             </tr>
             <tr>
-              <td className="py-3 px-4 font-bold text-slate-900">Responsable Pharma</td>
-              <td className="py-3 px-4 text-slate-600">pharma@multishop.tn</td>
-              <td className="py-3 px-4"><span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-bold text-[10px]">Gestionnaire</span></td>
-              <td className="py-3 px-4 text-slate-600">PharmaShop</td>
+              <td className="py-3 px-4 font-bold text-slate-900">Responsable Fitness Shop</td>
+              <td className="py-3 px-4 text-slate-600">fitness@multishop.tn</td>
+              <td className="py-3 px-4"><span className="bg-lime-100 text-lime-800 px-2 py-0.5 rounded-full font-bold text-[10px]">Gestionnaire</span></td>
+              <td className="py-3 px-4 text-slate-600">Fitness Shop</td>
               <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
             </tr>
             <tr>
@@ -241,6 +243,13 @@ const UsersSubView: React.FC = () => {
               <td className="py-3 px-4 text-slate-600">youpi@multishop.tn</td>
               <td className="py-3 px-4"><span className="bg-amber-100 text-amber-700 px-2 py-0.5 rounded-full font-bold text-[10px]">Gestionnaire</span></td>
               <td className="py-3 px-4 text-slate-600">YoupiShop</td>
+              <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
+            </tr>
+            <tr>
+              <td className="py-3 px-4 font-bold text-slate-900">Responsable DariShop</td>
+              <td className="py-3 px-4 text-slate-600">dari@multishop.tn</td>
+              <td className="py-3 px-4"><span className="bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded-full font-bold text-[10px]">Gestionnaire</span></td>
+              <td className="py-3 px-4 text-slate-600">DariShop</td>
               <td className="py-3 px-4 text-right"><span className="text-emerald-600 font-bold">Actif</span></td>
             </tr>
           </tbody>
@@ -274,6 +283,14 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
       barColor: 'bg-amber-500',
       textColor: 'text-amber-600',
       revenue: stats?.filiales?.youpi?.revenue ?? 1450
+    },
+    {
+      key: 'dari',
+      name: 'DariShop',
+      icon: '🏠',
+      barColor: 'bg-indigo-500',
+      textColor: 'text-indigo-600',
+      revenue: stats?.filiales?.dari?.revenue ?? 3450
     }
   ];
 
@@ -324,7 +341,7 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
           <div className="p-4 bg-slate-50 rounded-xl space-y-1">
             <p className="text-xs text-slate-500 font-bold uppercase tracking-wider">Chiffre d'Affaires Global</p>
             <p className="text-2xl font-black text-slate-900">{totalRev.toLocaleString()} DT</p>
-            <p className="text-[11px] text-slate-500">Totalité des 2 filiales (Fitness Shop & YoupiShop)</p>
+            <p className="text-[11px] text-slate-500">Totalité des 3 filiales (Fitness Shop, YoupiShop & DariShop)</p>
           </div>
         </div>
       </div>
@@ -338,6 +355,7 @@ const ReportsSubView: React.FC<ReportsSubViewProps> = ({ stats }) => {
 const STORE_ITEMS = [
   { id: 'nutrition', name: 'Fitness Shop', icon: '🏋️‍♂️', tagline: 'Équipements de Musculation & Fitness', color: 'text-lime-700 bg-lime-50 border-lime-200' },
   { id: 'youpi', name: 'YoupiShop', icon: '🧸', tagline: "Jeux d'Enfants & Jouets Éducatifs", color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  { id: 'dari', name: 'DariShop', icon: '🏠', tagline: 'Maison, Mobilier Contemporain & Décoration', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' },
 ];
 
 const SettingsSubView: React.FC = () => {
@@ -729,6 +747,7 @@ export const GlobalOtherViews: React.FC<GlobalOtherViewsProps> = ({
     { id: 'all', label: 'Toutes', icon: '🌐' },
     { id: 'nutrition', label: 'Fitness', icon: '🏋️‍♂️' },
     { id: 'youpi', label: 'YoupiShop', icon: '🧸' },
+    { id: 'dari', label: 'DariShop', icon: '🏠' },
   ];
 
   if (currentMenu === 'promotions') {

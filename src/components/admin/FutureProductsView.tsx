@@ -29,12 +29,21 @@ const DEFAULT_CATEGORIES_BY_SITE: Record<string, string[]> = {
     'Puzzles',
     'Éducatifs',
     'Plein Air & Véhicules'
+  ],
+  dari: [
+    'Mobilier & Salons',
+    'Tables & Chaises',
+    'Luminaires & Éclairage',
+    'Décoration & Miroirs',
+    'Tapis & Textiles',
+    'Rangement & Étagères'
   ]
 };
 
 const SITE_OPTIONS = [
   { id: 'fitnessshop', label: 'Fitness Shop (Équipements & Muscu)', filialeKey: 'nutrition', color: 'text-lime-700 bg-lime-50 border-lime-200' },
-  { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', filialeKey: 'youpi', color: 'text-amber-700 bg-amber-50 border-amber-200' }
+  { id: 'youpi', label: 'YoupiShop (Jeux & Jouets d\'enfant)', filialeKey: 'youpi', color: 'text-amber-700 bg-amber-50 border-amber-200' },
+  { id: 'dari', label: 'DariShop (Maison, Déco & Mobilier)', filialeKey: 'dari', color: 'text-indigo-700 bg-indigo-50 border-indigo-200' }
 ];
 
 export const FutureProductsView: React.FC<FutureProductsViewProps> = ({

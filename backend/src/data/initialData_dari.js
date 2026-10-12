@@ -277,33 +277,49 @@ const packs = [
     {
         id: 701,
         name: 'Pack Salon Contemporain Cosy',
+        title: 'Pack Salon Contemporain Cosy',
         price: 2690,
+        oldPrice: 3220,
         originalPrice: 3220,
         discount: 16,
         imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800',
         images: ['https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'],
         description: 'L\'ensemble harmonieux complet pour transformer votre séjour : Canapé 3 places velours côtelé + Table basse chêne & céramique + Lampadaire laiton globe verre.',
+        includedItems: [
+            'Canapé 3 Places Scandinave Velours Côtelé',
+            'Table Basse Ovale en Chêne Massif & Céramique',
+            'Lampadaire d\'Ambiance Laiton Doré & Globe Verre Fumé'
+        ],
         itemsIncluded: [
             'Canapé 3 Places Scandinave Velours Côtelé',
             'Table Basse Ovale en Chêne Massif & Céramique',
             'Lampadaire d\'Ambiance Laiton Doré & Globe Verre Fumé'
         ],
+        includedProductIds: [701, 702, 703],
         badge: 'MEILLEURE VENTE'
     },
     {
         id: 702,
         name: 'Pack Suite Parentale Sérénité',
+        title: 'Pack Suite Parentale Sérénité',
         price: 1390,
+        oldPrice: 1730,
         originalPrice: 1730,
         discount: 20,
         imageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800',
         images: ['https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800'],
         description: 'Sublimez votre chambre à coucher : Grand Miroir Arche métal noir 180cm + Fauteuil lounge bouclette + Parure de lit lin lavé.',
+        includedItems: [
+            'Miroir Arche Majestueux Métal Noir 180cm',
+            'Fauteuil Lounge Bouclette Écru & Bois Noyer',
+            'Parure de Lit 240x260 Lin Lavé Naturel'
+        ],
         itemsIncluded: [
             'Miroir Arche Majestueux Métal Noir 180cm',
             'Fauteuil Lounge Bouclette Écru & Bois Noyer',
             'Parure de Lit 240x260 Lin Lavé Naturel'
         ],
+        includedProductIds: [704, 705, 706],
         badge: 'COUP DE CŒUR'
     }
 ];

@@ -238,7 +238,9 @@ export const packs: Pack[] = [
     {
         id: 701,
         name: 'Pack Salon Contemporain Cosy',
+        title: 'Pack Salon Contemporain Cosy',
         price: 2690,
+        oldPrice: 3220,
         originalPrice: 3220,
         discount: 16,
         imageUrl: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800',
@@ -249,12 +251,15 @@ export const packs: Pack[] = [
             'Table Basse Ovale en Chêne Massif & Céramique',
             'Lampadaire d\'Ambiance Laiton Doré & Globe Verre Fumé'
         ],
+        includedProductIds: [701, 702, 703],
         badge: 'MEILLEURE VENTE'
     },
     {
         id: 702,
         name: 'Pack Suite Parentale Sérénité',
+        title: 'Pack Suite Parentale Sérénité',
         price: 1390,
+        oldPrice: 1730,
         originalPrice: 1730,
         discount: 20,
         imageUrl: 'https://images.unsplash.com/photo-1618221195710-dd6b41faaea6?q=80&w=800',
@@ -265,6 +270,7 @@ export const packs: Pack[] = [
             'Fauteuil Lounge Bouclette Écru & Bois Noyer',
             'Parure de Lit 240x260 Lin Lavé Naturel'
         ],
+        includedProductIds: [704, 705, 706],
         badge: 'COUP DE CŒUR'
     }
 ];

@@ -1318,7 +1318,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
                 >
                   {carriers.map((c) => (
                     <option key={c.id} value={c.id}>
-                      {c.nom} ({c.zones} — Délai {c.delaiMoyen})
+                      {c.nom} ({c.zones} — Délai {c.delaiMoyen}{c.joursTravailTexte ? ` | 🕒 ${c.joursTravailTexte}` : ''})
                     </option>
                   ))}
                 </select>

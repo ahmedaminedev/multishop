@@ -21,6 +21,7 @@ const chatRoutes = require('./routes/chat');
 const paymentRoutes = require('./routes/payment');
 const reviewRoutes = require('./routes/reviews');
 const brandRoutes = require('./routes/brands');
+const deliveryCompanyRoutes = require('./routes/deliveryCompanies');
 const errorHandler = require('./middleware/errorHandler'); // Import Handler
 
 require('./config/passport')(passport);
@@ -66,6 +67,7 @@ app.use('/api/chat', chatRoutes);
 app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/brands', brandRoutes);
+app.use('/api/delivery-companies', deliveryCompanyRoutes);
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../public')));

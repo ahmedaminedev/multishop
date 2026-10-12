@@ -70,13 +70,33 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
   // 100% Dynamic Database Calculations
   // Compute sub-site metrics directly from stats OR dynamically from loaded collections
   const filialesComputed = useMemo(() => {
-    const filialeKeys = ['nutrition', 'youpi'];
+    const filialeKeys = ['nutrition', 'youpi', 'dari'];
     return filialeKeys.map((key) => {
-      const isNutrition = key === 'nutrition';
-      const name = isNutrition ? 'Fitness Shop' : 'YoupiShop';
-      const subtitle = isNutrition ? 'Matériel Musculation & Fitness' : "Jeux d'Enfants & Jouets d'Éveil";
-      const icon = isNutrition ? '🏋️‍♂️' : '🧸';
-      const enumType = isNutrition ? 'produit_myshops_nutrition' : 'produit_myshops_youpi';
+      let name = 'Fitness Shop';
+      let subtitle = 'Matériel Musculation & Fitness';
+      let icon = '🏋️‍♂️';
+      let enumType = 'produit_myshops_nutrition';
+      let badgeColor = 'bg-lime-50 text-lime-700 border-lime-200';
+      let iconBg = 'bg-lime-50 text-lime-600';
+      let statColor = 'text-lime-600';
+
+      if (key === 'youpi') {
+        name = 'YoupiShop';
+        subtitle = "Jeux d'Enfants & Jouets d'Éveil";
+        icon = '🧸';
+        enumType = 'produit_myshops_youpi';
+        badgeColor = 'bg-amber-50 text-amber-700 border-amber-200';
+        iconBg = 'bg-amber-50 text-amber-600';
+        statColor = 'text-amber-600';
+      } else if (key === 'dari') {
+        name = 'DariShop';
+        subtitle = 'Maison, Décoration & Mobilier';
+        icon = '🏠';
+        enumType = 'produit_myshops_dari';
+        badgeColor = 'bg-indigo-50 text-indigo-700 border-indigo-200';
+        iconBg = 'bg-indigo-50 text-indigo-600';
+        statColor = 'text-indigo-600';
+      }
 
       // Live stats from server payload
       const serverFStats = stats?.filiales?.[key];
@@ -116,9 +136,9 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
         valStock,
         panierMoyen,
         isHidden,
-        badgeColor: isNutrition ? 'bg-lime-50 text-lime-700 border-lime-200' : 'bg-amber-50 text-amber-700 border-amber-200',
-        iconBg: isNutrition ? 'bg-lime-50 text-lime-600' : 'bg-amber-50 text-amber-600',
-        statColor: isNutrition ? 'text-lime-600' : 'text-amber-600'
+        badgeColor,
+        iconBg,
+        statColor
       };
     });
   }, [stats, allProducts, allOrders, visibility]);
@@ -237,7 +257,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
             ) : (
               <span className="text-[10px] font-black uppercase px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1">
                 <CheckCircle2 className="w-3 h-3 text-emerald-400" />
-                2 / 2 sous-sites en ligne (Consolidation intégrale)
+                {activeFiliales.length} / {filialesComputed.length} sous-sites en ligne (Consolidation intégrale)
               </span>
             )}
           </div>
@@ -270,7 +290,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
                 : 'text-slate-300 hover:text-white hover:bg-slate-700/60'
             }`}
           >
-            Tout le groupe (2)
+            Tout le groupe ({filialesComputed.length})
           </button>
         </div>
       </div>
@@ -400,7 +420,7 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
         </div>
 
         {/* Filiales Comparison Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-5">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5">
           {filialesComputed.map((filiale) => (
             <div
               key={filiale.key}
@@ -577,7 +597,8 @@ export const ConsolidatedDashboardView: React.FC<ConsolidatedDashboardViewProps>
                           <span className="font-medium text-slate-700 text-[11px]">
                             {order.filialeKey === 'nutrition' && '🏋️‍♂️ Fitness Shop'}
                             {order.filialeKey === 'youpi' && '🧸 YoupiShop'}
-                            {!['nutrition', 'youpi'].includes(order.filialeKey) && '🏋️‍♂️ Fitness Shop'}
+                            {order.filialeKey === 'dari' && '🏠 DariShop'}
+                            {!['nutrition', 'youpi', 'dari'].includes(order.filialeKey) && '🏋️‍♂️ Fitness Shop'}
                           </span>
                         </td>
                         <td className="py-2.5 text-slate-700 font-medium truncate max-w-[120px]">
