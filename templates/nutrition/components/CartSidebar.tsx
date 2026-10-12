@@ -123,9 +123,9 @@ export const CartSidebar: React.FC<{
                             </button>
                         </div>
                     ) : (
-                        cartItems.map((item) => (
+                        cartItems.map((item, idx) => (
                             <div 
-                                key={item.id} 
+                                key={`${item.id || item.productId || 'item'}_${idx}`} 
                                 className="flex items-center gap-3 p-3 bg-white dark:bg-slate-800 rounded-xl border border-slate-100 dark:border-slate-700/80 shadow-2xs hover:border-slate-200 transition-all"
                             >
                                 {/* Thumbnail */}

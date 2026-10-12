@@ -26,19 +26,27 @@ interface OrderDetailPageProps {
     onNavigateToProductDetail: (productId: number) => void;
 }
 
-const OrderStatusBadge: React.FC<{ status: Order['status'] }> = ({ status }) => {
-    const statusConfig = {
-        'Livrée': { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: <CheckCircleIcon className="w-4 h-4"/> },
-        'Expédiée': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: <DeliveryTruckIcon className="w-4 h-4"/> },
-        'En attente': { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: <ShoppingBagIcon className="w-4 h-4"/> },
-        'Annulée': { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-400', icon: <UserIcon className="w-4 h-4"/> }
+const OrderStatusBadge: React.FC<{ status: any }> = ({ status }) => {
+    const rawStatus = String(status || 'En attente');
+    const statusConfig: Record<string, { label: string; bg: string; text: string; icon: React.ReactNode }> = {
+        'EN_ATTENTE_CONFIRMATION': { label: 'En attente de confirmation (Stock Réservé)', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-800 dark:text-amber-300', icon: <ShoppingBagIcon className="w-4 h-4"/> },
+        'CONFIRMEE': { label: 'Confirmée (Préparation Livraison)', bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-800 dark:text-sky-300', icon: <CheckCircleIcon className="w-4 h-4"/> },
+        'AFFECTEE_LIVRAISON': { label: 'Affectée à la société de livraison', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', icon: <DeliveryTruckIcon className="w-4 h-4"/> },
+        'EN_LIVRAISON': { label: 'En cours de livraison', bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-300', icon: <DeliveryTruckIcon className="w-4 h-4"/> },
+        'LIVREE': { label: 'Livrée (Paiement à la livraison)', bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: <CheckCircleIcon className="w-4 h-4"/> },
+        'CLOTUREE': { label: 'Clôturée & Facturée', bg: 'bg-slate-900 dark:bg-slate-800', text: 'text-white dark:text-emerald-400', icon: <CheckCircleIcon className="w-4 h-4"/> },
+        'ARCHIVEE': { label: 'Archivée (Stock remis)', bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-400', icon: <UserIcon className="w-4 h-4"/> },
+        'Livrée': { label: 'Livrée', bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: <CheckCircleIcon className="w-4 h-4"/> },
+        'Expédiée': { label: 'Expédiée', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: <DeliveryTruckIcon className="w-4 h-4"/> },
+        'En attente': { label: 'En attente', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: <ShoppingBagIcon className="w-4 h-4"/> },
+        'Annulée': { label: 'Archivée', bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-400', icon: <UserIcon className="w-4 h-4"/> }
     };
     
-    const config = statusConfig[status] || statusConfig['En attente'];
+    const config = statusConfig[rawStatus] || { label: rawStatus, bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: <ShoppingBagIcon className="w-4 h-4"/> };
 
     return (
         <span className={`px-4 py-2 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${config.bg} ${config.text} border border-transparent shadow-sm`}>
-            {config.icon} {status}
+            {config.icon} {config.label}
         </span>
     );
 };

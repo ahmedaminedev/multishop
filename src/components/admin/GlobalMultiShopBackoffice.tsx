@@ -687,18 +687,20 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
                   onUpdateOrderStatus={handleUpdateOrderStatus}
                   activeShop={activeShop}
                   onSelectShop={handleSelectShop}
+                  onReloadOrders={fetchGlobalData}
                 />
               </div>
             )
           )}
 
-          {/* CASE 2: COMMANDES */}
-          {currentMenu === 'orders' && (
+          {/* CASE 2: COMMANDES & CARRIERS */}
+          {(currentMenu === 'orders' || (currentMenu as any) === 'carriers') && (
             <GlobalOrdersView
               orders={allOrders}
               onUpdateOrderStatus={handleUpdateOrderStatus}
               activeShop={activeShop}
               onSelectShop={handleSelectShop}
+              onReloadOrders={fetchGlobalData}
             />
           )}
 

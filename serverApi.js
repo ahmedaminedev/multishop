@@ -95,6 +95,102 @@ export let siteVisibilityData = {
   dari: { siteId: 'dari', is_hidden: false, scope: 'frontoffice', mode: 'cacher_tout', maintenance_message: '🏠 DariShop est en maintenance technique pour préparer les nouvelles collections maison & décoration.' }
 };
 
+// Sociétés de livraison partenaires (Entités gérées par l'ADMINISTRATEUR - Pas de compte utilisateur)
+export let deliveryCompaniesData = [
+  {
+    id: 'soc-1',
+    nom: 'Aramex Tunisie',
+    telephone: '+216 71 160 800',
+    contact: 'Direction Opérations Express',
+    zones: 'Toute la Tunisie (Grand Tunis, Sahel, Sfax, Sud)',
+    delaiMoyen: '24-48h',
+    tarifDefaut: 7,
+    actif: true
+  },
+  {
+    id: 'soc-2',
+    nom: 'Yalidine Express',
+    telephone: '+216 31 320 320',
+    contact: 'Service Logistique & HUB Central',
+    zones: '24 Gouvernorats - Livraison à domicile et points relais',
+    delaiMoyen: '24h',
+    tarifDefaut: 8,
+    actif: true
+  },
+  {
+    id: 'soc-3',
+    nom: 'First Delivery Pro',
+    telephone: '+216 55 120 400',
+    contact: 'Équipe Coursiers Express',
+    zones: 'Grand Tunis (Tunis, Ariana, Ben Arous, Manouba)',
+    delaiMoyen: 'Même jour / 24h',
+    tarifDefaut: 6,
+    actif: true
+  },
+  {
+    id: 'soc-4',
+    nom: 'Speed Couriers Express',
+    telephone: '+216 73 440 100',
+    contact: 'Agence Sahel & Centre',
+    zones: 'Sousse, Monastir, Mahdia, Kairouan',
+    delaiMoyen: '24h',
+    tarifDefaut: 7,
+    actif: true
+  }
+];
+
+// Helper: Retrouver une commande dans n'importe quel magasin
+export function findOrderAcrossStores(orderId) {
+  if (!orderId) return null;
+  const targetId = String(orderId).trim();
+  for (const s of Object.values(storesData)) {
+    if (!s || !s.orders) continue;
+    const idx = s.orders.findIndex(o => String(o.id || o.orderNumber) === targetId);
+    if (idx !== -1) {
+      return { store: s, order: s.orders[idx], index: idx };
+    }
+  }
+  return null;
+}
+
+// Helper: Restaurer le stock réservé lors de l'archivage/refus d'une commande
+export function restoreOrderStock(order) {
+  if (!order || !Array.isArray(order.items)) return;
+  for (const item of order.items) {
+    const qty = Number(item.quantity) || 1;
+    const targetProdId = String(item.productId || item.id);
+    for (const s of Object.values(storesData)) {
+      if (!s || !s.products) continue;
+      const p = s.products.find(prod => String(prod.id) === targetProdId);
+      if (p) {
+        p.quantité_enstock = (Number(p.quantité_enstock ?? p.quantity) || 0) + qty;
+        p.quantity = p.quantité_enstock;
+        p.stock_reserve = Math.max(0, (Number(p.stock_reserve) || 0) - qty);
+        break;
+      }
+    }
+  }
+}
+
+// Helper: Réserver le stock lors de la création d'une commande
+export function reserveOrderStock(items) {
+  if (!Array.isArray(items)) return;
+  for (const item of items) {
+    const qty = Number(item.quantity) || 1;
+    const targetProdId = String(item.productId || item.id);
+    for (const s of Object.values(storesData)) {
+      if (!s || !s.products) continue;
+      const p = s.products.find(prod => String(prod.id) === targetProdId);
+      if (p) {
+        p.quantité_enstock = Math.max(0, (Number(p.quantité_enstock ?? p.quantity) || 10) - qty);
+        p.quantity = p.quantité_enstock;
+        p.stock_reserve = (Number(p.stock_reserve) || 0) + qty;
+        break;
+      }
+    }
+  }
+}
+
 // Global Socket.IO instance for real-time live events across all shops
 let ioInstance = null;
 export function attachSocketIO(io) {
@@ -125,12 +221,12 @@ export function calculateShopStats(shopKey) {
   const s = storesData[shopKey];
   if (!s) return null;
 
-  const validOrders = (s.orders || []).filter(o => o.status !== 'Annulée' && o.status !== 'annulé');
+  const validOrders = (s.orders || []).filter(o => o.statutCommande !== 'ARCHIVEE' && o.status !== 'Annulée' && o.status !== 'annulé');
   const revenue = validOrders.reduce((sum, o) => sum + (Number(o.total || o.totalAmount) || 0), 0);
   const ordersCount = (s.orders || []).length;
-  const pendingOrdersCount = (s.orders || []).filter(o => ['En attente', 'en_attente', 'Expédiée', 'confirmé', 'Processing'].includes(o.status)).length;
-  const deliveredOrdersCount = (s.orders || []).filter(o => ['Livrée', 'livré', 'Delivered'].includes(o.status)).length;
-  const cancelledOrdersCount = (s.orders || []).filter(o => ['Annulée', 'annulé', 'Cancelled'].includes(o.status)).length;
+  const pendingOrdersCount = (s.orders || []).filter(o => ['EN_ATTENTE_CONFIRMATION', 'En attente', 'en_attente', 'CONFIRMEE', 'LIVRAISON_EN_ATTENTE', 'AFFECTEE_LIVRAISON', 'EN_LIVRAISON'].includes(o.statutCommande || o.status)).length;
+  const deliveredOrdersCount = (s.orders || []).filter(o => ['LIVREE', 'CLOTUREE', 'Livrée', 'livré', 'Delivered'].includes(o.statutLivraison || o.statutCommande || o.status)).length;
+  const cancelledOrdersCount = (s.orders || []).filter(o => ['ARCHIVEE', 'ANNULEE', 'Annulée', 'annulé', 'Cancelled'].includes(o.statutCommande || o.status)).length;
 
   const products = s.products || [];
   const productsCount = products.length;
@@ -604,6 +700,907 @@ export async function initStores() {
       console.error(`Error loading store ${key}:`, err);
     }
   }
+
+  // Populate structured coherent scenario orders demonstrating each step of the 42-rule workflow
+  try {
+    const initialOrders = generateInitialCoherentOrders();
+    if (storesData.nutrition) {
+      storesData.nutrition.orders = initialOrders.filter(o => o.shops?.includes('nutrition') || o.filialeKey === 'nutrition');
+    }
+    if (storesData.youpi) {
+      storesData.youpi.orders = initialOrders.filter(o => o.shops?.includes('youpi') || o.filialeKey === 'youpi');
+    }
+    if (storesData.dari) {
+      storesData.dari.orders = initialOrders.filter(o => o.shops?.includes('dari') || o.filialeKey === 'dari');
+    }
+  } catch (err) {
+    console.error('Error populating initial coherent orders:', err);
+  }
+}
+
+export function generateInitialCoherentOrders() {
+  return [
+    {
+      id: 'CMD-2026-000142',
+      orderNumber: 'CMD-2026-000142',
+      customerName: 'Sami Mansour',
+      phone: '+216 98 421 330',
+      customerEmail: 'sami.mansour@gmail.com',
+      customerInfo: {
+        firstName: 'Sami',
+        lastName: 'Mansour',
+        phone: '+216 98 421 330',
+        email: 'sami.mansour@gmail.com',
+        city: 'Tunis',
+        address: '14 Rue Ibn Khaldoun, Menzah 5',
+        notes: 'Appeler avant de passer en matinée si possible.'
+      },
+      shippingAddress: {
+        street: '14 Rue Ibn Khaldoun, Menzah 5',
+        city: 'Tunis',
+        governorate: 'Tunis',
+        postalCode: '1004',
+        country: 'Tunisie'
+      },
+      date: '2026-10-12',
+      heure: '11:45',
+      items: [
+        {
+          id: 1,
+          productId: 1,
+          name: 'Haltères Réglables Pro 24kg (Paire)',
+          quantity: 1,
+          price: 240,
+          shopId: 'nutrition',
+          shopName: 'Fitness Shop',
+          imageUrl: '/src/assets/images/category_halteres_poids_1790951598408.jpg'
+        },
+        {
+          id: 101,
+          productId: 101,
+          name: 'Pack Briques Créatives 850 Pièces',
+          quantity: 1,
+          price: 55,
+          shopId: 'youpi',
+          shopName: 'YoupiShop',
+          imageUrl: '/src/assets/images/category_youpi_lego_1791240056376.jpg'
+        }
+      ],
+      itemCount: 2,
+      subtotal: 295,
+      shippingFee: 0,
+      total: 295,
+      totalAmount: 295,
+      filialeKey: 'nutrition',
+      filialeName: 'MultiShop Groupé',
+      shops: ['nutrition', 'youpi'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'EN_ATTENTE_CONFIRMATION',
+      status: 'EN_ATTENTE_CONFIRMATION',
+      statutLivraison: 'NON_INITIEE',
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '12/10/2026',
+          heure: '11:45',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée par le client Sami Mansour en paiement à la livraison (COD). Stock réservé : 1x Haltères (Fitness Shop) et 1x Briques (YoupiShop).',
+          note: '',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000138',
+      orderNumber: 'CMD-2026-000138',
+      customerName: 'Nour Ben Salah',
+      phone: '+216 22 550 119',
+      customerEmail: 'nour.bensalah@topnet.tn',
+      customerInfo: {
+        firstName: 'Nour',
+        lastName: 'Ben Salah',
+        phone: '+216 22 550 119',
+        email: 'nour.bensalah@topnet.tn',
+        city: 'Sousse',
+        address: 'Résidence Les Palmiers, Kantaoui',
+        notes: 'Livraison au 2ème étage avec ascenseur.'
+      },
+      shippingAddress: {
+        street: 'Résidence Les Palmiers, Kantaoui',
+        city: 'Sousse',
+        governorate: 'Sousse',
+        postalCode: '4089',
+        country: 'Tunisie'
+      },
+      date: '2026-10-12',
+      heure: '09:20',
+      items: [
+        {
+          id: 4,
+          productId: 4,
+          name: 'Tapis de Course Cardio Pliable Pro 3.5 HP',
+          quantity: 1,
+          price: 1850,
+          shopId: 'nutrition',
+          shopName: 'Fitness Shop',
+          imageUrl: '/src/assets/images/category_tapis_cardio_1790951629862.jpg'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 1850,
+      shippingFee: 0,
+      total: 1850,
+      totalAmount: 1850,
+      filialeKey: 'nutrition',
+      filialeName: 'Fitness Shop',
+      shops: ['nutrition'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'LIVRAISON_EN_ATTENTE',
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '12/10/2026',
+          heure: '09:20',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée par le client Nour Ben Salah en paiement COD.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '12/10/2026',
+          heure: '10:05',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée par l\'administrateur. Passage en livraison en attente pour affectation transporteur.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000139',
+      orderNumber: 'CMD-2026-000139',
+      customerName: 'Karim Chaabane',
+      phone: '+216 50 123 789',
+      customerEmail: 'k.chaabane@gmail.com',
+      customerInfo: {
+        firstName: 'Karim',
+        lastName: 'Chaabane',
+        phone: '+216 50 123 789',
+        email: 'k.chaabane@gmail.com',
+        city: 'Ariana',
+        address: 'Avenue Fethi Zouhir, Ennasr 2',
+        notes: ''
+      },
+      shippingAddress: {
+        street: 'Avenue Fethi Zouhir, Ennasr 2',
+        city: 'Ariana',
+        governorate: 'Ariana',
+        postalCode: '2037',
+        country: 'Tunisie'
+      },
+      date: '2026-10-12',
+      heure: '08:40',
+      items: [
+        {
+          id: 102,
+          productId: 102,
+          name: 'Peluche Géante Ours Câlin 100cm',
+          quantity: 1,
+          price: 80,
+          shopId: 'youpi',
+          shopName: 'YoupiShop',
+          imageUrl: '/src/assets/images/category_youpi_eveil_1791240046354.jpg'
+        },
+        {
+          id: 201,
+          productId: 201,
+          name: 'Canapé 3 places Velours Côtelé Écru',
+          quantity: 1,
+          price: 1300,
+          shopId: 'dari',
+          shopName: 'DariShop',
+          imageUrl: '/src/assets/images/darishop_hero_livingroom_1791384962544.jpg'
+        }
+      ],
+      itemCount: 2,
+      subtotal: 1380,
+      shippingFee: 0,
+      total: 1380,
+      totalAmount: 1380,
+      filialeKey: 'dari',
+      filialeName: 'MultiShop Groupé',
+      shops: ['youpi', 'dari'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'LIVRAISON_EN_ATTENTE',
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '12/10/2026',
+          heure: '08:40',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée par le client Karim Chaabane.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '12/10/2026',
+          heure: '09:15',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande vérifiée et validée commercialement.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000140',
+      orderNumber: 'CMD-2026-000140',
+      customerName: 'Ines Jaziri',
+      phone: '+216 29 881 223',
+      customerEmail: 'ines.jaziri@planet.tn',
+      customerInfo: {
+        firstName: 'Ines',
+        lastName: 'Jaziri',
+        phone: '+216 29 881 223',
+        email: 'ines.jaziri@planet.tn',
+        city: 'La Marsa',
+        address: 'Rue Sidi Abdelaziz, Marsa Plage',
+        notes: 'Disponible après 14h'
+      },
+      shippingAddress: {
+        street: 'Rue Sidi Abdelaziz, Marsa Plage',
+        city: 'La Marsa',
+        governorate: 'Tunis',
+        postalCode: '2070',
+        country: 'Tunisie'
+      },
+      date: '2026-10-12',
+      heure: '08:15',
+      items: [
+        {
+          id: 202,
+          productId: 202,
+          name: 'Table Basse Chêne Massif & Plateau Travertin',
+          quantity: 1,
+          price: 620,
+          shopId: 'dari',
+          shopName: 'DariShop',
+          imageUrl: 'https://images.unsplash.com/photo-1533090161767-e6ffed986c88?q=80&w=600'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 620,
+      shippingFee: 0,
+      total: 620,
+      totalAmount: 620,
+      filialeKey: 'dari',
+      filialeName: 'DariShop',
+      shops: ['dari'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'LIVRAISON_EN_ATTENTE',
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '12/10/2026',
+          heure: '08:15',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '12/10/2026',
+          heure: '09:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000135',
+      orderNumber: 'CMD-2026-000135',
+      customerName: 'Walid Trabelsi',
+      phone: '+216 24 330 910',
+      customerEmail: 'walid.trabelsi@gmail.com',
+      customerInfo: {
+        firstName: 'Walid',
+        lastName: 'Trabelsi',
+        phone: '+216 24 330 910',
+        email: 'walid.trabelsi@gmail.com',
+        city: 'Nabeul',
+        address: 'Boulevard Habib Bourguiba, Nabeul Centre',
+        notes: 'Sonner au cabinet dentaire.'
+      },
+      shippingAddress: {
+        street: 'Boulevard Habib Bourguiba, Nabeul Centre',
+        city: 'Nabeul',
+        governorate: 'Nabeul',
+        postalCode: '8000',
+        country: 'Tunisie'
+      },
+      date: '2026-10-11',
+      heure: '16:10',
+      items: [
+        {
+          id: 2,
+          productId: 2,
+          name: 'Banc de Musculation Multiposition Réglable',
+          quantity: 1,
+          price: 345,
+          shopId: 'nutrition',
+          shopName: 'Fitness Shop',
+          imageUrl: '/src/assets/images/category_banc_musculation_1790951610418.jpg'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 345,
+      shippingFee: 0,
+      total: 345,
+      totalAmount: 345,
+      filialeKey: 'nutrition',
+      filialeName: 'Fitness Shop',
+      shops: ['nutrition'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'AFFECTEE_LIVRAISON',
+      affectationLivraison: {
+        societeLivraisonId: 'soc-1',
+        societeLivraisonNom: 'Aramex Tunisie',
+        dateLivraisonPrevue: '2026-10-14',
+        creneauHoraire: '14:00 - 18:00',
+        instructions: 'Colis volumineux mais manipulable par une personne.',
+        dateAffectation: '11/10/2026 17:30',
+        administrateur: 'Super Admin'
+      },
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '11/10/2026',
+          heure: '16:10',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande enregistrée.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '16:45',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '17:30',
+          auteur: 'ADMINISTRATEUR',
+          action: 'AFFECTATION_LIVRAISON',
+          description: 'Affectation à Aramex Tunisie pour le 14/10/2026 (14:00 - 18:00).',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'AFFECTEE_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000131',
+      orderNumber: 'CMD-2026-000131',
+      customerName: 'Monia Bouazizi',
+      phone: '+216 97 654 321',
+      customerEmail: 'm.bouazizi@yahoo.fr',
+      customerInfo: {
+        firstName: 'Monia',
+        lastName: 'Bouazizi',
+        phone: '+216 97 654 321',
+        email: 'm.bouazizi@yahoo.fr',
+        city: 'Bizerte',
+        address: 'Corniche de Bizerte, Imm El Manar',
+        notes: ''
+      },
+      shippingAddress: {
+        street: 'Corniche de Bizerte, Imm El Manar',
+        city: 'Bizerte',
+        governorate: 'Bizerte',
+        postalCode: '7000',
+        country: 'Tunisie'
+      },
+      date: '2026-10-11',
+      heure: '10:00',
+      items: [
+        {
+          id: 103,
+          productId: 103,
+          name: 'Jeu de Société Stratégie Junior',
+          quantity: 2,
+          price: 59,
+          shopId: 'youpi',
+          shopName: 'YoupiShop',
+          imageUrl: '/src/assets/images/category_youpi_societe_1791240065789.jpg'
+        }
+      ],
+      itemCount: 2,
+      subtotal: 118,
+      shippingFee: 0,
+      total: 118,
+      totalAmount: 118,
+      filialeKey: 'youpi',
+      filialeName: 'YoupiShop',
+      shops: ['youpi'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'EN_LIVRAISON',
+      affectationLivraison: {
+        societeLivraisonId: 'soc-2',
+        societeLivraisonNom: 'Yalidine Express',
+        dateLivraisonPrevue: '2026-10-12',
+        creneauHoraire: '09:00 - 13:00',
+        instructions: '',
+        dateAffectation: '11/10/2026 11:00',
+        administrateur: 'Super Admin'
+      },
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '11/10/2026',
+          heure: '10:00',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '10:30',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '11/10/2026',
+          heure: '11:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'AFFECTATION_LIVRAISON',
+          description: 'Affectation à Yalidine Express.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'AFFECTEE_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '12/10/2026',
+          heure: '08:30',
+          auteur: 'ADMINISTRATEUR',
+          action: 'PRISE_EN_CHARGE_LIVRAISON',
+          description: 'Prise en charge confirmée par Yalidine Express. Commande en cours d\'acheminement.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'EN_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000127',
+      orderNumber: 'CMD-2026-000127',
+      customerName: 'Anis Khemir',
+      phone: '+216 54 990 012',
+      customerEmail: 'anis.khemir@gmail.com',
+      customerInfo: {
+        firstName: 'Anis',
+        lastName: 'Khemir',
+        phone: '+216 54 990 012',
+        email: 'anis.khemir@gmail.com',
+        city: 'Sfax',
+        address: 'Route de Téniour km 2.5',
+        notes: ''
+      },
+      shippingAddress: {
+        street: 'Route de Téniour km 2.5',
+        city: 'Sfax',
+        governorate: 'Sfax',
+        postalCode: '3002',
+        country: 'Tunisie'
+      },
+      date: '2026-10-10',
+      heure: '14:20',
+      items: [
+        {
+          id: 203,
+          productId: 203,
+          name: 'Fauteuil Bouclé Scandinave Crème & Bois',
+          quantity: 1,
+          price: 740,
+          shopId: 'dari',
+          shopName: 'DariShop',
+          imageUrl: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?q=80&w=600'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 740,
+      shippingFee: 0,
+      total: 740,
+      totalAmount: 740,
+      filialeKey: 'dari',
+      filialeName: 'DariShop',
+      shops: ['dari'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CONFIRMEE',
+      status: 'CONFIRMEE',
+      statutLivraison: 'LIVREE',
+      affectationLivraison: {
+        societeLivraisonId: 'soc-3',
+        societeLivraisonNom: 'First Delivery Pro',
+        dateLivraisonPrevue: '2026-10-12',
+        creneauHoraire: '09:00 - 13:00',
+        instructions: '',
+        dateAffectation: '10/10/2026 16:00',
+        administrateur: 'Super Admin'
+      },
+      livraisonDetails: {
+        dateLivree: '12/10/2026 11:30',
+        heureLivree: '11:30',
+        commentaire: 'Colis remis en main propre au client.'
+      },
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      montantEncaisse: 0,
+      statutFacture: 'FACTURE_NON_GENEREE',
+      stockReserve: true,
+      historique: [
+        {
+          date: '10/10/2026',
+          heure: '14:20',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '15:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '16:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'AFFECTATION_LIVRAISON',
+          description: 'Affectation à First Delivery Pro.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'AFFECTEE_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '12/10/2026',
+          heure: '09:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'PRISE_EN_CHARGE_LIVRAISON',
+          description: 'En livraison.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'EN_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '12/10/2026',
+          heure: '11:30',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_LIVRAISON',
+          description: 'Livraison réussie confirmée par le transporteur. En attente de reversement et validation du paiement COD (740 DT).',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVREE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000120',
+      orderNumber: 'CMD-2026-000120',
+      customerName: 'Rim Dridi',
+      phone: '+216 21 009 887',
+      customerEmail: 'rim.dridi@gmail.com',
+      customerInfo: {
+        firstName: 'Rim',
+        lastName: 'Dridi',
+        phone: '+216 21 009 887',
+        email: 'rim.dridi@gmail.com',
+        city: 'Tunis',
+        address: 'Rue de Jérusalem, Menzah 6',
+        notes: ''
+      },
+      shippingAddress: {
+        street: 'Rue de Jérusalem, Menzah 6',
+        city: 'Tunis',
+        governorate: 'Tunis',
+        postalCode: '1004',
+        country: 'Tunisie'
+      },
+      date: '2026-10-09',
+      heure: '11:15',
+      items: [
+        {
+          id: 3,
+          productId: 3,
+          name: 'Rack à Squat & Station Traction Commerciale',
+          quantity: 1,
+          price: 490,
+          shopId: 'nutrition',
+          shopName: 'Fitness Shop',
+          imageUrl: '/src/assets/images/category_rack_station_1790951619589.jpg'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 490,
+      shippingFee: 0,
+      total: 490,
+      totalAmount: 490,
+      filialeKey: 'nutrition',
+      filialeName: 'Fitness Shop',
+      shops: ['nutrition'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'CLOTUREE',
+      status: 'CLOTUREE',
+      statutLivraison: 'LIVREE',
+      affectationLivraison: {
+        societeLivraisonId: 'soc-1',
+        societeLivraisonNom: 'Aramex Tunisie',
+        dateLivraisonPrevue: '2026-10-10',
+        creneauHoraire: '09:00 - 13:00',
+        instructions: '',
+        dateAffectation: '09/10/2026 12:00',
+        administrateur: 'Super Admin'
+      },
+      livraisonDetails: {
+        dateLivree: '10/10/2026 11:00',
+        heureLivree: '11:00',
+        commentaire: 'Livraison conforme'
+      },
+      statutPaiement: 'PAIEMENT_ENCAISSE',
+      montantEncaisse: 490,
+      statutFacture: 'FACTURE_GENEREE',
+      facture: {
+        numeroFacture: 'FACT-2026-000120',
+        dateFacture: '10/10/2026',
+        totalHT: 411.765,
+        tva: 78.235,
+        totalTTC: 490
+      },
+      stockReserve: true,
+      historique: [
+        {
+          date: '09/10/2026',
+          heure: '11:15',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande enregistrée.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '09/10/2026',
+          heure: '11:45',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '09/10/2026',
+          heure: '12:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'AFFECTATION_LIVRAISON',
+          description: 'Affectation à Aramex Tunisie.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'AFFECTEE_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '09:30',
+          auteur: 'ADMINISTRATEUR',
+          action: 'PRISE_EN_CHARGE_LIVRAISON',
+          description: 'En cours de livraison.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'EN_LIVRAISON',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '11:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_LIVRAISON',
+          description: 'Livraison effectuée.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVREE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '16:00',
+          auteur: 'ADMINISTRATEUR',
+          action: 'ENCAISSEMENT_PAIEMENT',
+          description: 'Paiement en espèces à la livraison (COD) encaissé et vérifié : 490 DT.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVREE',
+          statutPaiement: 'PAIEMENT_ENCAISSE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '16:05',
+          auteur: 'ADMINISTRATEUR',
+          action: 'GENERATION_FACTURE',
+          description: 'Facture légale générée N° FACT-2026-000120.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVREE',
+          statutPaiement: 'PAIEMENT_ENCAISSE',
+          statutFacture: 'FACTURE_GENEREE'
+        },
+        {
+          date: '10/10/2026',
+          heure: '16:10',
+          auteur: 'ADMINISTRATEUR',
+          action: 'CLOTURE_COMMANDE',
+          description: 'Toutes les étapes (Livraison, Encaissement COD, Facturation) sont accomplies. Commande définitivement clôturée et archivée au grand livre.',
+          statutCommande: 'CLOTUREE',
+          statutLivraison: 'LIVREE',
+          statutPaiement: 'PAIEMENT_ENCAISSE'
+        }
+      ]
+    },
+    {
+      id: 'CMD-2026-000115',
+      orderNumber: 'CMD-2026-000115',
+      customerName: 'Tarek Ayadi',
+      phone: '+216 23 111 222',
+      customerEmail: 'tarek.ayadi@gmail.com',
+      customerInfo: {
+        firstName: 'Tarek',
+        lastName: 'Ayadi',
+        phone: '+216 23 111 222',
+        email: 'tarek.ayadi@gmail.com',
+        city: 'Kairouan',
+        address: 'Avenue de la République, Kairouan',
+        notes: ''
+      },
+      shippingAddress: {
+        street: 'Avenue de la République, Kairouan',
+        city: 'Kairouan',
+        governorate: 'Kairouan',
+        postalCode: '3100',
+        country: 'Tunisie'
+      },
+      date: '2026-10-08',
+      heure: '14:32',
+      items: [
+        {
+          id: 4,
+          productId: 4,
+          name: 'Tapis de Course Cardio Pliable Pro 3.5 HP',
+          quantity: 1,
+          price: 1850,
+          shopId: 'nutrition',
+          shopName: 'Fitness Shop',
+          imageUrl: '/src/assets/images/category_tapis_cardio_1790951629862.jpg'
+        }
+      ],
+      itemCount: 1,
+      subtotal: 1850,
+      shippingFee: 0,
+      total: 1850,
+      totalAmount: 1850,
+      filialeKey: 'nutrition',
+      filialeName: 'Fitness Shop',
+      shops: ['nutrition'],
+      paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+      statutCommande: 'ARCHIVEE',
+      status: 'ARCHIVEE',
+      statutLivraison: 'NON_INITIEE',
+      statutPaiement: 'PAIEMENT_EN_ATTENTE',
+      statutFacture: 'FACTURE_NON_GENEREE',
+      motifArchivage: 'Stock insuffisant au dépôt central',
+      archivageDetails: {
+        motif: 'Stock insuffisant au dépôt central',
+        dateArchivage: '08/10/2026 15:12',
+        administrateur: 'Super Admin',
+        stockRestaure: true
+      },
+      stockReserve: false,
+      historique: [
+        {
+          date: '08/10/2026',
+          heure: '14:32',
+          auteur: 'CLIENT',
+          action: 'CREATION_COMMANDE',
+          description: 'Commande créée avec statut initial EN_ATTENTE_CONFIRMATION. 1 unité réservée.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '08/10/2026',
+          heure: '15:10',
+          auteur: 'ADMINISTRATEUR',
+          action: 'EXAMEN_COMMANDE',
+          description: 'Commande examinée par l\'administrateur.',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '08/10/2026',
+          heure: '15:12',
+          auteur: 'ADMINISTRATEUR',
+          action: 'REFUS_ET_ARCHIVAGE',
+          description: 'Commande non confirmée et passée en ARCHIVEE. Motif : Stock insuffisant au dépôt central.',
+          statutCommande: 'ARCHIVEE',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        },
+        {
+          date: '08/10/2026',
+          heure: '15:12',
+          auteur: 'ADMINISTRATEUR',
+          action: 'LIBERATION_STOCK',
+          description: 'Stock réservé automatiquement libéré et réintégré en stock disponible (1 unité restituée). Commande conservée dans les archives.',
+          statutCommande: 'ARCHIVEE',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE'
+        }
+      ]
+    }
+  ];
 }
 
 // In-memory users - Global SSO for MultiShop (MongoDB compatible user model)
@@ -1188,18 +2185,63 @@ export function handleApiRequest(req, res, next) {
       }
 
 
+      // --- SOCIÉTÉS DE LIVRAISON (ENTITÉS GÉRÉES PAR L'ADMINISTRATEUR - RÈGLES 16, 18) ---
+      if (endpoint === '/delivery-companies' && req.method === 'GET') {
+        return sendJson(200, deliveryCompaniesData);
+      }
+      if (endpoint === '/delivery-companies' && req.method === 'POST') {
+        const body = await getBody();
+        const newCompany = {
+          id: `soc-${Date.now()}`,
+          nom: body.nom || 'Nouvelle Société de Livraison',
+          telephone: body.telephone || '+216 -- --- ---',
+          contact: body.contact || 'Service Opérations & Expéditions',
+          zones: body.zones || 'Grand Tunis & Régions',
+          delaiMoyen: body.delaiMoyen || '24-48h',
+          tarifDefaut: Number(body.tarifDefaut) || 7,
+          actif: true
+        };
+        deliveryCompaniesData.unshift(newCompany);
+        broadcastDataChanged('delivery_company_created', 'all');
+        return sendJson(201, newCompany);
+      }
+      if (endpoint.startsWith('/delivery-companies/') && req.method === 'PUT') {
+        const cId = endpoint.replace('/delivery-companies/', '');
+        const body = await getBody();
+        const idx = deliveryCompaniesData.findIndex(c => c.id === cId);
+        if (idx !== -1) {
+          deliveryCompaniesData[idx] = { ...deliveryCompaniesData[idx], ...body };
+          broadcastDataChanged('delivery_company_updated', 'all');
+          return sendJson(200, deliveryCompaniesData[idx]);
+        }
+        return sendJson(404, { message: 'Société de livraison introuvable' });
+      }
+      if (endpoint.startsWith('/delivery-companies/') && req.method === 'DELETE') {
+        const cId = endpoint.replace('/delivery-companies/', '');
+        deliveryCompaniesData = deliveryCompaniesData.filter(c => c.id !== cId);
+        broadcastDataChanged('delivery_company_deleted', 'all');
+        return sendJson(200, { success: true, message: 'Société de livraison supprimée avec succès' });
+      }
+
+      // --- COMMANDES DU GROUPE MULTISHOP CENTRALISÉES (DÉDUPLIQUÉES) ---
       if (endpoint === '/global/orders' && req.method === 'GET') {
         const authUser = getAuthenticatedUser(req);
         if (!authUser || (authUser.role !== 'ADMIN' && authUser.role !== 'SUPER_ADMIN')) {
           return sendJson(403, { error: 'Forbidden', message: 'Accès interdit. Droits administrateur requis pour consulter les commandes du groupe.' });
         }
 
-        let allOrders = [];
+        const orderMap = new Map();
         for (const [k, s] of Object.entries(storesData)) {
           if (s && s.orders) {
-            allOrders.push(...s.orders);
+            for (const o of s.orders) {
+              const uniqueId = String(o.id || o.orderNumber);
+              if (!orderMap.has(uniqueId)) {
+                orderMap.set(uniqueId, o);
+              }
+            }
           }
         }
+        const allOrders = Array.from(orderMap.values());
         allOrders.sort((a, b) => new Date(b.date || 0).getTime() - new Date(a.date || 0).getTime());
         return sendJson(200, allOrders);
       }
@@ -1207,28 +2249,53 @@ export function handleApiRequest(req, res, next) {
       if (endpoint.startsWith('/global/orders/') && req.method === 'PUT') {
         const orderId = endpoint.replace('/global/orders/', '');
         const body = await getBody();
-        for (const s of Object.values(storesData)) {
-          if (!s || !s.orders) continue;
-          const idx = s.orders.findIndex(o => o.id === orderId);
-          if (idx !== -1) {
-            s.orders[idx] = { ...s.orders[idx], ...body };
-            broadcastDataChanged('order_updated', s.key);
-            return sendJson(200, s.orders[idx]);
-          }
+        const match = findOrderAcrossStores(orderId);
+        if (match) {
+          const { order, store } = match;
+          Object.assign(order, body);
+          broadcastDataChanged('order_updated', store.key);
+          return sendJson(200, order);
         }
         return sendJson(404, { message: 'Commande introuvable' });
       }
 
       if (endpoint.startsWith('/global/orders/') && req.method === 'DELETE') {
         const orderId = endpoint.replace('/global/orders/', '');
-        for (const s of Object.values(storesData)) {
-          if (!s || !s.orders) continue;
-          const idx = s.orders.findIndex(o => o.id === orderId);
-          if (idx !== -1) {
-            s.orders.splice(idx, 1);
-            broadcastDataChanged('order_deleted', s.key);
-            return sendJson(200, { success: true, message: 'Commande supprimée avec succès' });
-          }
+        const match = findOrderAcrossStores(orderId);
+        if (match) {
+          const { order, store } = match;
+          // RÈGLES 28 & 40 : Ne jamais supprimer physiquement ! Toujours archiver et libérer le stock réservé.
+          order.statutCommande = 'ARCHIVEE';
+          order.status = 'ARCHIVEE';
+          order.motifArchivage = 'Archivée par décision de l\'administrateur';
+          order.archivageDetails = {
+            motif: order.motifArchivage,
+            dateArchivage: new Date().toISOString(),
+            administrateur: 'Super Admin',
+            stockRestaure: true
+          };
+          order.stockReserve = false;
+          restoreOrderStock(order);
+
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('fr-FR');
+          const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+          if (!Array.isArray(order.historique)) order.historique = [];
+          order.historique.unshift({
+            date: dateStr,
+            heure: heureStr,
+            auteur: 'ADMINISTRATEUR',
+            action: 'REFUS_ET_ARCHIVAGE',
+            description: 'Commande archivée. Stock réservé automatiquement libéré et remis en stock disponible. Aucune suppression physique.',
+            note: 'Archivage sécurisé conformément au protocole',
+            statutCommande: 'ARCHIVEE',
+            statutLivraison: order.statutLivraison,
+            statutPaiement: order.statutPaiement
+          });
+
+          broadcastDataChanged('order_updated', store.key);
+          broadcastDataChanged('stock_restocked', 'all');
+          return sendJson(200, { success: true, message: 'La commande a été archivée avec succès et son stock réservé a été libéré (Règle 40 : aucune suppression physique).' });
         }
         return sendJson(404, { message: 'Commande introuvable' });
       }
@@ -1694,64 +2761,549 @@ export function handleApiRequest(req, res, next) {
         return sendJson(200, { success: true, message: 'Promotion supprimée' });
       }
 
-      // --- ORDERS ---
+      // --- ORDERS (WORKFLOW COMPLET EN 42 RÈGLES : CLIENT & ADMINISTRATEUR) ---
       if (endpoint === '/orders/myorders' && req.method === 'GET') {
-        return sendJson(200, shop.orders || []);
+        const authUser = getAuthenticatedUser(req);
+        let userOrders = [];
+        const orderMap = new Map();
+        for (const s of Object.values(storesData)) {
+          if (!s || !s.orders) continue;
+          for (const o of s.orders) {
+            const uid = String(o.id || o.orderNumber);
+            if (!orderMap.has(uid)) {
+              orderMap.set(uid, o);
+              if (authUser && (o.userId === authUser._id || o.customerEmail === authUser.email)) {
+                userOrders.push(o);
+              }
+            }
+          }
+        }
+        if (userOrders.length === 0) {
+          // If no specific match by auth user, return all relevant shop orders
+          userOrders = (shop.orders || []);
+        }
+        return sendJson(200, userOrders);
       }
+
       if (endpoint === '/orders' && req.method === 'GET') {
         return sendJson(200, shop.orders || []);
       }
+
+      // Étape 4 & 8 : Création de la commande avec réservation immédiate du stock
       if (endpoint === '/orders' && req.method === 'POST') {
         const body = await getBody();
         const authUser = getAuthenticatedUser(req);
         const customerName = authUser 
           ? `${authUser.firstName} ${authUser.lastName}`.trim() 
           : (body.customerInfo?.firstName ? `${body.customerInfo.firstName} ${body.customerInfo.lastName || ''}`.trim() : (body.customer?.name || body.customerName || 'Client Invité'));
-        const orderId = body.orderNumber || body.id || `ORD-${shop.key.toUpperCase()}-${Date.now().toString().slice(-5)}`;
-        const totalAmount = Number(body.totalAmount ?? body.total ?? 0);
+        const orderId = body.orderNumber || body.id || `CMD-2026-${Date.now().toString().slice(-5)}`;
+        
+        // Recalcul strict des montants côté serveur (Étape 7)
+        const items = Array.isArray(body.items) ? body.items : [];
+        let calculatedSubtotal = 0;
+        const shopsSet = new Set();
+
+        const enrichedItems = items.map(item => {
+          let unitPrice = Number(item.price) || 0;
+          let prodFound = null;
+          for (const s of Object.values(storesData)) {
+            if (!s || !s.products) continue;
+            const p = s.products.find(prod => String(prod.id) === String(item.productId || item.id));
+            if (p) {
+              prodFound = p;
+              if (p.price) unitPrice = Number(p.price);
+              shopsSet.add(s.key);
+              break;
+            }
+          }
+          const qty = Math.max(1, Number(item.quantity) || 1);
+          calculatedSubtotal += unitPrice * qty;
+          const sId = item.shopId || prodFound?.filialeKey || shop.key;
+          shopsSet.add(sId);
+          return {
+            id: item.productId || item.id,
+            productId: item.productId || item.id,
+            name: item.name || prodFound?.name || 'Article',
+            quantity: qty,
+            price: unitPrice,
+            shopId: sId,
+            shopName: item.shopName || (sId === 'nutrition' ? 'Fitness Shop' : sId === 'dari' ? 'DariShop' : 'YoupiShop'),
+            imageUrl: item.imageUrl || prodFound?.imageUrl || ''
+          };
+        });
+
+        // Règle 8 & 30 : Réservation immédiate du stock
+        reserveOrderStock(enrichedItems);
+
+        const shippingFee = calculatedSubtotal >= 200 ? 0 : 7;
+        const total = calculatedSubtotal + shippingFee;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
         const newOrder = {
-          ...body,
           id: orderId,
           orderNumber: orderId,
           customerName,
-          date: body.date || new Date().toISOString().split('T')[0],
-          status: body.status || 'En attente',
-          total: totalAmount,
-          totalAmount: totalAmount,
+          phone: body.customer?.phone || body.customerInfo?.phone || body.phone || '+216 -- --- ---',
+          customerEmail: body.customer?.email || body.customerInfo?.email || body.customerEmail || '',
+          customerInfo: body.customerInfo || body.customer || {
+            firstName: customerName.split(' ')[0] || customerName,
+            lastName: customerName.split(' ').slice(1).join(' ') || '',
+            phone: body.customer?.phone || body.phone,
+            address: body.shippingAddress?.street || body.address || 'Tunisie'
+          },
+          shippingAddress: body.shippingAddress || {
+            street: body.address || 'Tunisie',
+            city: body.city || 'Tunis',
+            governorate: body.city || 'Tunis',
+            postalCode: '1000',
+            country: 'Tunisie'
+          },
+          items: enrichedItems,
+          itemCount: enrichedItems.reduce((acc, i) => acc + i.quantity, 0),
+          subtotal: calculatedSubtotal,
+          shippingFee,
+          total,
+          totalAmount: total,
           filialeKey: shop.key,
           filialeName: shop.name,
-          userId: authUser?._id || 'guest'
+          shops: Array.from(shopsSet).length > 0 ? Array.from(shopsSet) : [shop.key],
+          paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+          statutCommande: 'EN_ATTENTE_CONFIRMATION',
+          status: 'EN_ATTENTE_CONFIRMATION',
+          statutLivraison: 'NON_INITIEE',
+          statutPaiement: 'PAIEMENT_EN_ATTENTE',
+          statutFacture: 'FACTURE_NON_GENEREE',
+          stockReserve: true,
+          date: body.date || now.toISOString().split('T')[0],
+          heure: heureStr,
+          userId: authUser?._id || 'guest',
+          historique: [
+            {
+              date: dateStr,
+              heure: heureStr,
+              auteur: 'CLIENT',
+              action: 'CREATION_COMMANDE',
+              description: `Commande créée en mode Paiement à la livraison (COD). Stock réservé sur ${enrichedItems.length} article(s). En attente de confirmation par l'administrateur.`,
+              note: body.notes || '',
+              statutCommande: 'EN_ATTENTE_CONFIRMATION',
+              statutLivraison: 'NON_INITIEE',
+              statutPaiement: 'PAIEMENT_EN_ATTENTE'
+            }
+          ]
         };
-        shop.orders.unshift(newOrder);
+
+        // Enregistrer la commande dans les boutiques concernées
+        for (const sKey of newOrder.shops) {
+          if (storesData[sKey]) {
+            storesData[sKey].orders.unshift(newOrder);
+          }
+        }
+        if (!newOrder.shops.includes(shop.key)) {
+          shop.orders.unshift(newOrder);
+        }
+
         broadcastDataChanged('order_created', shop.key);
+        broadcastDataChanged('stock_updated', 'all');
         return sendJson(201, newOrder);
+      }
+
+      // Règle scénarios & test : Réinitialiser les commandes témoins pour rejouer les scénarios à volonté
+      if (endpoint === '/orders/reset-demo' && req.method === 'POST') {
+        const freshOrders = generateInitialCoherentOrders();
+        if (storesData.nutrition) {
+          storesData.nutrition.orders = freshOrders.filter(o => o.shops?.includes('nutrition') || o.filialeKey === 'nutrition');
+        }
+        if (storesData.youpi) {
+          storesData.youpi.orders = freshOrders.filter(o => o.shops?.includes('youpi') || o.filialeKey === 'youpi');
+        }
+        if (storesData.dari) {
+          storesData.dari.orders = freshOrders.filter(o => o.shops?.includes('dari') || o.filialeKey === 'dari');
+        }
+        broadcastDataChanged('order_updated', 'all');
+        return sendJson(200, { success: true, message: 'Démonstration réinitialisée avec succès ! Les commandes témoins ont été restaurées.', orders: freshOrders });
+      }
+
+      // Règle 15, 16, 17, 32 : Affectation groupée à une société de livraison
+      if (endpoint === '/orders/batch-assign-delivery' && req.method === 'POST') {
+        const body = await getBody();
+        const { orderIds = [], societeLivraisonId, societeLivraisonNom, dateLivraisonPrevue, creneauHoraire, instructions } = body;
+        if (!Array.isArray(orderIds) || orderIds.length === 0) {
+          return sendJson(400, { error: 'Validation Error', message: 'Veuillez sélectionner au moins une commande.' });
+        }
+        if (!societeLivraisonNom) {
+          return sendJson(400, { error: 'Validation Error', message: 'Veuillez sélectionner une société de livraison.' });
+        }
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        let updatedCount = 0;
+        for (const oId of orderIds) {
+          const match = findOrderAcrossStores(oId);
+          if (match) {
+            const { order } = match;
+            order.statutLivraison = 'AFFECTEE_LIVRAISON';
+            order.affectationLivraison = {
+              societeLivraisonId: societeLivraisonId || 'soc-custom',
+              societeLivraisonNom,
+              dateLivraisonPrevue: dateLivraisonPrevue || dateStr,
+              creneauHoraire: creneauHoraire || 'Journée',
+              instructions: instructions || '',
+              dateAffectation: `${dateStr} ${heureStr}`,
+              administrateur: 'Super Admin'
+            };
+            if (!Array.isArray(order.historique)) order.historique = [];
+            order.historique.unshift({
+              date: dateStr,
+              heure: heureStr,
+              auteur: 'ADMINISTRATEUR',
+              action: 'AFFECTATION_LIVRAISON',
+              description: `Commande affectée à la société de livraison "${societeLivraisonNom}". Date prévue : ${order.affectationLivraison.dateLivraisonPrevue} (${order.affectationLivraison.creneauHoraire}).`,
+              note: instructions || '',
+              statutCommande: order.statutCommande,
+              statutLivraison: 'AFFECTEE_LIVRAISON',
+              statutPaiement: order.statutPaiement
+            });
+            updatedCount++;
+          }
+        }
+
+        broadcastDataChanged('order_updated', 'all');
+        return sendJson(200, { success: true, count: updatedCount, message: `${updatedCount} commande(s) affectée(s) avec succès à ${societeLivraisonNom}.` });
+      }
+
+      // Règle 12 & 13 : Confirmation d'une commande (EN_ATTENTE_CONFIRMATION -> CONFIRMEE -> LIVRAISON_EN_ATTENTE)
+      if (endpoint.match(/^\/orders\/[^\/]+\/confirm$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        order.statutCommande = 'CONFIRMEE';
+        order.status = 'CONFIRMEE';
+        order.statutLivraison = 'LIVRAISON_EN_ATTENTE';
+        order.stockReserve = true;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_COMMANDE',
+          description: 'Commande confirmée commercialement par l\'administrateur. Passage en LIVRAISON_EN_ATTENTE pour affectation à une société de livraison.',
+          statutCommande: 'CONFIRMEE',
+          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutPaiement: order.statutPaiement || 'PAIEMENT_EN_ATTENTE'
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle 26, 27, 28 : Refus / Archivage avec libération immédiate du stock réservé (AUCUNE SUPPRESSION)
+      if ((endpoint.match(/^\/orders\/[^\/]+\/refuse$/) || endpoint.match(/^\/orders\/[^\/]+\/archive$/)) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const body = await getBody();
+        const motif = body.motif || 'Non confirmée par l\'administrateur';
+
+        order.statutCommande = 'ARCHIVEE';
+        order.status = 'ARCHIVEE';
+        order.motifArchivage = motif;
+        order.stockReserve = false;
+        order.archivageDetails = {
+          motif,
+          dateArchivage: new Date().toISOString(),
+          administrateur: 'Super Admin',
+          stockRestaure: true
+        };
+
+        // Restauration automatique du stock réservé
+        restoreOrderStock(order);
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'REFUS_ET_ARCHIVAGE',
+          description: `Commande non confirmée. Motif : ${motif}. Stock réservé automatiquement libéré et réintégré en stock disponible. Commande conservée dans les archives.`,
+          note: motif,
+          statutCommande: 'ARCHIVEE',
+          statutLivraison: order.statutLivraison,
+          statutPaiement: order.statutPaiement
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        broadcastDataChanged('stock_restocked', 'all');
+        return sendJson(200, order);
+      }
+
+      // Règle 20 : Prise en charge par le transporteur (AFFECTEE_LIVRAISON -> EN_LIVRAISON)
+      if (endpoint.match(/^\/orders\/[^\/]+\/in-delivery$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        order.statutLivraison = 'EN_LIVRAISON';
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'PRISE_EN_CHARGE_LIVRAISON',
+          description: 'Prise en charge confirmée. La commande est en cours d\'acheminement vers le client.',
+          statutCommande: order.statutCommande,
+          statutLivraison: 'EN_LIVRAISON',
+          statutPaiement: order.statutPaiement
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle 21 : Livraison réussie (EN_LIVRAISON -> LIVREE)
+      if (endpoint.match(/^\/orders\/[^\/]+\/delivered$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const body = await getBody();
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        order.statutLivraison = 'LIVREE';
+        order.livraisonDetails = {
+          dateLivree: body.dateLivree || `${dateStr} ${heureStr}`,
+          heureLivree: heureStr,
+          commentaire: body.commentaire || 'Colis livré avec succès'
+        };
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'CONFIRMATION_LIVRAISON',
+          description: `Livraison effectuée avec succès. Paiement COD : en attente d'encaissement du montant de ${order.total} DT.`,
+          note: body.commentaire || '',
+          statutCommande: order.statutCommande,
+          statutLivraison: 'LIVREE',
+          statutPaiement: order.statutPaiement || 'PAIEMENT_EN_ATTENTE'
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle 34 : Échec de livraison (EN_LIVRAISON -> ECHEC_LIVRAISON)
+      if (endpoint.match(/^\/orders\/[^\/]+\/delivery-failure$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const body = await getBody();
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        order.statutLivraison = 'ECHEC_LIVRAISON';
+        order.echecDetails = {
+          motif: body.motif || 'Client absent',
+          commentaire: body.commentaire || '',
+          dateEchec: `${dateStr} ${heureStr}`
+        };
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'ECHEC_LIVRAISON',
+          description: `Échec de livraison signalé. Motif : ${order.echecDetails.motif}. ${order.echecDetails.commentaire ? `Détail : ${order.echecDetails.commentaire}` : ''}`,
+          note: body.motif || '',
+          statutCommande: order.statutCommande,
+          statutLivraison: 'ECHEC_LIVRAISON',
+          statutPaiement: order.statutPaiement
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle 22 : Encaissement du Paiement à la livraison (COD)
+      if (endpoint.match(/^\/orders\/[^\/]+\/collect-payment$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const body = await getBody();
+        const montant = Number(body.montantEncaisse) || order.total;
+
+        order.statutPaiement = 'PAIEMENT_ENCAISSE';
+        order.montantEncaisse = montant;
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'ENCAISSEMENT_PAIEMENT',
+          description: `Paiement en espèces à la livraison (COD) confirmé et encaissé. Montant encaissé : ${montant} DT.`,
+          statutCommande: order.statutCommande,
+          statutLivraison: order.statutLivraison,
+          statutPaiement: 'PAIEMENT_ENCAISSE'
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
+      }
+
+      // Règle 23 & 24 : Génération de facture unique et téléchargeable
+      if (endpoint.match(/^\/orders\/[^\/]+\/generate-invoice$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const numFact = 'FACT-2026-' + (order.orderNumber || order.id).replace(/\D/g, '').slice(-5);
+        order.statutFacture = 'FACTURE_GENEREE';
+        order.facture = {
+          numeroFacture: numFact,
+          dateFacture: new Date().toLocaleDateString('fr-FR'),
+          totalHT: Math.round((order.total / 1.19) * 1000) / 1000,
+          tva: Math.round((order.total - (order.total / 1.19)) * 1000) / 1000,
+          totalTTC: order.total
+        };
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'GENERATION_FACTURE',
+          description: `Facture légale générée sous la référence ${numFact}. Disponible pour téléchargement et impression.`,
+          statutCommande: order.statutCommande,
+          statutLivraison: order.statutLivraison,
+          statutPaiement: order.statutPaiement,
+          statutFacture: 'FACTURE_GENEREE'
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, { success: true, facture: order.facture, order });
+      }
+
+      // Règle 25 & 38 : Clôture définitive de la commande
+      if (endpoint.match(/^\/orders\/[^\/]+\/close$/) && req.method === 'POST') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        order.statutCommande = 'CLOTUREE';
+        order.status = 'CLOTUREE';
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'CLOTURE_COMMANDE',
+          description: 'Processus de commande entièrement validé (Livrée, Paiement encaissé, Facture émise). Commande clôturée et archivée au grand livre.',
+          statutCommande: 'CLOTUREE',
+          statutLivraison: order.statutLivraison,
+          statutPaiement: order.statutPaiement
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, order);
       }
 
       if (endpoint.startsWith('/orders/') && (req.method === 'PUT' || req.method === 'PATCH')) {
         const orderId = endpoint.replace('/orders/', '');
         const body = await getBody();
-        for (const s of Object.values(storesData)) {
-          if (!s || !s.orders) continue;
-          const idx = s.orders.findIndex(o => o.id === orderId);
-          if (idx !== -1) {
-            s.orders[idx] = { ...s.orders[idx], ...body };
-            broadcastDataChanged('order_updated', s.key);
-            return sendJson(200, s.orders[idx]);
-          }
+        const match = findOrderAcrossStores(orderId);
+        if (match) {
+          const { order, store } = match;
+          Object.assign(order, body);
+          broadcastDataChanged('order_updated', store.key);
+          return sendJson(200, order);
         }
         return sendJson(404, { message: 'Commande introuvable' });
       }
 
       if (endpoint.startsWith('/orders/') && req.method === 'DELETE') {
         const orderId = endpoint.replace('/orders/', '');
-        for (const s of Object.values(storesData)) {
-          if (!s || !s.orders) continue;
-          const idx = s.orders.findIndex(o => o.id === orderId);
-          if (idx !== -1) {
-            s.orders.splice(idx, 1);
-            broadcastDataChanged('order_deleted', s.key);
-            return sendJson(200, { success: true, message: 'Commande supprimée' });
-          }
+        const match = findOrderAcrossStores(orderId);
+        if (match) {
+          const { order, store } = match;
+          // RÈGLE ABSOLUE 40 : Ne jamais supprimer physiquement !
+          order.statutCommande = 'ARCHIVEE';
+          order.status = 'ARCHIVEE';
+          order.motifArchivage = 'Archivée par l\'administrateur';
+          order.archivageDetails = {
+            motif: 'Archivée par l\'administrateur',
+            dateArchivage: new Date().toISOString(),
+            administrateur: 'Super Admin',
+            stockRestaure: true
+          };
+          order.stockReserve = false;
+          restoreOrderStock(order);
+
+          const now = new Date();
+          const dateStr = now.toLocaleDateString('fr-FR');
+          const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+          if (!Array.isArray(order.historique)) order.historique = [];
+          order.historique.unshift({
+            date: dateStr,
+            heure: heureStr,
+            auteur: 'ADMINISTRATEUR',
+            action: 'REFUS_ET_ARCHIVAGE',
+            description: 'Commande archivée. Stock réservé restitué. Aucune suppression physique conformément aux règles d\'audit.',
+            statutCommande: 'ARCHIVEE',
+            statutLivraison: order.statutLivraison,
+            statutPaiement: order.statutPaiement
+          });
+
+          broadcastDataChanged('order_updated', store.key);
+          broadcastDataChanged('stock_restocked', 'all');
+          return sendJson(200, { success: true, message: 'La commande a été archivée avec succès (Règle 40 : conservée sans suppression).', order });
         }
         return sendJson(404, { message: 'Commande introuvable' });
       }

@@ -44,23 +44,49 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToShopping, on
     setIsSubmitting(true);
     try {
       const orderPayload = {
-        orderNumber: `CMD-YOUPI-${Date.now().toString().slice(-5)}`,
+        orderNumber: `CMD-2026-${Date.now().toString().slice(-5)}`,
         customer: {
           name: formData.name,
           phone: formData.phone,
           email: formData.email || `${formData.name.toLowerCase().replace(/\s+/g, '')}@client.tn`,
           address: `${formData.address}, ${formData.city}`
         },
+        customerName: formData.name,
+        customerInfo: {
+          firstName: formData.name.split(' ')[0] || formData.name,
+          lastName: formData.name.split(' ').slice(1).join(' ') || '',
+          phone: formData.phone,
+          email: formData.email,
+          city: formData.city,
+          address: formData.address,
+          notes: formData.notes
+        },
+        shippingAddress: {
+          street: formData.address,
+          city: formData.city,
+          governorate: formData.city,
+          postalCode: '1000',
+          country: 'Tunisie'
+        },
         items: cart.map(item => ({
-          id: item.product.id,
-          name: item.product.name,
+          id: item.product?.id || item.id,
+          productId: item.product?.id || item.id,
+          name: item.product?.name || (item as any).name,
           quantity: item.quantity,
-          price: item.product.price,
-          imageUrl: item.product.imageUrl
+          price: item.product?.price || (item as any).price,
+          imageUrl: item.product?.imageUrl || (item as any).imageUrl,
+          shopId: item.shopId || item.product?.filialeKey || 'youpi',
+          shopName: item.shopName || 'YoupiShop'
         })),
         totalAmount: finalTotal,
-        paymentMethod: 'Paiement en espèces à la livraison (COD)',
-        status: 'en_attente',
+        total: finalTotal,
+        paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+        status: 'EN_ATTENTE_CONFIRMATION',
+        statutCommande: 'EN_ATTENTE_CONFIRMATION',
+        statutLivraison: 'NON_INITIEE',
+        statutPaiement: 'PAIEMENT_EN_ATTENTE',
+        statutFacture: 'FACTURE_NON_GENEREE',
+        stockReserve: true,
         notes: `${formData.giftWrap ? '🎁 Emballage cadeau demandé. ' : ''}${formData.giftMessage ? `Mot : "${formData.giftMessage}". ` : ''}${formData.notes}`,
         date: new Date().toISOString().split('T')[0]
       };
@@ -79,7 +105,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToShopping, on
 
       setCompletedOrder(created);
       clearCart();
-      addToast('Commande confirmée avec succès !', 'success');
+      addToast('Commande enregistrée ! En attente de confirmation par l\'administrateur.', 'success');
       onOrderSuccess(created);
     } catch (err: any) {
       addToast("Erreur lors de l'enregistrement de la commande", 'error');
@@ -269,8 +295,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToShopping, on
             </h2>
 
             <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-56 overflow-y-auto pr-1">
-              {cart.map((item) => (
-                <div key={item.product.id} className="py-2.5 flex items-center justify-between gap-3 text-xs">
+              {cart.map((item, idx) => (
+                <div key={`${item.id || item.product?.id || 'item'}_${idx}`} className="py-2.5 flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2.5 min-w-0">
                     <img
                       src={item.product.imageUrl}

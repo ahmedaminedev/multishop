@@ -11,19 +11,27 @@ interface OrderHistoryPageProps {
     onNavigateToOrderDetail: (orderId: string) => void;
 }
 
-const OrderStatusBadge: React.FC<{ status: Order['status'] }> = ({ status }) => {
-    const statusConfig = {
-        'Livrée': { bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: '●' },
-        'Expédiée': { bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: '✈' },
-        'En attente': { bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: '⏳' },
-        'Annulée': { bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-400', icon: '✕' }
+const OrderStatusBadge: React.FC<{ status: any }> = ({ status }) => {
+    const rawStatus = String(status || 'En attente');
+    const statusConfig: Record<string, { label: string; bg: string; text: string; icon: string }> = {
+        'EN_ATTENTE_CONFIRMATION': { label: 'En attente de confirmation (Stock Réservé)', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-800 dark:text-amber-300', icon: '⏳' },
+        'CONFIRMEE': { label: 'Confirmée (Préparation Livraison)', bg: 'bg-sky-100 dark:bg-sky-900/30', text: 'text-sky-800 dark:text-sky-300', icon: '✓' },
+        'AFFECTEE_LIVRAISON': { label: 'Affectée à la livraison', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-800 dark:text-blue-300', icon: '🚚' },
+        'EN_LIVRAISON': { label: 'En cours de livraison', bg: 'bg-purple-100 dark:bg-purple-900/30', text: 'text-purple-800 dark:text-purple-300', icon: '✈' },
+        'LIVREE': { label: 'Livrée (Paiement à la livraison)', bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: '●' },
+        'CLOTUREE': { label: 'Clôturée & Facturée', bg: 'bg-slate-900 dark:bg-slate-800', text: 'text-white dark:text-emerald-400', icon: '★' },
+        'ARCHIVEE': { label: 'Archivée (Stock remis)', bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-400', icon: '✕' },
+        'Livrée': { label: 'Livrée', bg: 'bg-emerald-100 dark:bg-emerald-900/30', text: 'text-emerald-700 dark:text-emerald-400', icon: '●' },
+        'Expédiée': { label: 'Expédiée', bg: 'bg-blue-100 dark:bg-blue-900/30', text: 'text-blue-700 dark:text-blue-400', icon: '✈' },
+        'En attente': { label: 'En attente', bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: '⏳' },
+        'Annulée': { label: 'Archivée', bg: 'bg-rose-100 dark:bg-rose-900/30', text: 'text-rose-700 dark:text-rose-400', icon: '✕' }
     };
     
-    const config = statusConfig[status] || statusConfig['En attente'];
+    const config = statusConfig[rawStatus] || { label: rawStatus, bg: 'bg-amber-100 dark:bg-amber-900/30', text: 'text-amber-700 dark:text-amber-400', icon: '⏳' };
 
     return (
-        <span className={`px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${config.bg} ${config.text}`}>
-            <span className="text-[10px]">{config.icon}</span> {status}
+        <span className={`px-3.5 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider flex items-center gap-2 ${config.bg} ${config.text}`}>
+            <span className="text-[10px]">{config.icon}</span> {config.label}
         </span>
     );
 };

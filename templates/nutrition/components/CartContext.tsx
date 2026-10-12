@@ -5,6 +5,7 @@ import {
     loadUnifiedCart, 
     saveUnifiedCart, 
     enrichCartItem, 
+    normalizeProductId,
     UNIFIED_CART_EVENT 
 } from '@/src/utils/multiShopCart';
 
@@ -59,12 +60,15 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, []);
 
     const addToCart = useCallback((item: Cartable, quantity = 1, selectedColor?: string) => {
-        const isPack = 'includedItems' in item;
-        const colorSuffix = selectedColor ? `-${selectedColor.replace(/\s+/g, '')}` : '';
-        const id = `${isPack ? 'pack' : 'product'}-${item.id}${colorSuffix}`;
+        const cleanTargetId = normalizeProductId(item.id);
+        const targetShop = (item as any).filialeKey || (item as any).shopId || 'nutrition';
 
         setCartItems(prevItems => {
-            const existingIndex = prevItems.findIndex(i => i.id === id);
+            const existingIndex = prevItems.findIndex(i => {
+                const cleanId = normalizeProductId(i.productId || i.id);
+                return cleanId === cleanTargetId && (i.shopId || 'nutrition') === targetShop && (i.selectedColor || '') === (selectedColor || '');
+            });
+
             let updated: CartItem[];
             if (existingIndex > -1) {
                 updated = [...prevItems];
@@ -74,16 +78,17 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
                 };
             } else {
                 const rawItem: CartItem = {
-                    id,
+                    id: `cart_${targetShop}_${cleanTargetId || item.id}${selectedColor ? `_${selectedColor}` : ''}`,
+                    productId: cleanTargetId || item.id,
                     name: item.name,
                     price: item.price,
                     imageUrl: item.imageUrl,
                     quantity,
                     originalItem: item,
                     selectedColor: selectedColor,
-                    shopId: 'nutrition'
+                    shopId: targetShop
                 };
-                const enriched = enrichCartItem(rawItem, 'nutrition');
+                const enriched = enrichCartItem(rawItem, targetShop);
                 updated = [...prevItems, enriched];
             }
             saveUnifiedCart(updated, userId);
@@ -92,21 +97,27 @@ export const CartProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }, [userId]);
 
     const removeFromCart = useCallback((itemId: string) => {
+        const cleanTarget = normalizeProductId(itemId);
         setCartItems(prevItems => {
-            const updated = prevItems.filter(item => item.id !== itemId);
+            const updated = prevItems.filter(item => 
+                item.id !== itemId && normalizeProductId(item.productId || item.id) !== cleanTarget
+            );
             saveUnifiedCart(updated, userId);
             return updated;
         });
     }, [userId]);
 
     const updateQuantity = useCallback((itemId: string, newQuantity: number) => {
+        const cleanTarget = normalizeProductId(itemId);
         setCartItems(prevItems => {
             let updated: CartItem[];
             if (newQuantity <= 0) {
-                updated = prevItems.filter(item => item.id !== itemId);
+                updated = prevItems.filter(item => 
+                    item.id !== itemId && normalizeProductId(item.productId || item.id) !== cleanTarget
+                );
             } else {
                 updated = prevItems.map(item =>
-                    item.id === itemId ? { ...item, quantity: newQuantity } : item
+                    (item.id === itemId || normalizeProductId(item.productId || item.id) === cleanTarget) ? { ...item, quantity: newQuantity } : item
                 );
             }
             saveUnifiedCart(updated, userId);

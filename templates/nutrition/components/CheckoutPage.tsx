@@ -143,7 +143,7 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onNavigateHome, onOr
         email: '', firstName: '', lastName: '', address: '', address2: '', postalCode: '', city: '', country: 'Tunisia', phone: '',
     });
     const [shippingOption, setShippingOption] = useState('transporteur-tunisie');
-    const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('card');
+    const [paymentMethod, setPaymentMethod] = useState<'cod' | 'card'>('cod');
     const [termsAgreed, setTermsAgreed] = useState(false);
     const [isProcessing, setIsProcessing] = useState(false);
     
@@ -183,31 +183,52 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onNavigateHome, onOr
         if (!termsAgreed) { addToast("Veuillez accepter les CGV.", "warning"); return; }
         setIsProcessing(true);
         try {
-            const orderId = 'IF' + Date.now().toString().slice(-8).toUpperCase();
+            const orderId = 'CMD-2026-' + Date.now().toString().slice(-5);
             const newOrder = {
                 id: orderId,
-                customerName: `${formData.firstName} ${formData.lastName}`,
-                date: new Date().toISOString(),
+                orderNumber: orderId,
+                customerName: `${formData.firstName} ${formData.lastName}`.trim(),
+                customerInfo: formData,
+                date: new Date().toISOString().split('T')[0],
                 total: finalTotal,
-                status: 'En attente',
+                totalAmount: finalTotal,
+                status: 'EN_ATTENTE_CONFIRMATION',
+                statutCommande: 'EN_ATTENTE_CONFIRMATION',
+                statutLivraison: 'NON_INITIEE',
+                statutPaiement: 'PAIEMENT_EN_ATTENTE',
+                statutFacture: 'FACTURE_NON_GENEREE',
+                stockReserve: true,
                 itemCount: cartItems.reduce((acc, i) => acc + i.quantity, 0),
-                items: cartItems.map(i => ({ productId: parseInt(i.id.split('-')[1]), name: i.name, quantity: i.quantity, price: i.price, imageUrl: i.imageUrl })),
-                shippingAddress: { type: 'Domicile', street: formData.address, city: formData.city, postalCode: formData.postalCode, isDefault: true },
-                paymentMethod: paymentMethod === 'card' ? 'Carte Bancaire (Paymee)' : 'Paiement à la livraison'
+                items: cartItems.map(i => ({
+                    id: i.productId || i.id,
+                    productId: i.productId || (parseInt(String(i.id).replace(/\D/g, '')) || 1),
+                    name: i.name,
+                    quantity: i.quantity,
+                    price: i.price,
+                    imageUrl: i.imageUrl,
+                    shopId: i.shopId || 'nutrition',
+                    shopName: i.shopName || 'Fitness Shop'
+                })),
+                shippingAddress: {
+                    type: 'Domicile',
+                    street: formData.address,
+                    city: formData.city,
+                    governorate: formData.city,
+                    postalCode: formData.postalCode,
+                    country: 'Tunisie',
+                    isDefault: true
+                },
+                paymentMethod: 'PAIEMENT_A_LA_LIVRAISON'
             };
 
             await api.createOrder(newOrder);
 
-            if (paymentMethod === 'cod') {
-                clearCart();
-                window.location.href = `/?payment=success&orderId=${orderId}`;
-            } else {
-                const response = await api.initiatePayment({ orderId, amount: finalTotal, customerInfo: formData });
-                if (response?.payment_url) window.location.href = response.payment_url;
-                else throw new Error("Erreur paiement.");
-            }
+            clearCart();
+            addToast("Commande enregistrée ! En attente de confirmation par l'administrateur.", "success");
+            window.location.hash = `#/order-history?success=true&orderId=${orderId}`;
+            setIsProcessing(false);
         } catch (error: any) {
-            addToast(error.message || "Erreur.", "error");
+            addToast(error.message || "Erreur lors de la validation.", "error");
             setIsProcessing(false);
         }
     };
@@ -364,8 +385,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onNavigateHome, onOr
                             <div className="p-6">
                                 {/* Scrollable List */}
                                 <div className="space-y-2 max-h-[300px] overflow-y-auto pr-2 custom-scrollbar mb-6">
-                                    {cartItems.map(item => (
-                                        <OrderItemRow key={item.id} item={item} />
+                                    {cartItems.map((item, idx) => (
+                                        <OrderItemRow key={`${item.id || item.productId || 'item'}_${idx}`} item={item} />
                                     ))}
                                 </div>
 

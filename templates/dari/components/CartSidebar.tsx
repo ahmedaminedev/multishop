@@ -74,9 +74,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ onProceedToCheckout })
                 </button>
               </div>
             ) : (
-              cart.map((item) => (
+              cart.map((item, idx) => (
                 <div
-                  key={item.product.id}
+                  key={`${item.id || item.product?.id || 'item'}_${idx}`}
                   className="flex gap-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
                 >
                   <img
@@ -91,28 +91,35 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ onProceedToCheckout })
                           {item.product.name}
                         </h4>
                         <button
-                          onClick={() => removeFromCart(item.product.id)}
+                          onClick={() => removeFromCart(item.id || item.product.id)}
                           className="text-slate-400 hover:text-rose-500 p-1 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                        {item.product.brand}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {item.shopName && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-emerald-100/80 dark:bg-emerald-950/60 text-emerald-900 dark:text-emerald-300">
+                            {item.shopIcon || '🏠'} {item.shopName}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">
+                          {item.product.brand || item.product.category || 'MultiShop'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex justify-between items-center pt-2">
                       <div className="flex items-center gap-1.5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg p-0.5">
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id || item.product.id, item.quantity - 1)}
                           className="w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
                         >
                           -
                         </button>
                         <span className="w-6 text-center text-xs font-bold">{item.quantity}</span>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id || item.product.id, item.quantity + 1)}
                           className="w-6 h-6 flex items-center justify-center text-xs font-bold hover:bg-slate-100 dark:hover:bg-slate-800 rounded"
                         >
                           +

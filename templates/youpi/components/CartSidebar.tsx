@@ -74,9 +74,9 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ onProceedToCheckout })
                 </button>
               </div>
             ) : (
-              cart.map((item) => (
+              cart.map((item, idx) => (
                 <div
-                  key={item.product.id}
+                  key={`${item.id || item.product?.id || 'item'}_${idx}`}
                   className="flex gap-4 p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800"
                 >
                   <img
@@ -91,21 +91,28 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ onProceedToCheckout })
                           {item.product.name}
                         </h4>
                         <button
-                          onClick={() => removeFromCart(item.product.id)}
+                          onClick={() => removeFromCart(item.id || item.product.id)}
                           className="text-slate-400 hover:text-rose-500 p-1 cursor-pointer"
                         >
                           <Trash2 className="w-3.5 h-3.5" />
                         </button>
                       </div>
-                      <span className="text-[10px] text-slate-400 font-semibold uppercase">
-                        {item.product.brand}
-                      </span>
+                      <div className="flex items-center gap-1.5 mt-0.5">
+                        {item.shopName && (
+                          <span className="text-[9px] font-bold px-1.5 py-0.5 rounded-md bg-amber-100/80 dark:bg-amber-950/60 text-amber-900 dark:text-amber-300">
+                            {item.shopIcon || '🧸'} {item.shopName}
+                          </span>
+                        )}
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase">
+                          {item.product.brand || item.product.category || 'MultiShop'}
+                        </span>
+                      </div>
                     </div>
 
                     <div className="flex items-center justify-between mt-2">
                       <div className="flex items-center border border-slate-200 dark:border-slate-700 rounded-xl bg-white dark:bg-slate-800">
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity - 1)}
+                          onClick={() => updateQuantity(item.id || item.product.id, item.quantity - 1)}
                           className="px-2 py-1 text-slate-500 font-bold hover:text-slate-900 cursor-pointer"
                         >
                           -
@@ -114,7 +121,7 @@ export const CartSidebar: React.FC<CartSidebarProps> = ({ onProceedToCheckout })
                           {item.quantity}
                         </span>
                         <button
-                          onClick={() => updateQuantity(item.product.id, item.quantity + 1)}
+                          onClick={() => updateQuantity(item.id || item.product.id, item.quantity + 1)}
                           className="px-2 py-1 text-slate-500 font-bold hover:text-slate-900 cursor-pointer"
                         >
                           +

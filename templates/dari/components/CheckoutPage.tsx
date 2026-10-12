@@ -40,26 +40,59 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToShop, curren
     setIsSubmitting(true);
     try {
       const orderPayload = {
-        customer,
+        orderNumber: `CMD-2026-${Date.now().toString().slice(-5)}`,
+        customer: {
+          name: customer.name,
+          phone: customer.phone,
+          email: customer.email || `${customer.name.toLowerCase().replace(/\s+/g, '')}@client.tn`,
+          address: `${customer.address}, ${customer.city}`
+        },
+        customerName: customer.name,
+        customerInfo: {
+          firstName: customer.name.split(' ')[0] || customer.name,
+          lastName: customer.name.split(' ').slice(1).join(' ') || '',
+          phone: customer.phone,
+          email: customer.email,
+          city: customer.city,
+          address: customer.address,
+          notes: customer.notes
+        },
+        shippingAddress: {
+          street: customer.address,
+          city: customer.city,
+          governorate: customer.city,
+          postalCode: '1000',
+          country: 'Tunisie'
+        },
         items: cart.map(i => ({
-          id: i.product.id,
-          name: i.product.name,
-          price: i.product.price,
+          id: i.product?.id || i.id,
+          productId: i.product?.id || i.id,
+          name: i.product?.name || (i as any).name,
+          price: i.product?.price || (i as any).price,
           quantity: i.quantity,
-          imageUrl: i.product.imageUrl
+          imageUrl: i.product?.imageUrl || (i as any).imageUrl,
+          shopId: i.shopId || i.product?.filialeKey || 'dari',
+          shopName: i.shopName || 'DariShop'
         })),
         totalAmount: finalTotal,
-        paymentMethod: paymentMethod === 'cod' ? 'Paiement à la livraison' : 'Carte bancaire en ligne',
-        status: 'en_attente',
-        notes: customer.notes
+        total: finalTotal,
+        paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
+        status: 'EN_ATTENTE_CONFIRMATION',
+        statutCommande: 'EN_ATTENTE_CONFIRMATION',
+        statutLivraison: 'NON_INITIEE',
+        statutPaiement: 'PAIEMENT_EN_ATTENTE',
+        statutFacture: 'FACTURE_NON_GENEREE',
+        stockReserve: true,
+        notes: customer.notes,
+        date: new Date().toISOString().split('T')[0]
       };
 
       const res = await api.createOrder(orderPayload);
-      const createdId = res?.id || res?.orderNumber || `DARI-${Date.now().toString().slice(-6)}`;
+      const createdId = res?.id || res?.orderNumber || orderPayload.orderNumber;
       setOrderRef(createdId);
       setIsSuccess(true);
       clearCart();
-      addToast('Commande confirmée avec succès ! Notre service livraison vous contactera.', 'success');
+      addToast('Commande enregistrée ! En attente de confirmation par l\'administrateur.', 'success');
     } catch (err) {
       console.error('Checkout error:', err);
       // Fallback success for seamless experience
@@ -242,8 +275,8 @@ export const CheckoutPage: React.FC<CheckoutPageProps> = ({ onBackToShop, curren
             </h2>
 
             <div className="max-h-72 overflow-y-auto space-y-3 pr-1">
-              {cart.map((item) => (
-                <div key={item.product.id} className="flex items-center justify-between gap-3 text-xs">
+              {cart.map((item, idx) => (
+                <div key={`${item.id || item.product?.id || 'item'}_${idx}`} className="flex items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2 min-w-0">
                     <img src={item.product.imageUrl} alt="" className="w-12 h-12 rounded-lg object-cover bg-slate-100 shrink-0" />
                     <div className="min-w-0">

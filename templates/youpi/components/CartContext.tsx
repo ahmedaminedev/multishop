@@ -1,16 +1,27 @@
-import React, { createContext, useContext, useState, useEffect } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { Product } from '../types';
+import {
+  loadUnifiedCart,
+  saveUnifiedCart,
+  enrichCartItem,
+  normalizeProductId,
+  UNIFIED_CART_EVENT
+} from '@/src/utils/multiShopCart';
 
 export interface CartItem {
+  id?: string;
   product: Product;
   quantity: number;
+  shopId?: string;
+  shopName?: string;
+  shopIcon?: string;
 }
 
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
-  removeFromCart: (productId: number) => void;
-  updateQuantity: (productId: number, quantity: number) => void;
+  removeFromCart: (productId: number | string) => void;
+  updateQuantity: (productId: number | string, quantity: number) => void;
   clearCart: () => void;
   totalItems: number;
   totalPrice: number;
@@ -22,58 +33,127 @@ const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cart, setCart] = useState<CartItem[]>(() => {
-    try {
-      const saved = localStorage.getItem('youpi_cart');
-      return saved ? JSON.parse(saved) : [];
-    } catch {
-      return [];
-    }
+    return loadUnifiedCart(null, 'youpi').map(item => ({
+      id: item.id,
+      product: item.product || item,
+      quantity: item.quantity,
+      shopId: item.shopId,
+      shopName: item.shopName,
+      shopIcon: item.shopIcon
+    }));
   });
   const [isCartOpen, setIsCartOpen] = useState(false);
 
+  // Sync with global unified cart events across all sub-shops
   useEffect(() => {
-    try {
-      localStorage.setItem('youpi_cart', JSON.stringify(cart));
-    } catch {}
-  }, [cart]);
+    const syncCart = () => {
+      const items = loadUnifiedCart(null, 'youpi');
+      setCart(items.map(item => ({
+        id: item.id,
+        product: item.product || item,
+        quantity: item.quantity,
+        shopId: item.shopId,
+        shopName: item.shopName,
+        shopIcon: item.shopIcon
+      })));
+    };
 
-  const addToCart = (product: Product, quantity: number = 1) => {
-    setCart(prev => {
-      const existing = prev.find(item => item.product.id === product.id);
-      if (existing) {
-        return prev.map(item =>
-          item.product.id === product.id
-            ? { ...item, quantity: item.quantity + quantity }
-            : item
-        );
-      }
-      return [...prev, { product, quantity }];
+    window.addEventListener(UNIFIED_CART_EVENT, syncCart);
+    window.addEventListener('storage', syncCart);
+    return () => {
+      window.removeEventListener(UNIFIED_CART_EVENT, syncCart);
+      window.removeEventListener('storage', syncCart);
+    };
+  }, []);
+
+  const addToCart = useCallback((product: Product, quantity: number = 1) => {
+    const rawItems = loadUnifiedCart(null, 'youpi');
+    const cleanTargetId = normalizeProductId(product.id);
+    const enriched = enrichCartItem({
+      productId: cleanTargetId || product.id,
+      name: product.name,
+      price: product.price,
+      imageUrl: product.imageUrl,
+      quantity,
+      shopId: 'youpi',
+      product
+    }, 'youpi');
+
+    const existingIdx = rawItems.findIndex(i => {
+      const pId = normalizeProductId(i.productId || i.product?.id || i.id);
+      return pId === cleanTargetId && (i.shopId || 'youpi') === 'youpi';
     });
+
+    let updated: any[];
+    if (existingIdx > -1) {
+      updated = [...rawItems];
+      updated[existingIdx].quantity += quantity;
+    } else {
+      updated = [...rawItems, enriched];
+    }
+
+    saveUnifiedCart(updated);
+    setCart(updated.map(item => ({
+      id: item.id,
+      product: item.product || item,
+      quantity: item.quantity,
+      shopId: item.shopId,
+      shopName: item.shopName,
+      shopIcon: item.shopIcon
+    })));
     setIsCartOpen(true);
-  };
+  }, []);
 
-  const removeFromCart = (productId: number) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
-  };
+  const removeFromCart = useCallback((productId: number | string) => {
+    const rawItems = loadUnifiedCart(null, 'youpi');
+    const cleanTargetId = normalizeProductId(productId);
+    const updated = rawItems.filter(i => {
+      const pId = normalizeProductId(i.productId || i.product?.id || i.id);
+      return pId !== cleanTargetId && String(i.id) !== String(productId);
+    });
+    saveUnifiedCart(updated);
+    setCart(updated.map(item => ({
+      id: item.id,
+      product: item.product || item,
+      quantity: item.quantity,
+      shopId: item.shopId,
+      shopName: item.shopName,
+      shopIcon: item.shopIcon
+    })));
+  }, []);
 
-  const updateQuantity = (productId: number, quantity: number) => {
+  const updateQuantity = useCallback((productId: number | string, quantity: number) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
     }
-    setCart(prev =>
-      prev.map(item =>
-        item.product.id === productId ? { ...item, quantity } : item
-      )
-    );
-  };
+    const rawItems = loadUnifiedCart(null, 'youpi');
+    const cleanTargetId = normalizeProductId(productId);
+    const updated = rawItems.map(i => {
+      const pId = normalizeProductId(i.productId || i.product?.id || i.id);
+      if (pId === cleanTargetId || String(i.id) === String(productId)) {
+        return { ...i, quantity };
+      }
+      return i;
+    });
+    saveUnifiedCart(updated);
+    setCart(updated.map(item => ({
+      id: item.id,
+      product: item.product || item,
+      quantity: item.quantity,
+      shopId: item.shopId,
+      shopName: item.shopName,
+      shopIcon: item.shopIcon
+    })));
+  }, [removeFromCart]);
 
-  const clearCart = () => {
+  const clearCart = useCallback(() => {
+    saveUnifiedCart([]);
     setCart([]);
-  };
+  }, []);
 
-  const totalItems = cart.reduce((sum, item) => sum + item.quantity, 0);
-  const totalPrice = cart.reduce((sum, item) => sum + item.product.price * item.quantity, 0);
+  const totalItems = cart.reduce((sum, item) => sum + (Number(item.quantity) || 1), 0);
+  const totalPrice = cart.reduce((sum, item) => sum + ((Number(item.product?.price) || 0) * (Number(item.quantity) || 1)), 0);
 
   return (
     <CartContext.Provider
