@@ -1,0 +1,33 @@
+[
+  {
+    "id": "LIV-2026-0001",
+    "reference": "LIV-2026-0001",
+    "societeLivraisonId": "soc-1",
+    "societeLivraisonNom": "Aramex Tunisie",
+    "dateCreation": "2026-10-12",
+    "heureCreation": "14:30",
+    "statutGeneral": "EN_COURS",
+    "orderIds": [
+      "CMD-2026-000138",
+      "CMD-2026-000139",
+      "CMD-2026-000140"
+    ],
+    "totalCommandes": 3,
+    "commandesLivrees": 0,
+    "commandesRetournees": 0,
+    "commandesEnCours": 3,
+    "montantTotal": 1045,
+    "recuTransporteur": null,
+    "historiqueRecus": [],
+    "notes": "Lot régional Grand Tunis & Sahel. Priorité matinée.",
+    "historique": [
+      {
+        "date": "12/10/2026",
+        "heure": "14:30",
+        "auteur": "Super Admin",
+        "action": "CREATION_LIVRAISON",
+        "description": "Création du dossier de livraison groupée LIV-2026-0001 avec 3 commandes confirmées associées à Aramex Tunisie."
+      }
+    ]
+  }
+]

@@ -23,7 +23,8 @@ import {
   Compass,
   EyeOff,
   Wrench,
-  Truck
+  Truck,
+  PackageCheck
 } from 'lucide-react';
 import { MultiShopLogo } from './MultiShopLogo';
 import { 
@@ -36,6 +37,7 @@ import {
 export type SidebarMenuItem =
   | 'dashboard'
   | 'orders'
+  | 'deliveries'
   | 'carriers'
   | 'products'
   | 'sources'
@@ -108,6 +110,7 @@ export const SidebarNav: React.FC<SidebarNavProps> = ({
   const globalMenuItems = [
     { id: 'dashboard' as SidebarMenuItem, label: 'Tableau de bord', icon: LayoutDashboard },
     { id: 'orders' as SidebarMenuItem, label: 'Commandes', icon: ShoppingCart, badge: ordersBadge },
+    { id: 'deliveries' as SidebarMenuItem, label: 'Livraisons', icon: PackageCheck },
     { id: 'carriers' as SidebarMenuItem, label: 'Sociétés Livraison', icon: Truck },
     { id: 'products' as SidebarMenuItem, label: 'Catalogue & Stock', icon: Package },
     { id: 'sources' as SidebarMenuItem, label: 'Sources de Veille', icon: Compass },

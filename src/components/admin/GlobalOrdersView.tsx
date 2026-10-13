@@ -160,11 +160,12 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
         matchStage =
           (o.statutCommande || o.status) === 'CONFIRMEE' &&
           ((o.statutLivraison || 'LIVRAISON_EN_ATTENTE') === 'LIVRAISON_EN_ATTENTE' ||
-            o.statutLivraison === 'NON_INITIEE');
+            o.statutLivraison === 'NON_INITIEE' ||
+            o.statutLivraison === 'LIVRAISON_INITIALE');
       } else if (workflowStage === 'assigned_delivery') {
-        matchStage = (o.statutLivraison || '') === 'AFFECTEE_LIVRAISON';
+        matchStage = (o.statutLivraison || '') === 'AFFECTEE_LIVRAISON' || (o.statutLivraison || '') === 'EN_COURS';
       } else if (workflowStage === 'in_delivery') {
-        matchStage = (o.statutLivraison || '') === 'EN_LIVRAISON';
+        matchStage = (o.statutLivraison || '') === 'EN_LIVRAISON' || (o.statutLivraison || '') === 'EN_COURS';
       } else if (workflowStage === 'delivered') {
         matchStage =
           (o.statutLivraison || '') === 'LIVREE' &&
@@ -207,9 +208,9 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
       const livStat = o.statutLivraison || '';
 
       if (cmdStat === 'EN_ATTENTE_CONFIRMATION') counts.pending_confirmation++;
-      else if (cmdStat === 'CONFIRMEE' && (livStat === 'LIVRAISON_EN_ATTENTE' || livStat === 'NON_INITIEE' || !livStat))
+      else if (cmdStat === 'CONFIRMEE' && (livStat === 'LIVRAISON_EN_ATTENTE' || livStat === 'NON_INITIEE' || livStat === 'LIVRAISON_INITIALE' || !livStat))
         counts.pending_delivery++;
-      else if (livStat === 'AFFECTEE_LIVRAISON') counts.assigned_delivery++;
+      else if (livStat === 'AFFECTEE_LIVRAISON' || livStat === 'EN_COURS') counts.assigned_delivery++;
       else if (livStat === 'EN_LIVRAISON') counts.in_delivery++;
       else if (livStat === 'LIVREE' && cmdStat !== 'CLOTUREE') counts.delivered++;
       else if (cmdStat === 'CLOTUREE') counts.closed++;
@@ -428,6 +429,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
           (o.statutCommande || o.status) === 'CONFIRMEE' &&
           ((o.statutLivraison || 'LIVRAISON_EN_ATTENTE') === 'LIVRAISON_EN_ATTENTE' ||
             o.statutLivraison === 'NON_INITIEE' ||
+            o.statutLivraison === 'LIVRAISON_INITIALE' ||
             o.statutLivraison === 'ECHEC_LIVRAISON')
       )
       .map((o) => o.id || o.orderNumber);

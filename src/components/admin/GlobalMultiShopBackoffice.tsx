@@ -11,6 +11,7 @@ import { FutureProductsView } from './FutureProductsView';
 import { SuppliersView } from './SuppliersView';
 import { MultiShopBackofficeLogin } from './MultiShopBackofficeLogin';
 import { DeliveryCompaniesView } from './DeliveryCompaniesView';
+import { DeliveriesView } from './DeliveriesView';
 import { ArrowLeft, ExternalLink, Plus, RefreshCw, ShoppingCart, Package, Layers, Sparkles } from 'lucide-react';
 import {
   getCachedSiteVisibility,
@@ -705,7 +706,17 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             />
           )}
 
-          {/* CASE 2.1: SOCIÉTÉS DE LIVRAISON (CRUD, AFFECTATIONS EN DÉTAIL, EN COURS, RETOURS) */}
+          {/* CASE 2.1: LIVRAISONS (NOUVELLE PAGE PRINCIPALE - COMMANDES CONFIRMÉES, LOTS GROUPÉS, DOCUMENTS, SUIVI) */}
+          {(currentMenu as any) === 'deliveries' && (
+            <DeliveriesView
+              orders={allOrders}
+              activeShop={activeShop}
+              onReloadOrders={fetchGlobalData}
+              onSelectShop={handleSelectShop}
+            />
+          )}
+
+          {/* CASE 2.2: SOCIÉTÉS DE LIVRAISON (GESTION DES TRANSPORTEURS, COORDONNÉES, TARIFS, ZONES) */}
           {(currentMenu as any) === 'carriers' && (
             <DeliveryCompaniesView
               orders={allOrders}

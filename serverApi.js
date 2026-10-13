@@ -157,6 +157,106 @@ export let deliveryCompaniesData = [
   }
 ];
 
+// Dossiers de Livraison groupée (Dossiers réels et persistants avec audit, reçus transporteur et état synthétique)
+const DELIVERIES_FILE_PATH = path.resolve(process.cwd(), 'backend/src/data/deliveries.json');
+
+function loadPersistedDeliveries() {
+  try {
+    if (fs.existsSync(DELIVERIES_FILE_PATH)) {
+      const raw = fs.readFileSync(DELIVERIES_FILE_PATH, 'utf-8');
+      return JSON.parse(raw);
+    }
+  } catch (err) {
+    console.warn('Erreur chargement deliveries.json, utilisation des données initiales:', err);
+  }
+  return [
+    {
+      id: 'LIV-2026-0001',
+      reference: 'LIV-2026-0001',
+      societeLivraisonId: 'soc-1',
+      societeLivraisonNom: 'Aramex Tunisie',
+      dateCreation: '2026-10-12',
+      heureCreation: '14:30',
+      statutGeneral: 'EN_COURS', // 'EN_COURS' | 'TERMINEE' | 'LIVREE' | 'RETOURNEE'
+      orderIds: ['CMD-2026-000138', 'CMD-2026-000139', 'CMD-2026-000140'],
+      totalCommandes: 3,
+      commandesLivrees: 0,
+      commandesRetournees: 0,
+      commandesEnCours: 3,
+      montantTotal: 1045,
+      recuTransporteur: null,
+      historiqueRecus: [],
+      notes: 'Lot régional Grand Tunis & Sahel. Priorité matinée.',
+      historique: [
+        {
+          date: '12/10/2026',
+          heure: '14:30',
+          auteur: 'Super Admin',
+          action: 'CREATION_LIVRAISON',
+          description: 'Création du dossier de livraison groupée LIV-2026-0001 avec 3 commandes confirmées associées à Aramex Tunisie.'
+        }
+      ]
+    }
+  ];
+}
+
+export let deliveriesData = loadPersistedDeliveries();
+
+export function saveDeliveriesData() {
+  try {
+    const dir = path.dirname(DELIVERIES_FILE_PATH);
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(DELIVERIES_FILE_PATH, JSON.stringify(deliveriesData, null, 2), 'utf-8');
+  } catch (err) {
+    console.error('Erreur sauvegarde deliveries.json:', err);
+  }
+}
+
+// Helper: Calculer l'état général synthétique d'un dossier de livraison
+export function computeDeliveryGeneralStatus(delivery) {
+  if (!delivery || !Array.isArray(delivery.orderIds) || delivery.orderIds.length === 0) {
+    return 'EN_COURS';
+  }
+  let livrees = 0;
+  let retournees = 0;
+  let enCours = 0;
+  let total = delivery.orderIds.length;
+
+  for (const oId of delivery.orderIds) {
+    const match = findOrderAcrossStores(oId);
+    if (match) {
+      const o = match.order;
+      const st = o.statutLivraison || 'LIVRAISON_INITIALE';
+      if (st === 'LIVREE') {
+        livrees++;
+      } else if (st === 'RETOURNEE' || st === 'RETOUR') {
+        retournees++;
+      } else {
+        enCours++;
+      }
+    } else {
+      enCours++;
+    }
+  }
+
+  delivery.totalCommandes = total;
+  delivery.commandesLivrees = livrees;
+  delivery.commandesRetournees = retournees;
+  delivery.commandesEnCours = enCours;
+
+  if (enCours > 0) {
+    return 'EN_COURS';
+  } else if (livrees > 0 && retournees === 0) {
+    return 'LIVREE';
+  } else if (retournees > 0 && livrees === 0) {
+    return 'RETOURNEE';
+  } else {
+    return 'TERMINEE';
+  }
+}
+
 // Helper: Retrouver une commande dans n'importe quel magasin
 export function findOrderAcrossStores(orderId) {
   if (!orderId) return null;
@@ -749,6 +849,12 @@ export async function initStores() {
     if (storesData.dari) {
       storesData.dari.orders = initialOrders.filter(o => o.shops?.includes('dari') || o.filialeKey === 'dari');
     }
+
+    // Synchroniser l'état général des dossiers de livraisons
+    deliveriesData.forEach(d => {
+      d.statutGeneral = computeDeliveryGeneralStatus(d);
+    });
+    saveDeliveriesData();
   } catch (err) {
     console.error('Error populating initial coherent orders:', err);
   }
@@ -878,7 +984,7 @@ export function generateInitialCoherentOrders() {
       paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
       statutCommande: 'CONFIRMEE',
       status: 'CONFIRMEE',
-      statutLivraison: 'LIVRAISON_EN_ATTENTE',
+      statutLivraison: 'LIVRAISON_INITIALE',
       statutPaiement: 'PAIEMENT_EN_ATTENTE',
       statutFacture: 'FACTURE_NON_GENEREE',
       stockReserve: true,
@@ -898,9 +1004,9 @@ export function generateInitialCoherentOrders() {
           heure: '10:05',
           auteur: 'ADMINISTRATEUR',
           action: 'CONFIRMATION_COMMANDE',
-          description: 'Commande confirmée par l\'administrateur. Passage en livraison en attente pour affectation transporteur.',
+          description: 'Commande confirmée par l\'administrateur. État de livraison : Livraison initiale (disponible pour affectation groupée).',
           statutCommande: 'CONFIRMEE',
-          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutLivraison: 'LIVRAISON_INITIALE',
           statutPaiement: 'PAIEMENT_EN_ATTENTE'
         }
       ]
@@ -962,7 +1068,7 @@ export function generateInitialCoherentOrders() {
       paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
       statutCommande: 'CONFIRMEE',
       status: 'CONFIRMEE',
-      statutLivraison: 'LIVRAISON_EN_ATTENTE',
+      statutLivraison: 'LIVRAISON_INITIALE',
       statutPaiement: 'PAIEMENT_EN_ATTENTE',
       statutFacture: 'FACTURE_NON_GENEREE',
       stockReserve: true,
@@ -982,9 +1088,9 @@ export function generateInitialCoherentOrders() {
           heure: '09:15',
           auteur: 'ADMINISTRATEUR',
           action: 'CONFIRMATION_COMMANDE',
-          description: 'Commande vérifiée et validée commercialement.',
+          description: 'Commande confirmée commercialement. État de livraison : Livraison initiale.',
           statutCommande: 'CONFIRMEE',
-          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutLivraison: 'LIVRAISON_INITIALE',
           statutPaiement: 'PAIEMENT_EN_ATTENTE'
         }
       ]
@@ -1036,7 +1142,7 @@ export function generateInitialCoherentOrders() {
       paymentMethod: 'PAIEMENT_A_LA_LIVRAISON',
       statutCommande: 'CONFIRMEE',
       status: 'CONFIRMEE',
-      statutLivraison: 'LIVRAISON_EN_ATTENTE',
+      statutLivraison: 'LIVRAISON_INITIALE',
       statutPaiement: 'PAIEMENT_EN_ATTENTE',
       statutFacture: 'FACTURE_NON_GENEREE',
       stockReserve: true,
@@ -1056,9 +1162,9 @@ export function generateInitialCoherentOrders() {
           heure: '09:00',
           auteur: 'ADMINISTRATEUR',
           action: 'CONFIRMATION_COMMANDE',
-          description: 'Commande confirmée.',
+          description: 'Commande confirmée. État de livraison : Livraison initiale.',
           statutCommande: 'CONFIRMEE',
-          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutLivraison: 'LIVRAISON_INITIALE',
           statutPaiement: 'PAIEMENT_EN_ATTENTE'
         }
       ]
@@ -2539,6 +2645,383 @@ export function handleApiRequest(req, res, next) {
         return sendJson(200, { success: true, message: 'Société de livraison supprimée avec succès' });
       }
 
+      // --- DOSSIERS DE LIVRAISONS GROUPÉES (PAGE LIVRAISONS & SUIVI ENRICHI) ---
+      // 1. Lister toutes les livraisons avec état général recalculé
+      if (endpoint === '/deliveries' && req.method === 'GET') {
+        deliveriesData.forEach(d => {
+          d.statutGeneral = computeDeliveryGeneralStatus(d);
+        });
+        saveDeliveriesData();
+        return sendJson(200, deliveriesData);
+      }
+
+      // 2. Créer une livraison groupée unique
+      if (endpoint === '/deliveries' && req.method === 'POST') {
+        const body = await getBody();
+        const { societeLivraisonId, societeLivraisonNom, orderIds, notes } = body;
+
+        if (!Array.isArray(orderIds) || orderIds.length === 0) {
+          return sendJson(400, { error: 'Validation Error', message: 'Veuillez sélectionner au moins une commande à affecter.' });
+        }
+        if (!societeLivraisonId || !societeLivraisonNom) {
+          return sendJson(400, { error: 'Validation Error', message: 'Veuillez choisir une société de livraison partenaire.' });
+        }
+
+        // Vérifier qu'aucune commande sélectionnée n'est déjà rattachée à une livraison en cours (Anti-doublons)
+        for (const existingLiv of deliveriesData) {
+          if (existingLiv.statutGeneral === 'EN_COURS') {
+            for (const oId of orderIds) {
+              if (existingLiv.orderIds?.includes(oId)) {
+                return sendJson(400, {
+                  error: 'Duplicate Assignment',
+                  message: `La commande ${oId} est déjà rattachée au dossier de livraison en cours ${existingLiv.reference || existingLiv.id}.`
+                });
+              }
+            }
+          }
+        }
+
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+        
+        // Numérotation séquentielle et unique du dossier de livraison : LIV-2026-XXXX
+        const numSequence = (deliveriesData.length + 1).toString().padStart(4, '0');
+        const deliveryRef = `LIV-2026-${numSequence}`;
+
+        let totalMontant = 0;
+        const validOrderIds = [];
+
+        for (const oId of orderIds) {
+          const match = findOrderAcrossStores(oId);
+          if (match) {
+            const { order } = match;
+            order.statutLivraison = 'EN_COURS'; // Règle : Les commandes associées passent à "En cours"
+            order.deliveryId = deliveryRef;
+            order.affectationLivraison = {
+              deliveryId: deliveryRef,
+              societeLivraisonId,
+              societeLivraisonNom,
+              dateAffectation: `${dateStr} ${heureStr}`,
+              administrateur: 'Super Admin'
+            };
+
+            totalMontant += (Number(order.total || order.totalAmount) || 0);
+            validOrderIds.push(oId);
+
+            if (!Array.isArray(order.historique)) order.historique = [];
+            order.historique.unshift({
+              date: dateStr,
+              heure: heureStr,
+              auteur: 'ADMINISTRATEUR',
+              action: 'AFFECTATION_LIVRAISON_GROUPEE',
+              description: `Commande intégrée dans le dossier de livraison ${deliveryRef} confié à ${societeLivraisonNom}. État de livraison : En cours.`,
+              statutCommande: order.statutCommande,
+              statutLivraison: 'EN_COURS',
+              statutPaiement: order.statutPaiement
+            });
+          }
+        }
+
+        const newDelivery = {
+          id: deliveryRef,
+          reference: deliveryRef,
+          societeLivraisonId,
+          societeLivraisonNom,
+          dateCreation: now.toISOString().split('T')[0],
+          heureCreation: heureStr,
+          statutGeneral: 'EN_COURS',
+          orderIds: validOrderIds,
+          totalCommandes: validOrderIds.length,
+          commandesLivrees: 0,
+          commandesRetournees: 0,
+          commandesEnCours: validOrderIds.length,
+          montantTotal: totalMontant,
+          recuTransporteur: null,
+          historiqueRecus: [],
+          notes: notes || '',
+          historique: [
+            {
+              date: dateStr,
+              heure: heureStr,
+              auteur: 'Super Admin',
+              action: 'CREATION_LIVRAISON',
+              description: `Dossier créé avec ${validOrderIds.length} commandes pour un montant total de ${totalMontant} DT. Transporteur : ${societeLivraisonNom}.`
+            }
+          ]
+        };
+
+        deliveriesData.unshift(newDelivery);
+        saveDeliveriesData();
+        broadcastDataChanged('delivery_created', 'all');
+        broadcastDataChanged('order_updated', 'all');
+
+        return sendJson(201, newDelivery);
+      }
+
+      // 3. Obtenir les détails d'un dossier de livraison avec ses commandes complètes
+      if (endpoint.startsWith('/deliveries/') && req.method === 'GET') {
+        const delivId = endpoint.replace('/deliveries/', '').split('/')[0];
+        const delivery = deliveriesData.find(d => d.id === delivId || d.reference === delivId);
+        if (!delivery) {
+          return sendJson(404, { message: 'Dossier de livraison introuvable' });
+        }
+
+        // Récupérer les commandes enrichies
+        const enrichedOrders = [];
+        for (const oId of delivery.orderIds || []) {
+          const match = findOrderAcrossStores(oId);
+          if (match) {
+            enrichedOrders.push(match.order);
+          }
+        }
+
+        delivery.statutGeneral = computeDeliveryGeneralStatus(delivery);
+        saveDeliveriesData();
+
+        return sendJson(200, {
+          ...delivery,
+          orders: enrichedOrders
+        });
+      }
+
+      // 4. Mettre à jour individuellement l'état d'une commande dans la livraison ("Livrée" ou "Retournée")
+      if (endpoint.match(/^\/deliveries\/[^\/]+\/orders\/[^\/]+\/status$/) && req.method === 'POST') {
+        const parts = endpoint.split('/');
+        const delivId = parts[2];
+        const orderId = parts[4];
+        const body = await getBody();
+        const { statut, motif, commentaire } = body; // 'LIVREE' ou 'RETOURNEE'
+
+        if (!['LIVREE', 'RETOURNEE', 'EN_COURS'].includes(statut)) {
+          return sendJson(400, { error: 'Invalid Status', message: 'Le statut doit être LIVREE, RETOURNEE ou EN_COURS.' });
+        }
+
+        const delivery = deliveriesData.find(d => d.id === delivId || d.reference === delivId);
+        if (!delivery) {
+          return sendJson(404, { message: 'Dossier de livraison introuvable' });
+        }
+
+        const match = findOrderAcrossStores(orderId);
+        if (!match) {
+          return sendJson(404, { message: 'Commande introuvable' });
+        }
+
+        const { order, store } = match;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        order.statutLivraison = statut;
+
+        if (statut === 'LIVREE') {
+          order.livraisonDetails = {
+            dateLivree: `${dateStr} ${heureStr}`,
+            commentaire: commentaire || 'Livraison remise au client avec succès'
+          };
+          if (!order.statutPaiement || order.statutPaiement === 'PAIEMENT_EN_ATTENTE') {
+            order.statutPaiement = 'A_ENCAISSER';
+          }
+        } else if (statut === 'RETOURNEE') {
+          order.retourDetails = {
+            dateRetour: `${dateStr} ${heureStr}`,
+            motif: motif || 'Refus client ou non joignable',
+            commentaire: commentaire || '',
+            stockRestitue: true
+          };
+          // Restituer le stock réservé automatiquement en cas de retour
+          restoreOrderStock(order);
+          order.stockReserve = false;
+          broadcastDataChanged('stock_restocked', 'all');
+        }
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: statut === 'LIVREE' ? 'CONFIRMATION_LIVRAISON_INDIVIDUELLE' : 'DECLARATION_RETOUR_INDIVIDUELLE',
+          description: `État de livraison mis à jour individuellement : ${statut}. ${motif ? `Motif : ${motif}.` : ''} ${commentaire ? `Note : ${commentaire}.` : ''}`,
+          statutCommande: order.statutCommande,
+          statutLivraison: statut,
+          statutPaiement: order.statutPaiement
+        });
+
+        // Recalculer l'état synthétique de la livraison
+        delivery.statutGeneral = computeDeliveryGeneralStatus(delivery);
+
+        if (!Array.isArray(delivery.historique)) delivery.historique = [];
+        delivery.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'Super Admin',
+          action: 'MISE_A_JOUR_COMMANDE',
+          description: `Commande ${orderId} marquée comme ${statut} par l'administrateur.`
+        });
+
+        saveDeliveriesData();
+        broadcastDataChanged('delivery_updated', 'all');
+        broadcastDataChanged('order_updated', store.key);
+
+        return sendJson(200, {
+          success: true,
+          delivery,
+          order
+        });
+      }
+
+      // 5. Mettre à jour le statut paiement / reversement transporteur
+      if (endpoint.match(/^\/deliveries\/[^\/]+\/orders\/[^\/]+\/payment$/) && req.method === 'POST') {
+        const parts = endpoint.split('/');
+        const delivId = parts[2];
+        const orderId = parts[4];
+        const body = await getBody();
+        const { statutPaiement, reversementRecu, montantEncaisse } = body;
+
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order, store } = match;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        if (statutPaiement) order.statutPaiement = statutPaiement;
+        if (reversementRecu !== undefined) order.reversementRecu = Boolean(reversementRecu);
+        if (montantEncaisse !== undefined) order.montantEncaisse = Number(montantEncaisse);
+
+        if (!Array.isArray(order.historique)) order.historique = [];
+        order.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'ADMINISTRATEUR',
+          action: 'SUIVI_PAIEMENT_REVERSEMENT',
+          description: `Mise à jour financière : Paiement ${order.statutPaiement}. Reversement transporteur : ${order.reversementRecu ? 'Reçu' : 'En attente'}.`,
+          statutCommande: order.statutCommande,
+          statutLivraison: order.statutLivraison,
+          statutPaiement: order.statutPaiement
+        });
+
+        broadcastDataChanged('order_updated', store.key);
+        return sendJson(200, { success: true, order });
+      }
+
+      // 6. Ajouter le reçu du transporteur de façon persistante dans le backend
+      // Avec contrôle strict de type, taille (max 10 Mo) et historique des remplacements
+      if (endpoint.match(/^\/deliveries\/[^\/]+\/receipt$/) && req.method === 'POST') {
+        const delivId = endpoint.split('/')[2];
+        const delivery = deliveriesData.find(d => d.id === delivId || d.reference === delivId);
+        if (!delivery) {
+          return sendJson(404, { message: 'Dossier de livraison introuvable' });
+        }
+
+        const body = await getBody();
+        const { fileBase64, fileName, mimeType, description } = body;
+
+        if (!fileBase64 || typeof fileBase64 !== 'string') {
+          return sendJson(400, { error: 'Validation Error', message: 'Fichier requis en base64.' });
+        }
+
+        // Contrôle du type de fichier (PDF, JPEG, PNG, WEBP)
+        let cleanBase64 = fileBase64;
+        let ext = 'pdf';
+        let detectedMime = mimeType || 'application/pdf';
+
+        if (fileBase64.includes(';base64,')) {
+          const matchMime = fileBase64.match(/^data:([a-zA-Z0-9\/\-+.]+);base64,(.+)$/);
+          if (matchMime) {
+            detectedMime = matchMime[1];
+            cleanBase64 = matchMime[2];
+          }
+        }
+
+        const allowedMimes = ['application/pdf', 'image/jpeg', 'image/png', 'image/webp'];
+        if (!allowedMimes.includes(detectedMime.toLowerCase())) {
+          return sendJson(400, {
+            error: 'Unsupported Media Type',
+            message: `Format non autorisé (${detectedMime}). Seuls les formats PDF, JPG, PNG et WEBP sont acceptés.`
+          });
+        }
+
+        if (detectedMime.includes('pdf')) ext = 'pdf';
+        else if (detectedMime.includes('jpeg') || detectedMime.includes('jpg')) ext = 'jpg';
+        else if (detectedMime.includes('png')) ext = 'png';
+        else if (detectedMime.includes('webp')) ext = 'webp';
+
+        const buffer = Buffer.from(cleanBase64, 'base64');
+
+        // Contrôle de la taille : max 10 Mo
+        const MAX_SIZE_BYTES = 10 * 1024 * 1024;
+        if (buffer.length > MAX_SIZE_BYTES) {
+          return sendJson(413, {
+            error: 'Payload Too Large',
+            message: `Le fichier dépasse la taille maximale autorisée de 10 Mo (taille reçue : ${(buffer.length / (1024 * 1024)).toFixed(2)} Mo).`
+          });
+        }
+
+        // Sauvegarde physique persistante dans public/uploads/receipts
+        const receiptsDir = path.resolve(process.cwd(), 'public/uploads/receipts');
+        if (!fs.existsSync(receiptsDir)) {
+          fs.mkdirSync(receiptsDir, { recursive: true });
+        }
+
+        const timeStamp = Date.now();
+        const diskFileName = `recu_${delivery.reference || delivery.id}_${timeStamp}.${ext}`;
+        const filePath = path.join(receiptsDir, diskFileName);
+        fs.writeFileSync(filePath, buffer);
+
+        const fileUrl = `/uploads/receipts/${diskFileName}`;
+        const now = new Date();
+        const dateStr = now.toLocaleDateString('fr-FR');
+        const heureStr = now.toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' });
+
+        const receiptRecord = {
+          id: `recu-${timeStamp}`,
+          url: fileUrl,
+          fileName: fileName || diskFileName,
+          tailleOctets: buffer.length,
+          tailleLisible: `${(buffer.length / 1024).toFixed(1)} Ko`,
+          mimeType: detectedMime,
+          dateAjout: `${dateStr} ${heureStr}`,
+          auteur: 'Super Admin',
+          description: description || 'Bordereau / Reçu de remise transporteur émargé'
+        };
+
+        if (!Array.isArray(delivery.historiqueRecus)) {
+          delivery.historiqueRecus = [];
+        }
+
+        // Si un reçu existait déjà, l'archiver dans l'historique des remplacements
+        if (delivery.recuTransporteur) {
+          delivery.historiqueRecus.unshift({
+            ...delivery.recuTransporteur,
+            dateRemplacement: `${dateStr} ${heureStr}`,
+            remplacePar: receiptRecord.id
+          });
+        }
+
+        delivery.recuTransporteur = receiptRecord;
+
+        if (!Array.isArray(delivery.historique)) delivery.historique = [];
+        delivery.historique.unshift({
+          date: dateStr,
+          heure: heureStr,
+          auteur: 'Super Admin',
+          action: 'AJOUT_RECU_TRANSPORTEUR',
+          description: `Nouveau reçu de transporteur enregistré (${receiptRecord.fileName}, ${receiptRecord.tailleLisible}). Conservation persistante sur le serveur.`
+        });
+
+        saveDeliveriesData();
+        broadcastDataChanged('delivery_updated', 'all');
+
+        return sendJson(200, {
+          success: true,
+          message: 'Reçu du transporteur enregistré avec succès de façon persistante.',
+          recuTransporteur: receiptRecord,
+          delivery
+        });
+      }
+
       // --- COMMANDES DU GROUPE MULTISHOP CENTRALISÉES (DÉDUPLIQUÉES) ---
       if (endpoint === '/global/orders' && req.method === 'GET') {
         const authUser = getAuthenticatedUser(req);
@@ -3291,7 +3774,7 @@ export function handleApiRequest(req, res, next) {
         return sendJson(200, { success: true, count: updatedCount, message: `${updatedCount} commande(s) affectée(s) avec succès à ${societeLivraisonNom}.` });
       }
 
-      // Règle 12 & 13 : Confirmation d'une commande (EN_ATTENTE_CONFIRMATION -> CONFIRMEE -> LIVRAISON_EN_ATTENTE)
+      // Règle 12 & 13 : Confirmation d'une commande (EN_ATTENTE_CONFIRMATION -> CONFIRMEE -> LIVRAISON_INITIALE)
       if (endpoint.match(/^\/orders\/[^\/]+\/confirm$/) && req.method === 'POST') {
         const orderId = endpoint.split('/')[2];
         const match = findOrderAcrossStores(orderId);
@@ -3300,7 +3783,8 @@ export function handleApiRequest(req, res, next) {
         const { order, store } = match;
         order.statutCommande = 'CONFIRMEE';
         order.status = 'CONFIRMEE';
-        order.statutLivraison = 'LIVRAISON_EN_ATTENTE';
+        // Conseil & Amélioration : Chaque commande confirmée apparaît avec l'état de livraison « Livraison initiale »
+        order.statutLivraison = 'LIVRAISON_INITIALE';
         order.stockReserve = true;
 
         const now = new Date();
@@ -3313,9 +3797,9 @@ export function handleApiRequest(req, res, next) {
           heure: heureStr,
           auteur: 'ADMINISTRATEUR',
           action: 'CONFIRMATION_COMMANDE',
-          description: 'Commande confirmée commercialement par l\'administrateur. Passage en LIVRAISON_EN_ATTENTE pour affectation à une société de livraison.',
+          description: 'Commande confirmée commercialement par l\'administrateur. Passage avec l\'état de livraison « Livraison initiale » pour constitution des lots de livraisons.',
           statutCommande: 'CONFIRMEE',
-          statutLivraison: 'LIVRAISON_EN_ATTENTE',
+          statutLivraison: 'LIVRAISON_INITIALE',
           statutPaiement: order.statutPaiement || 'PAIEMENT_EN_ATTENTE'
         });
 
@@ -3590,13 +4074,25 @@ export function handleApiRequest(req, res, next) {
         return sendJson(200, order);
       }
 
-      // Règle 23 & 24 : Génération de facture unique et téléchargeable
+      // Règle 23 & 24 : Facturation (Idempotente : vérifie si une facture existe déjà)
       if (endpoint.match(/^\/orders\/[^\/]+\/generate-invoice$/) && req.method === 'POST') {
         const orderId = endpoint.split('/')[2];
         const match = findOrderAcrossStores(orderId);
         if (!match) return sendJson(404, { message: 'Commande introuvable' });
 
         const { order, store } = match;
+
+        // Conseil & Amélioration : Vérifier si une facture existe déjà avant d'en générer une nouvelle
+        if (order.facture && order.statutFacture === 'FACTURE_GENEREE') {
+          return sendJson(200, {
+            success: true,
+            alreadyExists: true,
+            message: `Facture déjà émise (${order.facture.numeroFacture}). Accès direct sans doublon.`,
+            facture: order.facture,
+            order
+          });
+        }
+
         const numFact = 'FACT-2026-' + (order.orderNumber || order.id).replace(/\D/g, '').slice(-5);
         order.statutFacture = 'FACTURE_GENEREE';
         order.facture = {
