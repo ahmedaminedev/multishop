@@ -184,7 +184,21 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
   useEffect(() => {
     fetchDeliveries();
     fetchCarriers();
-  }, []);
+
+    const handleRealtimeDeliveries = () => {
+      fetchDeliveries();
+      if (onReloadOrders) onReloadOrders();
+    };
+
+    window.addEventListener('orders_updated', handleRealtimeDeliveries);
+    window.addEventListener('multishop_data_changed', handleRealtimeDeliveries);
+    window.addEventListener('multishop-data-changed', handleRealtimeDeliveries);
+    return () => {
+      window.removeEventListener('orders_updated', handleRealtimeDeliveries);
+      window.removeEventListener('multishop_data_changed', handleRealtimeDeliveries);
+      window.removeEventListener('multishop-data-changed', handleRealtimeDeliveries);
+    };
+  }, [onReloadOrders]);
 
   // 2. Refresh active delivery detail
   const reloadSelectedDelivery = async (deliveryId: string) => {

@@ -64,6 +64,17 @@ export const YoupiShopApp: React.FC<{
 
   useEffect(() => {
     loadData();
+
+    const handleRealtimeSync = () => {
+      loadData();
+    };
+
+    window.addEventListener('multishop_data_changed', handleRealtimeSync);
+    window.addEventListener('products_updated', handleRealtimeSync);
+    return () => {
+      window.removeEventListener('multishop_data_changed', handleRealtimeSync);
+      window.removeEventListener('products_updated', handleRealtimeSync);
+    };
   }, []);
 
   const handleNavigate = (view: 'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout' | 'product-detail') => {

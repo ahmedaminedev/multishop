@@ -204,6 +204,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                       order={currentSingleOrder}
                       deliveryRef={delivery?.reference || delivery?.id}
                       carrierName={delivery?.societeLivraisonNom}
+                      showActionButtons={false}
                     />
                   </div>
                 )
@@ -217,6 +218,7 @@ export const DocumentViewerModal: React.FC<DocumentViewerModalProps> = ({
                       order={ord}
                       deliveryRef={delivery?.reference || delivery?.id}
                       carrierName={delivery?.societeLivraisonNom}
+                      showActionButtons={false}
                     />
                   </div>
                 ))

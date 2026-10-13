@@ -76,8 +76,19 @@ export const DariShopApp: React.FC<{
         setAdvertisements(e.detail);
       }
     };
+
+    const handleRealtimeSync = () => {
+      loadData();
+    };
+
     window.addEventListener('dari-ads-updated', handleAdsUpdated);
-    return () => window.removeEventListener('dari-ads-updated', handleAdsUpdated);
+    window.addEventListener('multishop_data_changed', handleRealtimeSync);
+    window.addEventListener('products_updated', handleRealtimeSync);
+    return () => {
+      window.removeEventListener('dari-ads-updated', handleAdsUpdated);
+      window.removeEventListener('multishop_data_changed', handleRealtimeSync);
+      window.removeEventListener('products_updated', handleRealtimeSync);
+    };
   }, []);
 
   const handleNavigate = (view: 'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout' | 'product-detail') => {

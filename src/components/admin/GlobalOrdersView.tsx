@@ -146,7 +146,20 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
   useEffect(() => {
     loadCarriers();
-  }, []);
+
+    const handleRealtimeOrders = () => {
+      if (onReloadOrders) onReloadOrders();
+    };
+
+    window.addEventListener('orders_updated', handleRealtimeOrders);
+    window.addEventListener('multishop_data_changed', handleRealtimeOrders);
+    window.addEventListener('multishop-data-changed', handleRealtimeOrders);
+    return () => {
+      window.removeEventListener('orders_updated', handleRealtimeOrders);
+      window.removeEventListener('multishop_data_changed', handleRealtimeOrders);
+      window.removeEventListener('multishop-data-changed', handleRealtimeOrders);
+    };
+  }, [onReloadOrders]);
 
   const handleShopFilterChange = (shop: string) => {
     setFilialeFilter(shop);

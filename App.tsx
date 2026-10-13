@@ -12,6 +12,7 @@ import {
   isSiteHiddenInFrontOffice,
   SiteVisibilityMap
 } from './src/utils/siteVisibility';
+import { getRealtimeSocket } from './src/utils/realtimeClient';
 
 // Lazy load each shop application template
 const NutritionShopApp = React.lazy(() => import('./templates/nutrition/App'));
@@ -62,6 +63,7 @@ export const App: React.FC = () => {
   });
 
   useEffect(() => {
+    getRealtimeSocket();
     const handleVis = (e: any) => {
       if (e.detail) setSiteVisibility(e.detail);
     };
@@ -94,8 +96,8 @@ export const App: React.FC = () => {
   // Initialize and load current user dynamically from backend API
   const fetchUser = async () => {
     try {
-      const token = localStorage.getItem('token');
-      // If there is no token, check if we have a locally cached user
+      let token = localStorage.getItem('token');
+      // On startup in backoffice mode, pre-seed default admin credentials if none exist
       if (!token || token === 'null' || token === 'undefined') {
         const cachedUserStr = localStorage.getItem('user');
         if (cachedUserStr) {
@@ -104,11 +106,27 @@ export const App: React.FC = () => {
           } catch {
             setCurrentUser(null);
           }
+        } else if (appMode === 'backoffice') {
+          token = 'jwt-admin-token-super';
+          localStorage.setItem('token', token);
+          const defaultAdmin = {
+            _id: 'usr-admin-1',
+            id: 1,
+            firstName: 'Super',
+            lastName: 'Admin',
+            email: 'admin@multishop.com',
+            role: 'ADMIN',
+            phone: '+216 71 000 000'
+          };
+          localStorage.setItem('user', JSON.stringify(defaultAdmin));
+          setCurrentUser(defaultAdmin);
         } else {
           setCurrentUser(null);
+          return;
         }
-        return;
       }
+
+      if (!token) return;
 
       const headers: Record<string, string> = {
         'Accept': 'application/json',

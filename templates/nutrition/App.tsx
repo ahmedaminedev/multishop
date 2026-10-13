@@ -302,8 +302,19 @@ const AppContent: React.FC = () => {
                 loadData();
             }
         };
+
+        const handleRealtimeSync = () => {
+            loadData();
+        };
+
         window.addEventListener('auth-changed', handleAuthChange);
-        return () => { window.removeEventListener('auth-changed', handleAuthChange); };
+        window.addEventListener('multishop_data_changed', handleRealtimeSync);
+        window.addEventListener('products_updated', handleRealtimeSync);
+        return () => {
+            window.removeEventListener('auth-changed', handleAuthChange);
+            window.removeEventListener('multishop_data_changed', handleRealtimeSync);
+            window.removeEventListener('products_updated', handleRealtimeSync);
+        };
     }, []);
 
     useEffect(() => {

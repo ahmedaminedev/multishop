@@ -194,7 +194,23 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
       if (statsRes) setStats(statsRes);
       if (Array.isArray(productsRes)) setAllProducts(productsRes);
-      if (Array.isArray(ordersRes)) setAllOrders(ordersRes);
+      if (Array.isArray(ordersRes) && ordersRes.length > 0) {
+        setAllOrders(ordersRes);
+      } else {
+        // Robust fallback: fetch orders from all filiales if global orders returned empty
+        const [oNutr, oYoupi, oDari] = await Promise.all([
+          fetch('/api/orders?shop=nutrition', { headers }).then(r => r.json()).catch(() => []),
+          fetch('/api/orders?shop=youpi', { headers }).then(r => r.json()).catch(() => []),
+          fetch('/api/orders?shop=dari', { headers }).then(r => r.json()).catch(() => [])
+        ]);
+        const combined = [
+          ...(Array.isArray(oNutr) ? oNutr : []),
+          ...(Array.isArray(oYoupi) ? oYoupi : []),
+          ...(Array.isArray(oDari) ? oDari : [])
+        ];
+        const deduplicated = Array.from(new Map(combined.map(o => [String(o.id || o.orderNumber), o])).values());
+        setAllOrders(deduplicated);
+      }
       if (Array.isArray(sourcesRes)) setSources(sourcesRes);
       if (Array.isArray(futureRes)) setFutureProducts(futureRes);
       if (Array.isArray(suppliersRes)) setSuppliers(suppliersRes);
@@ -268,7 +284,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       if (shopKey && shopKey !== 'all') {
         loadFilialeData(shopKey);
       } else {
-        ['nutrition', 'youpi'].forEach(loadFilialeData);
+        ['nutrition', 'youpi', 'dari'].forEach(loadFilialeData);
       }
     };
 

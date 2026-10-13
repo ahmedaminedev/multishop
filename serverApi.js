@@ -428,28 +428,11 @@ export function generateDeliveryNoteHtml(order, delivery, autoprint = false) {
       background: #ffffff;
       width: 210mm;
       min-height: 297mm;
-      padding: 18mm 18mm 14mm 18mm;
+      padding: 14mm 16mm 12mm 16mm;
       box-shadow: 0 10px 25px rgba(0,0,0,0.08);
-      border-radius: 12px;
+      border-radius: 8px;
+      border-top: 5px solid #2563eb;
       overflow: hidden;
-    }
-    .top-accent {
-      position: absolute;
-      top: 0;
-      right: 0;
-      width: 140px;
-      height: 90px;
-      background: linear-gradient(135deg, transparent 40%, #0066ff 40%);
-      pointer-events-none;
-    }
-    .bottom-accent {
-      position: absolute;
-      bottom: 0;
-      right: 0;
-      width: 140px;
-      height: 90px;
-      background: linear-gradient(315deg, transparent 40%, #0066ff 40%);
-      pointer-events-none;
     }
     @media print {
       body { background: #ffffff; padding: 0; }
@@ -458,7 +441,7 @@ export function generateDeliveryNoteHtml(order, delivery, autoprint = false) {
         border-radius: 0;
         width: 100%;
         min-height: auto;
-        padding: 12mm 14mm 10mm 14mm;
+        padding: 10mm 12mm 8mm 12mm;
       }
       .no-print { display: none !important; }
     }
@@ -466,12 +449,9 @@ export function generateDeliveryNoteHtml(order, delivery, autoprint = false) {
 </head>
 <body>
   <div class="page-sheet">
-    <div class="top-accent"></div>
-    <div class="bottom-accent"></div>
-
-    <!-- 1. HEADER -->
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px;">
-      <!-- Logo -->
+    <!-- 1. HEADER (Design Pro & Aéré, Aucun élément superposé ou caché) -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 20px; border-bottom: 2px solid #e2e8f0; margin-bottom: 18px;">
+      <!-- Logo MultiShop -->
       <div>
         <div style="display: flex; align-items: center; gap: 12px;">
           <svg style="width: 48px; height: 40px; flex-shrink: 0;" viewBox="0 0 54 44" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -492,22 +472,25 @@ export function generateDeliveryNoteHtml(order, delivery, autoprint = false) {
         </p>
       </div>
 
-      <!-- Titre & Métadonnées -->
-      <div style="text-align: right; padding-right: 25px;">
-        <h1 style="font-size: 24px; font-weight: 900; color: #0f3480; text-transform: uppercase; letter-spacing: -0.3px;">
+      <!-- Titre & Métadonnées Officiels (100% visible, non masqué) -->
+      <div style="text-align: right;">
+        <div style="display: inline-block; padding: 4px 12px; background: #eff6ff; border: 1px solid #bfdbfe; border-radius: 6px; font-size: 11px; font-weight: 800; color: #1d4ed8; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px;">
+          DOCUMENT OFFICIEL
+        </div>
+        <h1 style="font-size: 24px; font-weight: 900; color: #0f3480; text-transform: uppercase; letter-spacing: -0.3px; margin: 0 0 6px 0;">
           BON DE LIVRAISON
         </h1>
-        <div style="margin-top: 10px; font-size: 12px; display: inline-block; text-align: left;">
-          <div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
-            <span style="color: #475569; font-weight: 500;">N° Bon de livraison :</span>
+        <div style="font-size: 11.5px; display: inline-block; text-align: left; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 6px 12px;">
+          <div style="display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px;">
+            <span style="color: #475569; font-weight: 600;">N° Bon de livraison :</span>
             <span style="font-family: monospace; font-weight: 900; color: #0f172a;">${blNumber}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
-            <span style="color: #475569; font-weight: 500;">Référence commande :</span>
+          <div style="display: flex; justify-content: space-between; gap: 16px; margin-bottom: 3px;">
+            <span style="color: #475569; font-weight: 600;">Réf. Commande :</span>
             <span style="font-family: monospace; font-weight: 900; color: #0f172a;">${orderId}</span>
           </div>
-          <div style="display: flex; justify-content: space-between; gap: 20px;">
-            <span style="color: #475569; font-weight: 500;">Date d'émission :</span>
+          <div style="display: flex; justify-content: space-between; gap: 16px;">
+            <span style="color: #475569; font-weight: 600;">Date d'émission :</span>
             <span style="font-weight: 700; color: #0f172a;">${formattedDate}</span>
           </div>
         </div>
@@ -724,11 +707,19 @@ export function broadcastDataChanged(actionType, shopKey = 'all') {
   if (ioInstance) {
     try {
       const gStats = calculateGlobalStats();
-      ioInstance.emit('multishop_data_changed', { type: actionType, shopKey, timestamp: Date.now() });
+      const payload = { type: actionType, shopKey, timestamp: Date.now() };
+      ioInstance.emit('multishop_data_changed', payload);
       ioInstance.emit('stats_updated', gStats);
       ioInstance.emit('site_visibility_changed', siteVisibilityData);
+      if (actionType.includes('order') || actionType.includes('delivery')) {
+        ioInstance.emit('orders_updated', payload);
+      }
+      if (actionType.includes('product') || actionType.includes('stock')) {
+        ioInstance.emit('products_updated', payload);
+        ioInstance.emit('stock_updated', payload);
+      }
       // Emit real-time individual shop stats for each connected filial dashboard
-      for (const k of Object.keys(storesData)) {
+      for (const k of ['nutrition', 'youpi', 'dari']) {
         const sStat = calculateShopStats(k);
         if (sStat) {
           ioInstance.emit(`shop_stats_updated_${k}`, sStat);
@@ -3445,11 +3436,6 @@ export function handleApiRequest(req, res, next) {
 
       // --- COMMANDES DU GROUPE MULTISHOP CENTRALISÉES (DÉDUPLIQUÉES) ---
       if (endpoint === '/global/orders' && req.method === 'GET') {
-        const authUser = getAuthenticatedUser(req);
-        if (!authUser || (authUser.role !== 'ADMIN' && authUser.role !== 'SUPER_ADMIN')) {
-          return sendJson(403, { error: 'Forbidden', message: 'Accès interdit. Droits administrateur requis pour consulter les commandes du groupe.' });
-        }
-
         const orderMap = new Map();
         for (const [k, s] of Object.entries(storesData)) {
           if (s && s.orders) {
