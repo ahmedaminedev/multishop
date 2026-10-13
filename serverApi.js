@@ -223,6 +223,9 @@ export function computeDeliveryGeneralStatus(delivery) {
   let retournees = 0;
   let enCours = 0;
   let total = delivery.orderIds.length;
+  let totalMontant = 0;
+  let totalAEncaisser = 0;
+  let totalColis = 0;
 
   for (const oId of delivery.orderIds) {
     const match = findOrderAcrossStores(oId);
@@ -236,6 +239,19 @@ export function computeDeliveryGeneralStatus(delivery) {
       } else {
         enCours++;
       }
+
+      const ordTotal = (Number(o.total || o.totalAmount) || 0);
+      totalMontant += ordTotal;
+
+      const isDejaPaye = o.statutPaiement === 'PAIEMENT_ENCAISSE' || 
+                         o.paymentMethod === 'EN_LIGNE' || 
+                         o.paymentMethod === 'CARTE_BANCAIRE' || 
+                         o.paymentMethod === 'PAYMEE';
+      if (!isDejaPaye) {
+        totalAEncaisser += ordTotal;
+      }
+      const colis = o.itemCount || (Array.isArray(o.items) ? o.items.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0) : 1) || 1;
+      totalColis += colis;
     } else {
       enCours++;
     }
@@ -245,6 +261,9 @@ export function computeDeliveryGeneralStatus(delivery) {
   delivery.commandesLivrees = livrees;
   delivery.commandesRetournees = retournees;
   delivery.commandesEnCours = enCours;
+  delivery.montantTotal = totalMontant;
+  delivery.montantAEncaisser = totalAEncaisser;
+  delivery.totalColis = totalColis;
 
   if (enCours > 0) {
     return 'EN_COURS';
@@ -256,6 +275,7 @@ export function computeDeliveryGeneralStatus(delivery) {
     return 'TERMINEE';
   }
 }
+
 
 // Helper: Retrouver une commande dans n'importe quel magasin
 export function findOrderAcrossStores(orderId) {
@@ -2690,6 +2710,8 @@ export function handleApiRequest(req, res, next) {
         const deliveryRef = `LIV-2026-${numSequence}`;
 
         let totalMontant = 0;
+        let totalAEncaisser = 0;
+        let totalColis = 0;
         const validOrderIds = [];
 
         for (const oId of orderIds) {
@@ -2706,7 +2728,19 @@ export function handleApiRequest(req, res, next) {
               administrateur: 'Super Admin'
             };
 
-            totalMontant += (Number(order.total || order.totalAmount) || 0);
+            const ordTotal = (Number(order.total || order.totalAmount) || 0);
+            totalMontant += ordTotal;
+
+            const isDejaPaye = order.statutPaiement === 'PAIEMENT_ENCAISSE' || 
+                               order.paymentMethod === 'EN_LIGNE' || 
+                               order.paymentMethod === 'CARTE_BANCAIRE' || 
+                               order.paymentMethod === 'PAYMEE';
+            if (!isDejaPaye) {
+              totalAEncaisser += ordTotal;
+            }
+            const colis = order.itemCount || (Array.isArray(order.items) ? order.items.reduce((sum, it) => sum + (Number(it.quantity) || 1), 0) : 1) || 1;
+            totalColis += colis;
+
             validOrderIds.push(oId);
 
             if (!Array.isArray(order.historique)) order.historique = [];
@@ -2737,6 +2771,8 @@ export function handleApiRequest(req, res, next) {
           commandesRetournees: 0,
           commandesEnCours: validOrderIds.length,
           montantTotal: totalMontant,
+          montantAEncaisser: totalAEncaisser,
+          totalColis: totalColis,
           recuTransporteur: null,
           historiqueRecus: [],
           notes: notes || '',
@@ -2746,7 +2782,7 @@ export function handleApiRequest(req, res, next) {
               heure: heureStr,
               auteur: 'Super Admin',
               action: 'CREATION_LIVRAISON',
-              description: `Dossier créé avec ${validOrderIds.length} commandes pour un montant total de ${totalMontant} DT. Transporteur : ${societeLivraisonNom}.`
+              description: `Dossier créé avec ${validOrderIds.length} commandes (${totalColis} colis). Montant total: ${totalMontant} DT (dont ${totalAEncaisser} DT à encaisser COD). Transporteur: ${societeLivraisonNom}.`
             }
           ]
         };

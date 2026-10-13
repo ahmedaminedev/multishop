@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Search,
   Filter,
@@ -28,14 +28,19 @@ import {
   Sparkles,
   Layers,
   ChevronRight,
+  ChevronDown,
   ExternalLink,
   Check,
   AlertTriangle,
   Send,
-  HelpCircle
+  HelpCircle,
+  MoreVertical,
+  FileCheck
 } from 'lucide-react';
 import { centralApiRequest } from '../../services/apiClient';
 import { DeliveryCompaniesView } from './DeliveryCompaniesView';
+import { DocumentViewerModal, DocumentType } from './documents/DocumentViewerModal';
+
 
 interface GlobalOrdersViewProps {
   orders: any[];
@@ -83,6 +88,20 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
   const [failureReason, setFailureReason] = useState('Client absent lors du passage du transporteur');
   const [failureComment, setFailureComment] = useState('');
   const [showInvoiceModal, setShowInvoiceModal] = useState<any | null>(null);
+
+  // Document Viewer Modal State (Bordereau, Bons de livraison, Factures A4)
+  const [docViewerState, setDocViewerState] = useState<{
+    isOpen: boolean;
+    type: DocumentType;
+    order: any | null;
+  }>({
+    isOpen: false,
+    type: 'delivery_notes',
+    order: null
+  });
+
+  // Action Menu dropdown state for cleaner rows without button overloading
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null);
 
   // Delivery Companies (Carriers)
   const [carriers, setCarriers] = useState<DeliveryCompany[]>([]);
@@ -976,65 +995,68 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
               <table className="w-full text-left text-xs">
                 <thead className="bg-slate-50 dark:bg-slate-800/60 text-slate-500 dark:text-slate-400 font-bold uppercase tracking-wider text-[10px] border-b border-slate-100 dark:border-slate-800">
                   <tr>
-                    <th className="py-3.5 px-4 w-10">
+                    <th className="py-3.5 px-3 w-10 text-center">
                       <span className="sr-only">Sélection</span>
                     </th>
-                    <th className="py-3.5 px-4">Réf Commande</th>
-                    <th className="py-3.5 px-4">Boutique(s)</th>
+                    <th className="py-3.5 px-4">N° Commande</th>
+                    <th className="py-3.5 px-4">Boutique</th>
                     <th className="py-3.5 px-4">Client & Contact</th>
-                    <th className="py-3.5 px-4">Articles</th>
-                    <th className="py-3.5 px-4">Total (TTC)</th>
-                    <th className="py-3.5 px-4">Statut & Étape</th>
-                    <th className="py-3.5 px-4">Société Livraison</th>
-                    <th className="py-3.5 px-4 text-right">Actions Administrateur</th>
+                    <th className="py-3.5 px-3 text-center">Articles</th>
+                    <th className="py-3.5 px-4 text-right">Montant Total</th>
+                    <th className="py-3.5 px-3 text-center">Statut Facture</th>
+                    <th className="py-3.5 px-3 text-center">Statut Livraison</th>
+                    <th className="py-3.5 px-3 text-center">Documents</th>
+                    <th className="py-3.5 px-4 text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
                   {filteredOrders.length === 0 ? (
                     <tr>
-                      <td colSpan={9} className="text-center py-12 text-slate-400">
+                      <td colSpan={10} className="text-center py-12 text-slate-400">
                         <Package className="w-8 h-8 mx-auto mb-2 opacity-40" />
                         <p className="font-bold">Aucune commande trouvée pour ce filtre.</p>
                       </td>
                     </tr>
                   ) : (
                     filteredOrders.map((order) => {
-                      const statusDisplay = getOrderStatusDisplay(order);
+                      const oId = order.id || order.orderNumber;
                       const cmdStat = order.statutCommande || order.status;
                       const livStat = order.statutLivraison || 'NON_INITIEE';
                       const payStat = order.statutPaiement || 'PAIEMENT_EN_ATTENTE';
-                      const isSelected = selectedOrderIds.includes(order.id || order.orderNumber);
+                      const isSelected = selectedOrderIds.includes(oId);
+                      const isActionMenuOpen = openActionMenuId === oId;
                       const isEligibleForAssign =
                         cmdStat === 'CONFIRMEE' &&
-                        (livStat === 'LIVRAISON_EN_ATTENTE' || livStat === 'NON_INITIEE' || livStat === 'ECHEC_LIVRAISON');
+                        !order.deliveryId &&
+                        (livStat === 'LIVRAISON_EN_ATTENTE' || livStat === 'NON_INITIEE' || livStat === 'LIVRAISON_INITIALE' || livStat === 'ECHEC_LIVRAISON');
 
                       return (
                         <tr
-                          key={order.id || order.orderNumber}
+                          key={oId}
                           className={`hover:bg-slate-50/70 dark:hover:bg-slate-800/40 transition-colors ${
                             isSelected ? 'bg-blue-50/50 dark:bg-blue-950/20' : ''
                           }`}
                         >
                           {/* Checkbox for batch selection */}
-                          <td className="py-3.5 px-4">
+                          <td className="py-3.5 px-3 text-center">
                             {isEligibleForAssign ? (
                               <input
                                 type="checkbox"
                                 checked={isSelected}
-                                onChange={() => toggleSelectOrder(order.id || order.orderNumber)}
+                                onChange={() => toggleSelectOrder(oId)}
                                 className="w-4 h-4 rounded text-blue-600 focus:ring-blue-500 cursor-pointer"
                               />
                             ) : (
-                              <span className="w-4 h-4 block" />
+                              <span className="w-4 h-4 block mx-auto" />
                             )}
                           </td>
 
                           {/* Reference & Date */}
-                          <td className="py-3.5 px-4">
-                            <span className="font-mono font-bold text-slate-900 dark:text-white block">
+                          <td className="py-3.5 px-4 font-mono">
+                            <span className="font-bold text-slate-900 dark:text-white block text-xs">
                               {order.orderNumber || order.id}
                             </span>
-                            <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5">
+                            <span className="text-[10px] text-slate-400 font-sans flex items-center gap-1 mt-0.5">
                               <Calendar className="w-3 h-3" />
                               {order.date} {order.heure || ''}
                             </span>
@@ -1066,207 +1088,232 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
                             </div>
                           </td>
 
-                          {/* Client details */}
+                          {/* Client details & Coordonnées */}
                           <td className="py-3.5 px-4">
                             <p className="font-bold text-slate-900 dark:text-white">{order.customerName}</p>
-                            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+                            <p className="text-[10px] text-slate-500 font-mono">
                               {order.phone || order.customerInfo?.phone || '—'}
                             </p>
                             <p className="text-[10px] text-slate-400 truncate max-w-[150px]">
-                              {order.shippingAddress?.city || order.customerInfo?.city || 'Tunisie'}
+                              {order.shippingAddress?.city || order.customerInfo?.city || 'Tunis'}
                             </p>
                           </td>
 
-                          {/* Items count */}
-                          <td className="py-3.5 px-4">
-                            <span className="font-semibold text-slate-700 dark:text-slate-300">
-                              {order.items?.length || 1} réf ({order.itemCount || order.items?.reduce((a: number, b: any) => a + (b.quantity || 1), 0) || 1} pcs)
+                          {/* Items count & Articles */}
+                          <td className="py-3.5 px-3 text-center">
+                            <span className="font-semibold text-slate-700 dark:text-slate-300 block">
+                              {order.items?.length || 1} réf
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {order.itemCount || order.items?.reduce((a: number, b: any) => a + (b.quantity || 1), 0) || 1} pièces
                             </span>
                           </td>
 
-                          {/* Total */}
-                          <td className="py-3.5 px-4 font-black text-slate-900 dark:text-white">
-                            {(order.total || order.totalAmount || 0).toLocaleString('fr-FR')} DT
+                          {/* Total TTC & Modalité */}
+                          <td className="py-3.5 px-4 text-right">
+                            <span className="font-black text-slate-900 dark:text-white block">
+                              {(order.total || order.totalAmount || 0).toLocaleString('fr-FR')} DT
+                            </span>
+                            <span className="text-[10px] text-slate-400">
+                              {order.paymentMethod === 'EN_LIGNE' || order.paymentMethod === 'CARTE_BANCAIRE' ? 'Payé en ligne' : 'COD (Espèces)'}
+                            </span>
                           </td>
 
-                          {/* Status Badge */}
-                          <td className="py-3.5 px-4">
-                            <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold border ${statusDisplay.badgeClass}`}
-                            >
-                              <statusDisplay.icon className="w-3 h-3" />
-                              <span>{statusDisplay.label}</span>
-                            </span>
-                            {order.stockReserve && cmdStat !== 'ARCHIVEE' && (
-                              <span className="block text-[9px] font-extrabold text-amber-600 dark:text-amber-400 mt-1">
-                                🔒 Stock réservé
+                          {/* Statut Facture */}
+                          <td className="py-3.5 px-3 text-center">
+                            {order.facture || order.statutFacture === 'FACTURE_GENEREE' ? (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-bold">
+                                <FileCheck className="w-3 h-3" />
+                                <span>Générée</span>
+                              </span>
+                            ) : (
+                              <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px]">
+                                À générer
                               </span>
                             )}
                           </td>
 
-                          {/* Assigned Carrier */}
-                          <td className="py-3.5 px-4">
-                            {order.affectationLivraison?.societeLivraisonNom ? (
-                              <div>
-                                <span className="font-bold text-blue-600 text-xs block">
-                                  {order.affectationLivraison.societeLivraisonNom}
+                          {/* Statut Livraison */}
+                          <td className="py-3.5 px-3 text-center">
+                            {livStat === 'LIVREE' && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 text-[10px] font-black uppercase">
+                                <CheckCircle2 className="w-3 h-3" />
+                                <span>Livrée</span>
+                              </span>
+                            )}
+                            {(livStat === 'RETOURNEE' || livStat === 'RETOUR') && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-100 text-rose-800 dark:bg-rose-950 dark:text-rose-300 text-[10px] font-black uppercase">
+                                <RotateCcw className="w-3 h-3" />
+                                <span>Retournée</span>
+                              </span>
+                            )}
+                            {(livStat === 'EN_COURS' || livStat === 'EN_LIVRAISON') && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-100 text-amber-800 dark:bg-amber-950 dark:text-amber-300 text-[10px] font-black uppercase">
+                                <Truck className="w-3 h-3" />
+                                <span>En cours</span>
+                              </span>
+                            )}
+                            {livStat === 'AFFECTEE_LIVRAISON' && (
+                              <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-100 text-blue-800 dark:bg-blue-950 dark:text-blue-300 text-[10px] font-black uppercase">
+                                <Building2 className="w-3 h-3" />
+                                <span>Affectée</span>
+                              </span>
+                            )}
+                            {livStat !== 'LIVREE' && livStat !== 'RETOURNEE' && livStat !== 'RETOUR' && livStat !== 'EN_COURS' && livStat !== 'EN_LIVRAISON' && livStat !== 'AFFECTEE_LIVRAISON' && (
+                              cmdStat === 'CONFIRMEE' ? (
+                                <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-sky-100 text-sky-800 dark:bg-sky-950 dark:text-sky-300 text-[10px] font-bold">
+                                  <Clock className="w-3 h-3" />
+                                  <span>Prête</span>
                                 </span>
-                                <span className="text-[9px] text-slate-400">
-                                  Prévu : {order.affectationLivraison.dateLivraisonPrevue || '24-48h'}
+                              ) : (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-500 text-[10px]">
+                                  Non initiée
                                 </span>
-                              </div>
-                            ) : (
-                              <span className="text-slate-400 text-[10px] italic">Non assignée</span>
+                              )
                             )}
                           </td>
 
-                          {/* Actions buttons */}
+                          {/* Documents d'accès direct */}
+                          <td className="py-3.5 px-3 text-center">
+                            <div className="flex items-center justify-center gap-1.5">
+                              {/* Bon de Livraison */}
+                              <button
+                                type="button"
+                                onClick={() => setDocViewerState({ isOpen: true, type: 'delivery_notes', order })}
+                                className="p-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 dark:bg-indigo-950/60 dark:hover:bg-indigo-900 text-indigo-600 dark:text-indigo-400 transition-colors cursor-pointer"
+                                title="Voir & imprimer le Bon de Livraison"
+                              >
+                                <FileText className="w-3.5 h-3.5" />
+                              </button>
+
+                              {/* Facture Commerciale */}
+                              <button
+                                type="button"
+                                onClick={() => setDocViewerState({ isOpen: true, type: 'invoices', order })}
+                                className="p-1.5 rounded-xl bg-blue-50 hover:bg-blue-100 dark:bg-blue-950/60 dark:hover:bg-blue-900 text-blue-600 dark:text-blue-400 transition-colors cursor-pointer"
+                                title="Consulter & imprimer la Facture"
+                              >
+                                <Receipt className="w-3.5 h-3.5" />
+                              </button>
+                            </div>
+                          </td>
+
+                          {/* Actions Administrateur épurées avec menu Actions */}
                           <td className="py-3.5 px-4 text-right">
-                            <div className="flex items-center justify-end gap-1.5">
-                              {/* 1. Step: EN_ATTENTE_CONFIRMATION */}
+                            <div className="relative inline-flex items-center gap-1.5">
+                              {/* Action principale contextuelle */}
                               {cmdStat === 'EN_ATTENTE_CONFIRMATION' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleConfirmOrder(order.id || order.orderNumber)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] cursor-pointer shadow-xs"
-                                    title="Confirmer la commande"
-                                  >
-                                    Confirmer
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowRefuseModal(order)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-rose-50 text-rose-700 hover:bg-rose-100 border border-rose-200 font-bold text-[10px] cursor-pointer"
-                                    title="Refuser et archiver (remet en stock)"
-                                  >
-                                    Refuser
-                                  </button>
-                                </>
+                                <button
+                                  type="button"
+                                  onClick={() => handleConfirmOrder(oId)}
+                                  className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[11px] cursor-pointer shadow-xs transition-all active:scale-95"
+                                >
+                                  Confirmer
+                                </button>
                               )}
 
-                              {/* 2. Step: CONFIRMEE & LIVRAISON_EN_ATTENTE */}
                               {isEligibleForAssign && (
                                 <button
                                   type="button"
                                   onClick={() => {
-                                    setSelectedOrderIds([order.id || order.orderNumber]);
+                                    setSelectedOrderIds([oId]);
                                     setShowBatchAssignModal(true);
                                   }}
-                                  className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[10px] cursor-pointer shadow-xs flex items-center gap-1"
-                                  title="Affecter à un transporteur"
+                                  className="px-2.5 py-1.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-[11px] cursor-pointer shadow-xs transition-all active:scale-95 flex items-center gap-1"
                                 >
                                   <Truck className="w-3 h-3" />
                                   <span>Affecter</span>
                                 </button>
                               )}
 
-                              {/* 3. Step: AFFECTEE_LIVRAISON */}
-                              {livStat === 'AFFECTEE_LIVRAISON' && (
+                              {/* Bouton de menu déroulant Actions pour les actions secondaires */}
+                              <div className="relative">
                                 <button
                                   type="button"
-                                  onClick={() => handleMarkInDelivery(order.id || order.orderNumber)}
-                                  className="px-2.5 py-1.5 rounded-lg bg-purple-600 hover:bg-purple-700 text-white font-extrabold text-[10px] cursor-pointer shadow-xs flex items-center gap-1"
-                                  title="Marquer prise en charge par le transporteur"
+                                  onClick={() => setOpenActionMenuId(isActionMenuOpen ? null : oId)}
+                                  className="px-2.5 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-200 font-bold text-[11px] flex items-center gap-1 cursor-pointer transition-colors"
                                 >
-                                  <Truck className="w-3 h-3" />
-                                  <span>En Livraison</span>
+                                  <span>Actions</span>
+                                  <ChevronDown className="w-3 h-3" />
                                 </button>
-                              )}
 
-                              {/* 4. Step: EN_LIVRAISON */}
-                              {livStat === 'EN_LIVRAISON' && (
-                                <>
-                                  <button
-                                    type="button"
-                                    onClick={() => handleMarkDelivered(order.id || order.orderNumber)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] cursor-pointer shadow-xs flex items-center gap-1"
-                                    title="Confirmer la livraison au client"
-                                  >
-                                    <Check className="w-3 h-3" />
-                                    <span>Colis Livré</span>
-                                  </button>
-                                  <button
-                                    type="button"
-                                    onClick={() => setShowFailureModal(order)}
-                                    className="px-2 py-1.5 rounded-lg bg-orange-50 text-orange-700 hover:bg-orange-100 border border-orange-200 font-bold text-[10px] cursor-pointer"
-                                    title="Déclarer échec de livraison"
-                                  >
-                                    Échec
-                                  </button>
-                                </>
-                              )}
+                                {/* Dropdown menu */}
+                                {isActionMenuOpen && (
+                                  <>
+                                    <div
+                                      className="fixed inset-0 z-30"
+                                      onClick={() => setOpenActionMenuId(null)}
+                                    />
+                                    <div className="absolute right-0 top-full mt-1.5 w-48 bg-white dark:bg-slate-900 rounded-2xl shadow-xl border border-slate-200 dark:border-slate-800 py-1.5 z-40 text-left animate-scaleUp">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setInspectOrder(order);
+                                          setOpenActionMenuId(null);
+                                        }}
+                                        className="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <Eye className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Détails & Historique</span>
+                                      </button>
 
-                              {/* 5. Step: LIVREE but not yet paid */}
-                              {livStat === 'LIVREE' && payStat === 'PAIEMENT_EN_ATTENTE' && (
-                                <button
-                                  type="button"
-                                  onClick={() =>
-                                    handleCollectPayment(
-                                      order.id || order.orderNumber,
-                                      order.total || order.totalAmount || 0
-                                    )
-                                  }
-                                  className="px-2.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-[10px] cursor-pointer shadow-xs flex items-center gap-1"
-                                  title="Encaisser le paiement en espèces à la livraison"
-                                >
-                                  <DollarSign className="w-3 h-3" />
-                                  <span>Encaisser COD</span>
-                                </button>
-                              )}
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setDocViewerState({ isOpen: true, type: 'delivery_notes', order });
+                                          setOpenActionMenuId(null);
+                                        }}
+                                        className="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <FileText className="w-3.5 h-3.5 text-indigo-600" />
+                                        <span>Bon de livraison</span>
+                                      </button>
 
-                              {/* 6. Step: LIVREE + PAIEMENT_ENCAISSE, generate invoice */}
-                              {livStat === 'LIVREE' &&
-                                payStat === 'PAIEMENT_ENCAISSE' &&
-                                (!order.facture || order.statutFacture !== 'FACTURE_GENEREE') && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleGenerateInvoice(order.id || order.orderNumber)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-blue-600 hover:bg-blue-700 text-white font-extrabold text-[10px] cursor-pointer shadow-xs flex items-center gap-1"
-                                    title="Générer la facture légale"
-                                  >
-                                    <Receipt className="w-3 h-3" />
-                                    <span>Facturer</span>
-                                  </button>
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          setDocViewerState({ isOpen: true, type: 'invoices', order });
+                                          setOpenActionMenuId(null);
+                                        }}
+                                        className="w-full px-3.5 py-2 text-xs font-semibold text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer"
+                                      >
+                                        <Receipt className="w-3.5 h-3.5 text-blue-600" />
+                                        <span>Facture officielle</span>
+                                      </button>
+
+                                      {/* Action secondaire : Refuser la commande si en attente */}
+                                      {cmdStat === 'EN_ATTENTE_CONFIRMATION' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            setShowRefuseModal(order);
+                                            setOpenActionMenuId(null);
+                                          }}
+                                          className="w-full px-3.5 py-2 text-xs font-bold text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-2 cursor-pointer border-t border-slate-100 dark:border-slate-800 mt-1"
+                                        >
+                                          <XCircle className="w-3.5 h-3.5" />
+                                          <span>Refuser la commande</span>
+                                        </button>
+                                      )}
+
+                                      {/* Action secondaire : Clôturer si livrée */}
+                                      {livStat === 'LIVREE' && cmdStat !== 'CLOTUREE' && (
+                                        <button
+                                          type="button"
+                                          onClick={() => {
+                                            handleCloseOrder(oId);
+                                            setOpenActionMenuId(null);
+                                          }}
+                                          className="w-full px-3.5 py-2 text-xs font-bold text-slate-800 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800 flex items-center gap-2 cursor-pointer border-t border-slate-100 dark:border-slate-800 mt-1"
+                                        >
+                                          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+                                          <span>Clôturer la commande</span>
+                                        </button>
+                                      )}
+                                    </div>
+                                  </>
                                 )}
-
-                              {/* 7. Step: Invoice generated, ready to close */}
-                              {livStat === 'LIVREE' &&
-                                payStat === 'PAIEMENT_ENCAISSE' &&
-                                (order.facture || order.statutFacture === 'FACTURE_GENEREE') &&
-                                cmdStat !== 'CLOTUREE' && (
-                                  <button
-                                    type="button"
-                                    onClick={() => handleCloseOrder(order.id || order.orderNumber)}
-                                    className="px-2.5 py-1.5 rounded-lg bg-slate-900 hover:bg-black text-white font-extrabold text-[10px] cursor-pointer shadow-xs flex items-center gap-1"
-                                    title="Clôturer définitivement la commande"
-                                  >
-                                    <ShieldCheck className="w-3 h-3 text-emerald-400" />
-                                    <span>Clôturer</span>
-                                  </button>
-                                )}
-
-                              {/* View invoice button */}
-                              {order.facture && (
-                                <button
-                                  type="button"
-                                  onClick={() => setShowInvoiceModal(order)}
-                                  className="p-1.5 rounded-lg text-blue-600 hover:bg-blue-50 cursor-pointer"
-                                  title="Voir la Facture"
-                                >
-                                  <Receipt className="w-4 h-4" />
-                                </button>
-                              )}
-
-                              {/* Detail Inspector Button */}
-                              <button
-                                type="button"
-                                onClick={() => setInspectOrder(order)}
-                                className="p-1.5 rounded-lg text-slate-500 hover:text-blue-600 hover:bg-slate-100 cursor-pointer"
-                                title="Voir détails et audit"
-                              >
-                                <Eye className="w-4 h-4" />
-                              </button>
+                              </div>
                             </div>
                           </td>
                         </tr>
@@ -1964,6 +2011,14 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
           </form>
         </div>
       )}
+      {/* Unified Professional Document Viewer & Print Modal */}
+      <DocumentViewerModal
+        isOpen={docViewerState.isOpen}
+        onClose={() => setDocViewerState((prev) => ({ ...prev, isOpen: false }))}
+        initialType={docViewerState.type}
+        orders={docViewerState.order ? [docViewerState.order] : []}
+        selectedSingleOrderId={docViewerState.order?.id || docViewerState.order?.orderNumber}
+      />
     </div>
   );
 };

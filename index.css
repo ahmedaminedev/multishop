@@ -29,3 +29,79 @@ body {
   display: block;
   outline: none;
 }
+
+/* ========================================================================= */
+/* RÈGLES SPÉCIFIQUES D'IMPRESSION HAUTE-FIDÉLITÉ (A4 PORTRAIT)              */
+/* ========================================================================= */
+@media print {
+  @page {
+    size: A4 portrait;
+    margin: 8mm 10mm;
+  }
+
+  html, body {
+    background: #ffffff !important;
+    color: #0f172a !important;
+    font-size: 11pt !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  /* Hide app navigation, headers, sidebars and all screen chrome */
+  nav,
+  header,
+  aside,
+  button,
+  .print-hide,
+  .no-print,
+  .sub-shop-sticky-header,
+  div[class*="fixed inset-0"][class*="backdrop-blur"] > div > div:first-child {
+    display: none !important;
+  }
+
+  /* Make modal container full width and white without shadow */
+  div[class*="fixed inset-0"] {
+    position: static !important;
+    background: transparent !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    overflow: visible !important;
+    display: block !important;
+  }
+
+  div[class*="fixed inset-0"] > div {
+    max-width: 100% !important;
+    max-height: none !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    border-radius: 0 !important;
+    overflow: visible !important;
+  }
+
+  .printable-document {
+    display: block !important;
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
+  .page-break-after-always {
+    page-break-after: always !important;
+    break-after: page !important;
+  }
+
+  .page-break-inside-avoid {
+    page-break-inside: avoid !important;
+    break-inside: avoid !important;
+  }
+}
+
