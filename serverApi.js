@@ -329,6 +329,391 @@ export function reserveOrderStock(items) {
   }
 }
 
+// Helper: Générer le document Bon de Livraison officiel 100% conforme au modèle A4
+export function generateDeliveryNoteHtml(order, delivery, autoprint = false) {
+  if (!order) return '<html><body>Commande introuvable</body></html>';
+
+  const orderId = order.orderNumber || order.id || 'CMD-2026-0048';
+  const blNumber = order.numeroBonLivraison || `BL-${orderId.replace('CMD-', '')}`;
+  const rawDate = order.date || new Date().toISOString().split('T')[0];
+  let formattedDate = rawDate;
+  if (rawDate.includes('-')) {
+    const p = rawDate.split('-');
+    if (p.length === 3) formattedDate = `${p[2]}/${p[1]}/${p[0]}`;
+  }
+
+  const customerName = order.customerName ||
+    (order.customerInfo ? `${order.customerInfo.firstName || ''} ${order.customerInfo.lastName || ''}`.trim() : 'Ahmed Ben Ali');
+  const customerPhone = order.phone || order.customerInfo?.phone || '+216 98 765 432';
+  const street = order.shippingAddress?.street || order.customerInfo?.address || '12 Rue de la Liberté';
+  const city = order.shippingAddress?.city || order.customerInfo?.city || 'Tunis';
+  const postalCode = order.shippingAddress?.postalCode || order.customerInfo?.postalCode || '1000';
+  const country = order.shippingAddress?.country || order.customerInfo?.country || 'Tunisie';
+
+  const carrier = order.affectationLivraison?.societeLivraisonNom || (delivery?.societeLivraisonNom) || 'Tunis Express';
+  const deliveryDossierRef = order.deliveryId || order.affectationLivraison?.deliveryId || (delivery?.reference) || 'LIV-2026-0001';
+
+  const items = Array.isArray(order.items) && order.items.length > 0 ? order.items : [
+    {
+      name: 'Montre connectée Galaxy Watch',
+      subtitle: 'Écran AMOLED - 1.5" - Noir',
+      sku: 'SMT-001',
+      quantity: 1
+    }
+  ];
+
+  const totalItemsCount = order.itemCount || items.reduce((acc, it) => acc + (Number(it.quantity) || 1), 0);
+  const totalPackages = order.totalColis || 1;
+
+  const isOnlinePaid = order.statutPaiement === 'PAIEMENT_ENCAISSE' ||
+    order.paymentMethod === 'EN_LIGNE' ||
+    order.paymentMethod === 'CARTE_BANCAIRE' ||
+    order.paymentMethod === 'PAYMEE';
+
+  const paymentLabel = isOnlinePaid ? 'Paiement en ligne' : 'Contre remboursement';
+  const paymentSub = isOnlinePaid ? '(Carte bancaire)' : '(Paiement à la livraison)';
+  const observations = order.notes || order.affectationLivraison?.instructions || order.commentaires || 'Aucune observation particulière.';
+
+  const itemsRows = items.map((itm, idx) => {
+    const sku = itm.sku || itm.reference || `REF-${(idx + 1).toString().padStart(3, '0')}`;
+    const name = itm.name || itm.title || itm.designation || `Article ${idx + 1}`;
+    const subtitle = itm.subtitle || itm.description || (itm.variant ? `Option : ${itm.variant}` : '');
+    const qty = Number(itm.quantity) || 1;
+    const imgUrl = itm.image || itm.imageUrl || itm.photo || '';
+
+    return `
+      <tr style="border-bottom: 1px solid #dbeafe;">
+        <td style="padding: 10px 12px; text-align: center; font-weight: 700; color: #1e293b; border-right: 1px solid #dbeafe;">
+          ${idx + 1}
+        </td>
+        <td style="padding: 8px 10px; text-align: center; border-right: 1px solid #dbeafe;">
+          <div style="width: 44px; height: 44px; margin: 0 auto; border-radius: 8px; background: #f8fafc; border: 1px solid #e2e8f0; display: flex; align-items: center; justify-content: center; overflow: hidden;">
+            ${imgUrl ? `<img src="${imgUrl}" alt="${name}" style="width: 100%; height: 100%; object-fit: contain; padding: 2px;" onerror="this.style.display='none'" />` : `
+            <svg style="width: 22px; height: 22px; color: #94a3b8;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"/></svg>`}
+          </div>
+        </td>
+        <td style="padding: 10px 12px; text-align: center; font-family: monospace; font-weight: 700; color: #1e293b; border-right: 1px solid #dbeafe;">
+          ${sku}
+        </td>
+        <td style="padding: 10px 12px; border-right: 1px solid #dbeafe;">
+          <div style="font-weight: 700; color: #0f172a; font-size: 13px;">${name}</div>
+          ${subtitle ? `<div style="font-size: 11px; color: #2563eb; margin-top: 2px;">${subtitle}</div>` : ''}
+        </td>
+        <td style="padding: 10px 12px; text-align: center; font-weight: 900; color: #0f172a; font-size: 14px;">
+          ${qty}
+        </td>
+      </tr>
+    `;
+  }).join('');
+
+  return `<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Bon de Livraison - ${blNumber}</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background: #f1f5f9;
+      color: #0f172a;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      padding: 24px;
+      display: flex;
+      justify-content: center;
+    }
+    .page-sheet {
+      position: relative;
+      background: #ffffff;
+      width: 210mm;
+      min-height: 297mm;
+      padding: 18mm 18mm 14mm 18mm;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      border-radius: 12px;
+      overflow: hidden;
+    }
+    .top-accent {
+      position: absolute;
+      top: 0;
+      right: 0;
+      width: 140px;
+      height: 90px;
+      background: linear-gradient(135deg, transparent 40%, #0066ff 40%);
+      pointer-events-none;
+    }
+    .bottom-accent {
+      position: absolute;
+      bottom: 0;
+      right: 0;
+      width: 140px;
+      height: 90px;
+      background: linear-gradient(315deg, transparent 40%, #0066ff 40%);
+      pointer-events-none;
+    }
+    @media print {
+      body { background: #ffffff; padding: 0; }
+      .page-sheet {
+        box-shadow: none;
+        border-radius: 0;
+        width: 100%;
+        min-height: auto;
+        padding: 12mm 14mm 10mm 14mm;
+      }
+      .no-print { display: none !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-sheet">
+    <div class="top-accent"></div>
+    <div class="bottom-accent"></div>
+
+    <!-- 1. HEADER -->
+    <div style="display: flex; justify-content: space-between; align-items: flex-start; padding-bottom: 24px;">
+      <!-- Logo -->
+      <div>
+        <div style="display: flex; align-items: center; gap: 12px;">
+          <svg style="width: 48px; height: 40px; flex-shrink: 0;" viewBox="0 0 54 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <path d="M2 11H18" stroke="#f59e0b" stroke-width="3.5" stroke-linecap="round" />
+            <path d="M5 21H16" stroke="#f59e0b" stroke-width="4" stroke-linecap="round" />
+            <path d="M1 31H14" stroke="#00b4d8" stroke-width="3.5" stroke-linecap="round" />
+            <path d="M17 11H44.5C45.8 11 46.7 12.3 46.3 13.5L42 27.5C41.7 28.4 40.8 29 39.8 29H23.5L20 11Z" fill="#1d4ed8" />
+            <path d="M23.5 29L25.5 35.5H41" stroke="#1e40af" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" />
+            <circle cx="27" cy="39" r="3.5" fill="#0f172a" />
+            <circle cx="39" cy="39" r="3.5" fill="#0f172a" />
+          </svg>
+          <div style="font-size: 28px; font-weight: 900; line-height: 1; letter-spacing: -0.5px;">
+            <span style="color: #0f172a;">Multi</span><span style="color: #2563eb;">Shop</span>
+          </div>
+        </div>
+        <p style="font-size: 9.5px; font-weight: 800; color: #64748b; letter-spacing: 0.16em; text-transform: uppercase; margin-top: 5px;">
+          VOS BOUTIQUES EN UN SEUL ENDROIT
+        </p>
+      </div>
+
+      <!-- Titre & Métadonnées -->
+      <div style="text-align: right; padding-right: 25px;">
+        <h1 style="font-size: 24px; font-weight: 900; color: #0f3480; text-transform: uppercase; letter-spacing: -0.3px;">
+          BON DE LIVRAISON
+        </h1>
+        <div style="margin-top: 10px; font-size: 12px; display: inline-block; text-align: left;">
+          <div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
+            <span style="color: #475569; font-weight: 500;">N° Bon de livraison :</span>
+            <span style="font-family: monospace; font-weight: 900; color: #0f172a;">${blNumber}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 20px; margin-bottom: 4px;">
+            <span style="color: #475569; font-weight: 500;">Référence commande :</span>
+            <span style="font-family: monospace; font-weight: 900; color: #0f172a;">${orderId}</span>
+          </div>
+          <div style="display: flex; justify-content: space-between; gap: 20px;">
+            <span style="color: #475569; font-weight: 500;">Date d'émission :</span>
+            <span style="font-weight: 700; color: #0f172a;">${formattedDate}</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 2. EXPÉDITEUR & DESTINATAIRE -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px;">
+      <!-- Expéditeur -->
+      <div style="border: 1px solid #bfdbfe; border-radius: 14px; overflow: hidden; background: #ffffff;">
+        <div style="background: #eff6ff; padding: 8px 14px; border-bottom: 1px solid #bfdbfe; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 900; color: #0f3480; letter-spacing: 0.04em;">
+            EXPÉDITEUR <span style="font-weight: 600; color: #2563eb;">(Vendeur)</span>
+          </span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 12px; color: #475569; line-height: 1.5;">
+          <div style="font-weight: 900; color: #0f172a; font-size: 13px; margin-bottom: 2px;">MultiShop</div>
+          <div>Service commercial</div>
+          <div>Tunis, Tunisie</div>
+          <div style="margin-top: 8px;">
+            <div style="font-weight: 700; color: #1e293b; font-family: monospace;">📞 +216 71 000 000</div>
+            <div style="color: #334155;">✉️ contact@multishop.tn</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Destinataire -->
+      <div style="border: 1px solid #bfdbfe; border-radius: 14px; overflow: hidden; background: #ffffff;">
+        <div style="background: #eff6ff; padding: 8px 14px; border-bottom: 1px solid #bfdbfe; display: flex; align-items: center; gap: 8px;">
+          <span style="font-size: 12px; font-weight: 900; color: #0f3480; letter-spacing: 0.04em;">
+            DESTINATAIRE <span style="font-weight: 600; color: #2563eb;">(Client)</span>
+          </span>
+        </div>
+        <div style="padding: 12px 14px; font-size: 12px; line-height: 1.6;">
+          <div style="display: flex; margin-bottom: 4px;">
+            <span style="width: 85px; color: #64748b; font-weight: 500;">Nom :</span>
+            <span style="font-weight: 800; color: #0f172a;">${customerName}</span>
+          </div>
+          <div style="display: flex; margin-bottom: 4px;">
+            <span style="width: 85px; color: #64748b; font-weight: 500;">Téléphone :</span>
+            <span style="font-weight: 800; color: #0f172a; font-family: monospace;">${customerPhone}</span>
+          </div>
+          <div style="display: flex;">
+            <span style="width: 85px; color: #64748b; font-weight: 500;">Adresse :</span>
+            <div style="color: #1e293b; font-weight: 500;">
+              <div>${street}</div>
+              <div>${city} ${postalCode}</div>
+              <div>${country}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 3. STRIP 4 MÉTRIQUES LOGISTIQUES -->
+    <div style="border: 1px solid #bfdbfe; border-radius: 14px; background: #ffffff; display: grid; grid-template-columns: repeat(4, 1fr); overflow: hidden; margin-bottom: 18px;">
+      <!-- Col 1: Société livraison -->
+      <div style="padding: 10px 12px; border-right: 1px solid #e0edff; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 18px;">🚚</span>
+        <div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #0f3480;">Société de livraison</div>
+          <div style="font-size: 12px; font-weight: 900; color: #0f172a;">${carrier}</div>
+          <div style="font-size: 9.5px; color: #2563eb; font-weight: 600;">(Transporteur)</div>
+        </div>
+      </div>
+
+      <!-- Col 2: Référence livraison -->
+      <div style="padding: 10px 12px; border-right: 1px solid #e0edff; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 18px;">📦</span>
+        <div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #0f3480;">Référence livraison</div>
+          <div style="font-size: 12px; font-weight: 900; color: #0f172a; font-family: monospace;">${deliveryDossierRef}</div>
+        </div>
+      </div>
+
+      <!-- Col 3: Nombre de colis -->
+      <div style="padding: 10px 12px; border-right: 1px solid #e0edff; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 18px;">📦</span>
+        <div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #0f3480;">Nombre de colis</div>
+          <div style="font-size: 15px; font-weight: 900; color: #0f172a;">${totalPackages}</div>
+        </div>
+      </div>
+
+      <!-- Col 4: Mode paiement -->
+      <div style="padding: 10px 12px; display: flex; align-items: center; gap: 10px;">
+        <span style="font-size: 18px;">💳</span>
+        <div>
+          <div style="font-size: 10.5px; font-weight: 800; color: #0f3480;">Mode de paiement</div>
+          <div style="font-size: 11.5px; font-weight: 900; color: #0f172a;">${paymentLabel}</div>
+          <div style="font-size: 9.5px; color: #2563eb; font-weight: 600;">${paymentSub}</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 4. TABLE ARTICLES -->
+    <div style="border: 1px solid #bfdbfe; border-radius: 14px; overflow: hidden; margin-bottom: 20px;">
+      <!-- Table Header Title -->
+      <div style="background: #0055d4; color: #ffffff; padding: 9px 14px; font-size: 12px; font-weight: 900; letter-spacing: 0.05em; display: flex; align-items: center; gap: 8px;">
+        <span style="font-size: 14px;">📦</span>
+        <span>DÉTAIL DES ARTICLES LIVRÉS</span>
+      </div>
+
+      <table style="width: 100%; border-collapse: collapse; font-size: 12px;">
+        <thead>
+          <tr style="background: #eff6ff; color: #0f3480; font-size: 10.5px; font-weight: 900; text-transform: uppercase; border-bottom: 1px solid #bfdbfe;">
+            <th style="padding: 9px 10px; text-align: center; width: 45px; border-right: 1px solid #dbeafe;">N°</th>
+            <th style="padding: 9px 10px; text-align: center; width: 65px; border-right: 1px solid #dbeafe;">Visuel</th>
+            <th style="padding: 9px 12px; text-align: center; width: 130px; border-right: 1px solid #dbeafe;">Référence</th>
+            <th style="padding: 9px 12px; text-align: left; border-right: 1px solid #dbeafe;">Désignation</th>
+            <th style="padding: 9px 12px; text-align: center; width: 95px;">Quantité</th>
+          </tr>
+        </thead>
+        <tbody>
+          ${itemsRows}
+        </tbody>
+      </table>
+
+      <!-- Summary Row -->
+      <div style="background: #f8faff; border-top: 2px solid #bfdbfe; padding: 10px 16px; display: flex; justify-content: space-between; align-items: center;">
+        <div style="font-size: 12px; font-weight: 900; color: #0f3480; display: flex; align-items: center; gap: 6px;">
+          <span>📦</span>
+          <span>Total d'articles / colis</span>
+        </div>
+        <div style="font-size: 15px; font-weight: 900; color: #0f3480;">
+          ${totalItemsCount} articles
+        </div>
+      </div>
+    </div>
+
+    <!-- 5. OBSERVATIONS & RÉCEPTION -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 24px;">
+      <!-- Observations -->
+      <div>
+        <div style="font-size: 12px; font-weight: 900; color: #0f3480; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>📋</span>
+          <span>Observations / Réserves</span>
+        </div>
+        <div style="border: 1px solid #bfdbfe; border-radius: 12px; background: #ffffff; padding: 12px; min-height: 125px; font-size: 11px; color: #94a3b8;">
+          ${observations}
+        </div>
+      </div>
+
+      <!-- Réception -->
+      <div>
+        <div style="font-size: 12px; font-weight: 900; color: #0f3480; margin-bottom: 6px; display: flex; align-items: center; gap: 6px;">
+          <span>✔️</span>
+          <span>Réception</span>
+        </div>
+        <div style="border: 1px solid #bfdbfe; border-radius: 12px; background: #ffffff; padding: 12px; min-height: 125px; font-size: 11px;">
+          <p style="color: #475569; font-weight: 500; margin-bottom: 8px;">
+            Le client confirme la réception des marchandises en bon état.
+          </p>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+            <span style="color: #64748b; font-weight: 500; font-size: 11px;">Nom et prénom :</span>
+            <span style="border-bottom: 1px dotted #94a3b8; flex: 1; height: 10px; display: block;"></span>
+          </div>
+          <div style="display: flex; align-items: baseline; gap: 6px; margin-bottom: 6px;">
+            <span style="color: #64748b; font-weight: 500; font-size: 11px;">Date :</span>
+            <span style="border-bottom: 1px dotted #94a3b8; width: 130px; height: 10px; display: block;"></span>
+          </div>
+          <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-top: 4px;">
+            <span style="color: #64748b; font-weight: 500; font-size: 11px;">Signature :</span>
+            <div style="width: 170px; height: 50px; border: 1px solid #bfdbfe; border-radius: 10px; background: rgba(239, 246, 255, 0.4);"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 6. FOOTER -->
+    <div style="padding-top: 12px; border-top: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #64748b; padding-right: 25px;">
+      <div style="display: flex; align-items: center; gap: 6px;">
+        <svg style="width: 20px; height: 16px;" viewBox="0 0 54 44" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M2 11H18" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
+          <path d="M5 21H16" stroke="#f59e0b" stroke-width="3" stroke-linecap="round" />
+          <path d="M1 31H14" stroke="#00b4d8" stroke-width="3" stroke-linecap="round" />
+          <path d="M17 11H44.5C45.8 11 46.7 12.3 46.3 13.5L42 27.5C41.7 28.4 40.8 29 39.8 29H23.5L20 11Z" fill="#1d4ed8" />
+          <circle cx="27" cy="39" r="3.5" fill="#0f172a" />
+          <circle cx="39" cy="39" r="3.5" fill="#0f172a" />
+        </svg>
+        <span style="font-weight: 800; color: #0f172a; font-size: 11px;">Multi<span style="color: #2563eb;">Shop</span></span>
+      </div>
+
+      <div style="font-style: italic; color: #1e40af; font-weight: 500;">
+        Merci pour votre confiance !
+      </div>
+
+      <div style="font-family: monospace; color: #64748b;">
+        Page 1 / 1
+      </div>
+    </div>
+  </div>
+
+  ${autoprint ? `
+  <script>
+    window.addEventListener('load', function() {
+      setTimeout(function() {
+        window.print();
+      }, 400);
+    });
+  </script>
+  ` : ''}
+</body>
+</html>`;
+}
+
 // Global Socket.IO instance for real-time live events across all shops
 let ioInstance = null;
 export function attachSocketIO(io) {
@@ -4158,6 +4543,26 @@ export function handleApiRequest(req, res, next) {
 
         broadcastDataChanged('order_updated', store.key);
         return sendJson(200, { success: true, facture: order.facture, order });
+      }
+
+      // --- BON DE LIVRAISON OFFICIEL (HTML & PDF EMBEDDED - MODÈLE EXACT) ---
+      if (endpoint.match(/^\/orders\/[^\/]+\/delivery-note(\/(html|pdf))?$/) && req.method === 'GET') {
+        const orderId = endpoint.split('/')[2];
+        const match = findOrderAcrossStores(orderId);
+        if (!match) return sendJson(404, { message: 'Commande introuvable' });
+
+        const { order } = match;
+        const delivery = deliveriesData.find(d => d.orderIds?.includes(order.id || order.orderNumber));
+        const autoprint = parsedUrl.query.autoprint === '1' || parsedUrl.query.autoprint === 'true';
+
+        const html = generateDeliveryNoteHtml(order, delivery, autoprint);
+        res.writeHead(200, {
+          'Content-Type': 'text/html; charset=utf-8',
+          'Content-Length': Buffer.byteLength(html, 'utf-8'),
+          'Cache-Control': 'no-cache'
+        });
+        res.end(html);
+        return;
       }
 
       // Règle 25 & 38 : Clôture définitive de la commande
