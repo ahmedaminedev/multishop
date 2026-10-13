@@ -1419,19 +1419,19 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
       {/* PAGE C : MODAL DE CRÉATION D'UNE LIVRAISON EN 4 ÉTAPES GUIDÉES            */}
       {/* ========================================================================= */}
       {showCreateDeliveryModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-6 shadow-2xl space-y-5 animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] my-auto animate-scaleUp overflow-hidden">
             {/* Header */}
-            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
               <div className="flex items-center gap-2.5">
-                <span className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600">
+                <span className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 shrink-0">
                   <Truck className="w-5 h-5" />
                 </span>
-                <div>
-                  <h3 className="text-base font-black text-slate-900 dark:text-white">
+                <div className="min-w-0">
+                  <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
                     Création d'un Dossier de Livraison Groupée
                   </h3>
-                  <p className="text-xs text-slate-500">
+                  <p className="text-[11px] sm:text-xs text-slate-500 truncate">
                     Étape {createStep} sur 4 — Regroupement et affectation au transporteur
                   </p>
                 </div>
@@ -1439,14 +1439,14 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               <button
                 type="button"
                 onClick={() => setShowCreateDeliveryModal(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer shrink-0 ml-2"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Stepper Progress */}
-            <div className="grid grid-cols-4 gap-2">
+            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 shrink-0 py-2.5">
               {[
                 { num: 1, label: 'Vérification' },
                 { num: 2, label: 'Transporteur' },
@@ -1455,7 +1455,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               ].map(st => (
                 <div
                   key={st.num}
-                  className={`py-1.5 px-2 rounded-xl text-center text-[10px] font-bold transition-all ${
+                  className={`py-1.5 px-1 sm:px-2 rounded-xl text-center text-[9px] sm:text-[10px] font-bold transition-all truncate ${
                     createStep === st.num
                       ? 'bg-indigo-600 text-white'
                       : createStep > st.num
@@ -1468,189 +1468,192 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               ))}
             </div>
 
-            {/* ÉTAPE 1 : VÉRIFIER LES COMMANDES SÉLECTIONNÉES */}
-            {createStep === 1 && (
-              <div className="space-y-4">
-                <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 space-y-2">
-                  <span className="text-xs font-black text-indigo-900 dark:text-indigo-200 uppercase tracking-wider block">
-                    Étape 1 : Vérification du lot sélectionné
-                  </span>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-600 dark:text-slate-400">Nombre de commandes :</span>
-                    <strong className="text-slate-900 dark:text-white font-mono text-sm">{selectedOrderIds.length}</strong>
-                  </div>
-                  <div className="flex justify-between text-xs">
-                    <span className="text-slate-600 dark:text-slate-400">Total colis / articles estimé :</span>
-                    <strong className="text-slate-900 dark:text-white font-mono text-sm">{selectedPackagesCount} colis</strong>
-                  </div>
-                  <div className="flex justify-between text-xs pt-2 border-t border-indigo-200/50">
-                    <span className="text-slate-600 dark:text-slate-400">Montant total des commandes :</span>
-                    <strong className="text-indigo-600 dark:text-indigo-400 font-mono text-sm">{selectedTotalAmount.toLocaleString('fr-FR')} DT</strong>
-                  </div>
-                </div>
-
-                <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5">
-                  <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
-                    Détail des {selectedOrdersData.length} commandes incluses :
-                  </span>
-                  {selectedOrdersData.map(ord => (
-                    <div key={ord.id || ord.orderNumber} className="flex justify-between items-center text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-none">
-                      <div>
-                        <span className="font-mono font-bold text-slate-900 dark:text-white">{ord.orderNumber || ord.id}</span>
-                        <span className="text-slate-500 ml-2">{ord.customerName}</span>
-                      </div>
-                      <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
-                        {(Number(ord.total || ord.totalAmount) || 0).toLocaleString('fr-FR')} DT
-                      </span>
+            {/* Scrollable Body Content */}
+            <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-4 py-1">
+              {/* ÉTAPE 1 : VÉRIFIER LES COMMANDES SÉLECTIONNÉES */}
+              {createStep === 1 && (
+                <div className="space-y-4">
+                  <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 space-y-2">
+                    <span className="text-xs font-black text-indigo-900 dark:text-indigo-200 uppercase tracking-wider block">
+                      Étape 1 : Vérification du lot sélectionné
+                    </span>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-600 dark:text-slate-400">Nombre de commandes :</span>
+                      <strong className="text-slate-900 dark:text-white font-mono text-sm">{selectedOrderIds.length}</strong>
                     </div>
-                  ))}
-                </div>
+                    <div className="flex justify-between text-xs">
+                      <span className="text-slate-600 dark:text-slate-400">Total colis / articles estimé :</span>
+                      <strong className="text-slate-900 dark:text-white font-mono text-sm">{selectedPackagesCount} colis</strong>
+                    </div>
+                    <div className="flex justify-between text-xs pt-2 border-t border-indigo-200/50">
+                      <span className="text-slate-600 dark:text-slate-400">Montant total des commandes :</span>
+                      <strong className="text-indigo-600 dark:text-indigo-400 font-mono text-sm">{selectedTotalAmount.toLocaleString('fr-FR')} DT</strong>
+                    </div>
+                  </div>
 
-                <div className="flex justify-end pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setCreateStep(2)}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>Étape suivante : Choisir le transporteur</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ÉTAPE 2 : SÉLECTIONNER LA SOCIÉTÉ DE LIVRAISON */}
-            {createStep === 2 && (
-              <div className="space-y-4">
-                <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider block">
-                  Étape 2 : Sélection du transporteur partenaire
-                </span>
-
-                <div className="space-y-2">
-                  {carriers.map(c => {
-                    const isSelected = selectedCarrierId === c.id;
-                    return (
-                      <div
-                        key={c.id}
-                        onClick={() => setSelectedCarrierId(c.id)}
-                        className={`p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
-                          isSelected
-                            ? 'bg-indigo-50 border-indigo-500 dark:bg-indigo-950/50 dark:border-indigo-500'
-                            : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300'
-                        }`}
-                      >
-                        <div className="flex items-center gap-3">
-                          <input
-                            type="radio"
-                            name="carrierSelection"
-                            checked={isSelected}
-                            onChange={() => setSelectedCarrierId(c.id)}
-                            className="text-indigo-600 cursor-pointer"
-                          />
-                          <div>
-                            <span className="font-bold text-slate-900 dark:text-white text-xs block">
-                              {c.nom}
-                            </span>
-                            <span className="text-[11px] text-slate-500">
-                              Zones : {c.zones} — Délai : {c.delaiMoyen} (Tarif : {c.tarifDefaut} DT)
-                            </span>
-                          </div>
+                  <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1 border border-slate-100 dark:border-slate-800 rounded-xl p-2.5">
+                    <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider block mb-1">
+                      Détail des {selectedOrdersData.length} commandes incluses :
+                    </span>
+                    {selectedOrdersData.map(ord => (
+                      <div key={ord.id || ord.orderNumber} className="flex justify-between items-center text-xs py-1 border-b border-slate-100 dark:border-slate-800 last:border-none">
+                        <div>
+                          <span className="font-mono font-bold text-slate-900 dark:text-white">{ord.orderNumber || ord.id}</span>
+                          <span className="text-slate-500 ml-2">{ord.customerName}</span>
                         </div>
-                        {isSelected && <Check className="w-4 h-4 text-indigo-600" />}
+                        <span className="font-mono font-bold text-slate-700 dark:text-slate-300">
+                          {(Number(ord.total || ord.totalAmount) || 0).toLocaleString('fr-FR')} DT
+                        </span>
                       </div>
-                    );
-                  })}
-                </div>
-
-                <div className="space-y-1.5">
-                  <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
-                    Instructions particulières pour cette tournée (optionnel) :
-                  </label>
-                  <textarea
-                    rows={2}
-                    value={deliveryNotes}
-                    onChange={e => setDeliveryNotes(e.target.value)}
-                    placeholder="Ex : Priorité matinée, appeler chaque client avant le passage..."
-                    className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
-                  />
-                </div>
-
-                <div className="flex justify-between pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setCreateStep(1)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
-                  >
-                    Retour
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => setCreateStep(3)}
-                    className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer"
-                  >
-                    <span>Étape suivante : Récapitulatif</span>
-                    <ArrowRight className="w-4 h-4" />
-                  </button>
-                </div>
-              </div>
-            )}
-
-            {/* ÉTAPE 3 : RÉCAPITULATIF COMPLET AVANT VALIDATION */}
-            {createStep === 3 && (
-              <div className="space-y-4">
-                <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider block">
-                  Étape 3 : Récapitulatif du dossier de livraison
-                </span>
-
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs">
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Transporteur sélectionné :</span>
-                    <strong className="text-slate-900 dark:text-white">
-                      {carriers.find(c => c.id === selectedCarrierId)?.nom}
-                    </strong>
+                    ))}
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Nombre de commandes incluses :</span>
-                    <strong className="text-slate-900 dark:text-white font-mono">{selectedOrderIds.length}</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Nombre total de colis / articles :</span>
-                    <strong className="text-slate-900 dark:text-white font-mono">{selectedPackagesCount}</strong>
-                  </div>
-                  <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
-                    <span className="text-slate-500">Total à encaisser à la livraison (COD) :</span>
-                    <strong className="text-emerald-600 font-mono text-sm">{selectedCodAmount.toLocaleString('fr-FR')} DT</strong>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-slate-500">Montant total global des commandes :</span>
-                    <strong className="text-slate-900 dark:text-white font-mono">{selectedTotalAmount.toLocaleString('fr-FR')} DT</strong>
+
+                  <div className="flex justify-end pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setCreateStep(2)}
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <span>Étape suivante : Choisir le transporteur</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
                   </div>
                 </div>
+              )}
 
-                <div className="text-[11px] text-slate-500 bg-blue-50 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-200 dark:border-blue-900">
-                  ℹ️ Une référence unique sera automatiquement générée (ex : <strong>LIV-2026-XXXX</strong>). Les commandes sélectionnées passeront au statut de livraison « En cours » sans altérer leur statut commercial.
-                </div>
+              {/* ÉTAPE 2 : SÉLECTIONNER LA SOCIÉTÉ DE LIVRAISON */}
+              {createStep === 2 && (
+                <div className="space-y-4">
+                  <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider block">
+                    Étape 2 : Sélection du transporteur partenaire
+                  </span>
 
-                <div className="flex justify-between pt-2">
-                  <button
-                    type="button"
-                    onClick={() => setCreateStep(2)}
-                    className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
-                  >
-                    Retour
-                  </button>
-                  <button
-                    type="button"
-                    disabled={isSubmittingDelivery}
-                    onClick={handleConfirmCreateDelivery}
-                    className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black text-xs flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95"
-                  >
-                    <CheckCircle2 className="w-4 h-4" />
-                    <span>{isSubmittingDelivery ? 'Création en cours...' : 'Confirmer et créer la livraison'}</span>
-                  </button>
+                  <div className="space-y-2 max-h-56 overflow-y-auto pr-1">
+                    {carriers.map(c => {
+                      const isSelected = selectedCarrierId === c.id;
+                      return (
+                        <div
+                          key={c.id}
+                          onClick={() => setSelectedCarrierId(c.id)}
+                          className={`p-3 sm:p-3.5 rounded-2xl border cursor-pointer transition-all flex items-center justify-between ${
+                            isSelected
+                              ? 'bg-indigo-50 border-indigo-500 dark:bg-indigo-950/50 dark:border-indigo-500'
+                              : 'bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 hover:border-slate-300'
+                          }`}
+                        >
+                          <div className="flex items-center gap-3">
+                            <input
+                              type="radio"
+                              name="carrierSelection"
+                              checked={isSelected}
+                              onChange={() => setSelectedCarrierId(c.id)}
+                              className="text-indigo-600 cursor-pointer"
+                            />
+                            <div>
+                              <span className="font-bold text-slate-900 dark:text-white text-xs block">
+                                {c.nom}
+                              </span>
+                              <span className="text-[11px] text-slate-500">
+                                Zones : {c.zones} — Délai : {c.delaiMoyen} (Tarif : {c.tarifDefaut} DT)
+                              </span>
+                            </div>
+                          </div>
+                          {isSelected && <Check className="w-4 h-4 text-indigo-600 shrink-0" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  <div className="space-y-1.5">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">
+                      Instructions particulières pour cette tournée (optionnel) :
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={deliveryNotes}
+                      onChange={e => setDeliveryNotes(e.target.value)}
+                      placeholder="Ex : Priorité matinée, appeler chaque client avant le passage..."
+                      className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-xs text-slate-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-indigo-500"
+                    />
+                  </div>
+
+                  <div className="flex justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setCreateStep(1)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+                    >
+                      Retour
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setCreateStep(3)}
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                    >
+                      <span>Étape suivante : Récapitulatif</span>
+                      <ArrowRight className="w-4 h-4" />
+                    </button>
+                  </div>
                 </div>
-              </div>
-            )}
+              )}
+
+              {/* ÉTAPE 3 : RÉCAPITULATIF COMPLET AVANT VALIDATION */}
+              {createStep === 3 && (
+                <div className="space-y-4">
+                  <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-wider block">
+                    Étape 3 : Récapitulatif du dossier de livraison
+                  </span>
+
+                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs">
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Transporteur sélectionné :</span>
+                      <strong className="text-slate-900 dark:text-white">
+                        {carriers.find(c => c.id === selectedCarrierId)?.nom}
+                      </strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Nombre de commandes incluses :</span>
+                      <strong className="text-slate-900 dark:text-white font-mono">{selectedOrderIds.length}</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Nombre total de colis / articles :</span>
+                      <strong className="text-slate-900 dark:text-white font-mono">{selectedPackagesCount}</strong>
+                    </div>
+                    <div className="flex justify-between pt-2 border-t border-slate-200 dark:border-slate-700">
+                      <span className="text-slate-500">Total à encaisser à la livraison (COD) :</span>
+                      <strong className="text-emerald-600 font-mono text-sm">{selectedCodAmount.toLocaleString('fr-FR')} DT</strong>
+                    </div>
+                    <div className="flex justify-between">
+                      <span className="text-slate-500">Montant total global des commandes :</span>
+                      <strong className="text-slate-900 dark:text-white font-mono">{selectedTotalAmount.toLocaleString('fr-FR')} DT</strong>
+                    </div>
+                  </div>
+
+                  <div className="text-[11px] text-slate-500 bg-blue-50 dark:bg-blue-950/40 p-3 rounded-xl border border-blue-200 dark:border-blue-900">
+                    ℹ️ Une référence unique sera automatiquement générée (ex : <strong>LIV-2026-XXXX</strong>). Les commandes sélectionnées passeront au statut de livraison « En cours » sans altérer leur statut commercial.
+                  </div>
+
+                  <div className="flex justify-between pt-2">
+                    <button
+                      type="button"
+                      onClick={() => setCreateStep(2)}
+                      className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
+                    >
+                      Retour
+                    </button>
+                    <button
+                      type="button"
+                      disabled={isSubmittingDelivery}
+                      onClick={handleConfirmCreateDelivery}
+                      className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black text-xs flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95"
+                    >
+                      <CheckCircle2 className="w-4 h-4" />
+                      <span>{isSubmittingDelivery ? 'Création en cours...' : 'Confirmer et créer la livraison'}</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
       )}
@@ -1659,8 +1662,8 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
       {/* CONFIRMATION INDIVIDUELLE : MARQUER COMME LIVRÉE                          */}
       {/* ========================================================================= */}
       {orderToDeliverConfirm && selectedDelivery && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto animate-scaleUp">
             <div className="flex items-center gap-3">
               <span className="w-10 h-10 rounded-2xl bg-emerald-100 text-emerald-600 flex items-center justify-center shrink-0">
                 <CheckCircle2 className="w-6 h-6" />
@@ -1683,7 +1686,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               <button
                 type="button"
                 onClick={() => setOrderToDeliverConfirm(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
               >
                 Annuler
               </button>
@@ -1691,7 +1694,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                 type="button"
                 disabled={isUpdatingOrderStatus}
                 onClick={() => executeUpdateOrderStatus(selectedDelivery.id, orderToDeliverConfirm.id || orderToDeliverConfirm.orderNumber, 'LIVREE')}
-                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs cursor-pointer shadow-xs active:scale-95"
               >
                 {isUpdatingOrderStatus ? 'Mise à jour...' : 'Confirmer livraison'}
               </button>
@@ -1704,8 +1707,8 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
       {/* CONFIRMATION INDIVIDUELLE : MARQUER COMME RETOURNÉE (AVEC MOTIF)          */}
       {/* ========================================================================= */}
       {orderToReturnConfirm && selectedDelivery && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-6 shadow-2xl space-y-4 animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-md w-full p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto animate-scaleUp">
             <div className="flex items-center gap-3">
               <span className="w-10 h-10 rounded-2xl bg-rose-100 text-rose-600 flex items-center justify-center shrink-0">
                 <RotateCcw className="w-6 h-6" />
@@ -1748,7 +1751,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               <button
                 type="button"
                 onClick={() => setOrderToReturnConfirm(null)}
-                className="px-4 py-2 rounded-xl bg-slate-100 text-slate-700 font-bold text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-slate-800 text-slate-700 dark:text-slate-300 font-bold text-xs cursor-pointer"
               >
                 Annuler
               </button>
@@ -1756,7 +1759,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                 type="button"
                 disabled={isUpdatingOrderStatus}
                 onClick={() => executeUpdateOrderStatus(selectedDelivery.id, orderToReturnConfirm.id || orderToReturnConfirm.orderNumber, 'RETOURNEE', returnMotif, returnComment)}
-                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs cursor-pointer"
+                className="px-5 py-2 rounded-xl bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs cursor-pointer shadow-xs active:scale-95"
               >
                 {isUpdatingOrderStatus ? 'Enregistrement...' : 'Enregistrer le retour'}
               </button>
@@ -1769,19 +1772,19 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
       {/* MODAL UPLOAD DU REÇU DU TRANSPORTEUR                                      */}
       {/* ========================================================================= */}
       {showReceiptModal && selectedDelivery && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
-                <Receipt className="w-5 h-5 text-indigo-600" />
-                <h3 className="text-base font-black text-slate-900 dark:text-white">
+                <Receipt className="w-5 h-5 text-indigo-600 shrink-0" />
+                <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
                   Ajouter le reçu du transporteur — {selectedDelivery.reference || selectedDelivery.id}
                 </h3>
               </div>
               <button
                 type="button"
                 onClick={() => setShowReceiptModal(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer"
+                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer shrink-0 ml-2"
               >
                 <X className="w-5 h-5" />
               </button>

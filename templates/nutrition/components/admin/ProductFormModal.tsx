@@ -219,14 +219,14 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" role="dialog" aria-modal="true">
-            <div className="relative w-[95vw] h-[90vh] bg-[#0b0c10] border border-gray-800 rounded-sm shadow-2xl flex flex-col overflow-hidden animate-fadeIn">
-                <div className="flex justify-between items-center p-6 border-b border-gray-800 bg-[#0b0c10] z-20">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto" role="dialog" aria-modal="true">
+            <div className="relative w-full max-w-7xl max-h-[92vh] bg-[#0b0c10] border border-gray-800 rounded-sm sm:rounded-2xl shadow-2xl flex flex-col overflow-hidden animate-fadeIn my-auto">
+                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800 bg-[#0b0c10] z-20 shrink-0">
                     <div>
-                        <h2 className="text-xl font-black text-white uppercase italic tracking-wider">{product ? 'MODIFIER' : 'AJOUTER'} <span className="text-brand-neon">PRODUIT</span></h2>
-                        <p className="text-xs text-gray-500 font-mono">ÉTAPE {step}/4</p>
+                        <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">{product ? 'MODIFIER' : 'AJOUTER'} <span className="text-brand-neon">PRODUIT</span></h2>
+                        <p className="text-[11px] sm:text-xs text-gray-500 font-mono">ÉTAPE {step}/4</p>
                     </div>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><XMarkIcon className="w-8 h-8"/></button>
+                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6 sm:w-8 sm:h-8"/></button>
                 </div>
                 
                 <div className="flex flex-col lg:flex-row h-full overflow-hidden">

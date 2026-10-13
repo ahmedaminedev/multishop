@@ -123,8 +123,8 @@ export const ManageCategoriesPage: React.FC<ManageCategoriesPageProps> = ({
       </div>
 
       {isModalOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <form onSubmit={handleSave} className="bg-white dark:bg-slate-900 rounded-3xl p-6 max-w-md w-full shadow-2xl space-y-4 text-xs">
+        <div className="fixed inset-0 z-50 bg-slate-950/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
+          <form onSubmit={handleSave} className="bg-white dark:bg-slate-900 rounded-3xl p-4 sm:p-6 max-w-md w-full shadow-2xl space-y-4 text-xs my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="font-bold text-sm text-slate-900 dark:text-white font-serif">
               {editingCategory ? 'Modifier le Rayon' : 'Nouveau Rayon Déco'}
             </h3>

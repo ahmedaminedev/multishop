@@ -1578,8 +1578,8 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
         const histAchats = selectedSupplierForDetails.historique_achats || [];
 
         return (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-            <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-6 text-slate-900 max-h-[85vh] flex flex-col overflow-hidden">
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/40 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+            <div className="bg-white rounded-3xl shadow-xl max-w-2xl w-full p-4 sm:p-6 text-slate-900 max-h-[90vh] flex flex-col overflow-hidden my-auto">
               <div className="flex justify-between items-start pb-3 border-b border-slate-100">
                 <div className="flex items-center gap-3">
                   <img

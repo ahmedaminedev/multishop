@@ -63,8 +63,8 @@ export const Invoice: React.FC<InvoiceProps> = ({ order, onClose }) => {
     const total = subtotal + shipping;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm" aria-labelledby="invoice-title" role="dialog" aria-modal="true">
-            <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-lg shadow-xl max-h-[95vh] flex flex-col">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-sm overflow-y-auto" aria-labelledby="invoice-title" role="dialog" aria-modal="true">
+            <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-lg shadow-xl max-h-[95vh] flex flex-col my-auto overflow-hidden">
                 {/* Modal Header (hidden on print) */}
                 <div className="print-hide flex justify-between items-center p-4 border-b dark:border-gray-700">
                     <h2 id="invoice-title" className="text-xl font-bold">Aperçu de la facture</h2>

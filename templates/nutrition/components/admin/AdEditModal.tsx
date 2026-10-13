@@ -155,18 +155,18 @@ export const AdEditModal: React.FC<AdEditModalProps> = ({ isOpen, onClose, onSav
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-md" onClick={onClose}>
-            <div className="relative w-full max-w-3xl bg-[#0b0c10] border border-gray-800 rounded-sm shadow-2xl max-h-[90vh] flex flex-col animate-fadeIn" onClick={e => e.stopPropagation()}>
-                <div className="flex justify-between items-center p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-black text-white uppercase italic tracking-wider">EDITER: <span className="text-brand-neon">{slot.name}</span></h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><XMarkIcon className="w-6 h-6"/></button>
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto" onClick={onClose}>
+            <div className="relative w-full max-w-3xl bg-[#0b0c10] border border-gray-800 rounded-sm sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden animate-fadeIn" onClick={e => e.stopPropagation()}>
+                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800 shrink-0">
+                    <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">EDITER: <span className="text-brand-neon">{slot.name}</span></h2>
+                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
-                <div className="p-8 flex-grow overflow-y-auto custom-scrollbar">
+                <div className="p-4 sm:p-6 md:p-8 flex-grow overflow-y-auto custom-scrollbar">
                     {renderForm()}
                 </div>
-                <div className="flex justify-end p-6 border-t border-gray-800 gap-3 bg-[#0a0a0a]">
-                    <button type="button" onClick={onClose} className="px-6 py-3 text-xs font-bold uppercase tracking-widest text-red-500 border border-red-900/30 hover:bg-red-900/20 transition-colors">Annuler</button>
-                    <button type="button" onClick={handleSave} className="px-6 py-3 text-xs font-bold uppercase tracking-widest bg-brand-neon text-black hover:bg-white transition-colors skew-x-[-10deg] shadow-[0_0_15px_rgba(204,255,0,0.4)]"><span className="skew-x-[10deg]">SAUVEGARDER</span></button>
+                <div className="flex justify-end p-4 sm:p-6 border-t border-gray-800 gap-3 bg-[#0a0a0a] shrink-0">
+                    <button type="button" onClick={onClose} className="px-5 py-2.5 sm:px-6 sm:py-3 text-xs font-bold uppercase tracking-widest text-red-500 border border-red-900/30 hover:bg-red-900/20 transition-colors">Annuler</button>
+                    <button type="button" onClick={handleSave} className="px-5 py-2.5 sm:px-6 sm:py-3 text-xs font-bold uppercase tracking-widest bg-brand-neon text-black hover:bg-white transition-colors skew-x-[-10deg] shadow-[0_0_15px_rgba(204,255,0,0.4)]"><span className="skew-x-[10deg]">SAUVEGARDER</span></button>
                 </div>
             </div>
         </div>

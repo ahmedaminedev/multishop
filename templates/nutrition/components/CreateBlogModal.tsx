@@ -61,13 +61,13 @@ export const CreateBlogModal: React.FC<CreateBlogModalProps> = ({ isOpen, onClos
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-white/80 dark:bg-black/80 backdrop-blur-md transition-all animate-fadeIn">
-            <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-rose-100 dark:border-gray-800">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-3 sm:p-4 bg-white/80 dark:bg-black/80 backdrop-blur-md transition-all animate-fadeIn overflow-y-auto">
+            <div className="relative w-full max-w-4xl bg-white dark:bg-gray-900 rounded-[2rem] shadow-2xl overflow-hidden flex flex-col max-h-[90vh] border border-rose-100 dark:border-gray-800 my-auto">
                 
                 {/* Header */}
-                <div className="flex justify-between items-center p-8 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-10">
+                <div className="flex justify-between items-center p-4 sm:p-6 md:p-8 border-b border-gray-100 dark:border-gray-800 bg-white dark:bg-gray-900 sticky top-0 z-10 shrink-0">
                     <div>
-                        <h2 className="text-3xl font-serif font-bold text-gray-900 dark:text-white">Rédiger un article</h2>
+                        <h2 className="text-xl sm:text-2xl md:text-3xl font-serif font-bold text-gray-900 dark:text-white">Rédiger un article</h2>
                         <p className="text-sm text-gray-500 font-light mt-1">Partagez votre expertise et vos inspirations avec la communauté.</p>
                     </div>
                     <button onClick={onClose} className="p-2 rounded-full hover:bg-rose-50 dark:hover:bg-gray-800 text-gray-400 hover:text-rose-500 transition-colors">

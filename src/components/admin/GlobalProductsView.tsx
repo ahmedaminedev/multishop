@@ -618,8 +618,8 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
       {/* 🚀 MODAL UNIFIÉE : CRÉATION / ÉDITION PRODUIT AVEC LIAISON FOURNISSEUR    */}
       {/* ========================================================================= */}
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-6 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-100">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-100 my-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">

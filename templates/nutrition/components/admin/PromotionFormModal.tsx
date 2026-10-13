@@ -128,20 +128,20 @@ export const PromotionFormModal: React.FC<PromotionFormModalProps> = ({ isOpen, 
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div className="relative w-full max-w-4xl bg-[#0b0c10] border border-gray-800 rounded-sm shadow-2xl max-h-[90vh] flex flex-col animate-fadeIn">
-                <div className="flex justify-between items-center p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-black text-white uppercase italic tracking-wider">{promotion ? 'MODIFIER CAMPAGNE' : 'NOUVELLE CAMPAGNE'}</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><XMarkIcon className="w-6 h-6"/></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+            <div className="relative w-full max-w-4xl bg-[#0b0c10] border border-gray-800 rounded-sm sm:rounded-xl shadow-2xl max-h-[92vh] flex flex-col my-auto overflow-hidden animate-fadeIn">
+                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800 shrink-0">
+                    <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">{promotion ? 'MODIFIER CAMPAGNE' : 'NOUVELLE CAMPAGNE'}</h2>
+                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
                 
                 {errorMessage && (
-                    <div className="mx-8 mt-4 p-3 bg-red-900/50 border border-red-500 text-red-200 text-xs font-mono">
+                    <div className="mx-4 sm:mx-8 mt-4 p-3 bg-red-900/50 border border-red-500 text-red-200 text-xs font-mono">
                         {errorMessage}
                     </div>
                 )}
                 
-                <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-8 overflow-hidden gap-8">
+                <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-4 sm:p-6 md:p-8 overflow-y-auto md:overflow-hidden gap-6 sm:gap-8">
                     {/* Left */}
                     <div className="w-full md:w-1/2 space-y-4">
                         <InputField name="name" label="Nom de la campagne" value={name} onChange={e => setName(e.target.value)} required />

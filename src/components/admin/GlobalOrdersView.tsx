@@ -1342,8 +1342,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 1: BATCH ASSIGN TO DELIVERY COMPANY (Règles 15, 16, 17, 32) --- */}
       {showBatchAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-4 sm:p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800 my-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
@@ -1469,8 +1469,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 2: REFUS & ARCHIVAGE (Règles 26, 27, 28, 40) --- */}
       {showRefuseModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 text-slate-900 dark:text-white space-y-4 border border-rose-100 dark:border-rose-950">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-4 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-rose-100 dark:border-rose-950 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="w-10 h-10 rounded-2xl bg-rose-100 dark:bg-rose-950 text-rose-600 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5" />
@@ -1543,8 +1543,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 3: ÉCHEC DE LIVRAISON (Règle 34) --- */}
       {showFailureModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 text-slate-900 dark:text-white space-y-4 border border-orange-100 dark:border-orange-950">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-4 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-orange-100 dark:border-orange-950 my-auto max-h-[90vh] overflow-y-auto">
             <div className="flex items-center gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="w-10 h-10 rounded-2xl bg-orange-100 dark:bg-orange-950 text-orange-600 flex items-center justify-center">
                 <AlertTriangle className="w-5 h-5" />
@@ -1613,8 +1613,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 4: ORDER INSPECTOR & AUDIT LOG --- */}
       {inspectOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800 my-auto">
             {/* Header */}
             <div className="flex justify-between items-start pb-4 border-b border-slate-100 dark:border-slate-800">
               <div>
@@ -1802,8 +1802,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 5: FACTURE OFFICIELLE (Règles 23, 24) --- */}
       {showInvoiceModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-8 text-slate-900 max-h-[90vh] overflow-y-auto space-y-6 border border-slate-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-xl w-full p-4 sm:p-6 md:p-8 text-slate-900 max-h-[90vh] overflow-y-auto space-y-6 border border-slate-200 my-auto">
             {/* Invoice Top Header */}
             <div className="flex justify-between items-start border-b border-slate-200 pb-5">
               <div>
@@ -1919,10 +1919,10 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 6: CARRIER ADD / EDIT --- */}
       {carrierModalOpen && editingCarrier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
           <form
             onSubmit={handleSaveCarrier}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-4 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800 my-auto max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <h3 className="font-black text-base">

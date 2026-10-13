@@ -269,8 +269,8 @@ export const SourcesView: React.FC<SourcesViewProps> = ({
 
       {/* Edit / Add Modal */}
       {editingSource && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-6 text-slate-900 max-h-[90vh] overflow-y-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-xl max-w-lg w-full p-4 sm:p-6 text-slate-900 max-h-[90vh] overflow-y-auto my-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 mb-4">
               <div>
                 <h3 className="font-bold text-base text-slate-900">
@@ -405,8 +405,8 @@ export const SourcesView: React.FC<SourcesViewProps> = ({
 
       {/* Delete Confirmation Modal */}
       {deleteConfirmId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-6 text-slate-900">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/40 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-2xl shadow-xl max-w-sm w-full p-4 sm:p-6 text-slate-900 my-auto">
             <h3 className="font-bold text-sm text-slate-900 mb-2">Confirmer la suppression</h3>
             <p className="text-xs text-slate-500 mb-4">
               Êtes-vous sûr de vouloir supprimer cette source ? Les futurs produits associés conserveront le nom de la source en archive.

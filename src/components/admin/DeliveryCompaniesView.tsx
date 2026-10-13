@@ -1614,10 +1614,10 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
       {/* MODAL 1: MODIFIER L'ÉTAT DU RETOUR (POSSIBILITÉ DE MODIFIER L'ÉTAT RETOUR)  */}
       {/* ========================================================================= */}
       {returnModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
           <form
             onSubmit={handleUpdateReturnStatusSubmit}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-6 text-slate-900 dark:text-white space-y-5 border border-slate-100 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-4 sm:p-6 text-slate-900 dark:text-white space-y-5 border border-slate-100 dark:border-slate-800 my-auto max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
@@ -1733,10 +1733,10 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
       {/* MODAL 2: MODIFIER LA DATE DE LIVRAISON                                    */}
       {/* ========================================================================= */}
       {dateModalOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
           <form
             onSubmit={handleUpdateDeliveryDateSubmit}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-md w-full p-4 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800 my-auto max-h-[90vh] overflow-y-auto"
           >
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <h3 className="font-black text-base flex items-center gap-2">
@@ -1812,10 +1812,10 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
       {/* MODAL 3: AJOUTER / MODIFIER UNE SOCIÉTÉ DE LIVRAISON (CRUD)               */}
       {/* ========================================================================= */}
       {carrierModalOpen && editingCarrier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
           <form
             onSubmit={handleSaveCarrier}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full max-h-[92vh] overflow-y-auto p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800"
+            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800 my-auto"
           >
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex items-center gap-2.5">
@@ -2208,8 +2208,8 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
       {/* MODAL 4: INSPECT COMMANDE (DÉTAILS DES PRODUITS & HISTORIQUE AUDIT)       */}
       {/* ========================================================================= */}
       {inspectOrder && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full p-4 sm:p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800 my-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center font-bold">

@@ -58,13 +58,13 @@ export const StoreFormModal: React.FC<StoreFormModalProps> = ({ isOpen, onClose,
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div className="relative w-full max-w-2xl bg-[#0b0c10] border border-gray-800 rounded-sm shadow-2xl max-h-[90vh] flex flex-col animate-fadeIn">
-                <div className="flex justify-between items-center p-6 border-b border-gray-800">
-                    <h2 className="text-xl font-black text-white uppercase italic tracking-wider">{store ? 'MODIFIER' : 'NOUVEAU'} <span className="text-brand-neon">MAGASIN</span></h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><XMarkIcon className="w-6 h-6"/></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+            <div className="relative w-full max-w-2xl bg-[#0b0c10] border border-gray-800 rounded-sm sm:rounded-xl shadow-2xl max-h-[90vh] flex flex-col my-auto overflow-hidden animate-fadeIn">
+                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800 shrink-0">
+                    <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">{store ? 'MODIFIER' : 'NOUVEAU'} <span className="text-brand-neon">MAGASIN</span></h2>
+                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-8 overflow-y-auto space-y-4 custom-scrollbar">
+                <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 overflow-y-auto space-y-4 custom-scrollbar">
                     <InputField name="name" label="Nom du magasin" value={formData.name} onChange={handleChange} required />
                     <InputField name="address" label="Adresse complète" value={formData.address} onChange={handleChange} required />
                     <div className="grid grid-cols-2 gap-4">

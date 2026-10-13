@@ -39,9 +39,9 @@ export const UnifiedAuthModal: React.FC<UnifiedAuthModalProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Profil utilisateur MultiShop"
-        className="fixed inset-0 z-[99999] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn"
+        className="fixed inset-0 z-[99999] flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn"
       >
-        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 text-slate-800 relative border border-slate-100">
+        <div className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-4 sm:p-6 text-slate-800 relative border border-slate-100 my-auto max-h-[90vh] overflow-y-auto">
           <button
             onClick={onClose}
             type="button"

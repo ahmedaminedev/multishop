@@ -835,8 +835,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       {/* Product Modal */}
       {isProductModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 border border-slate-200 dark:border-slate-800 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-lg font-black text-slate-900 dark:text-white">
               {editingProduct ? 'Modifier le Jouet' : 'Nouveau Jouet'}
             </h3>
@@ -944,8 +944,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       {/* Promo Modal */}
       {isPromoModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-sm w-full p-4 sm:p-6 space-y-4 border border-slate-200 dark:border-slate-800 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-black">Nouveau Code Promo</h3>
             <form onSubmit={handleSavePromo} className="space-y-3 text-xs">
               <div>
@@ -984,8 +984,8 @@ export const AdminPage: React.FC<AdminPageProps> = ({
 
       {/* Message Reply Modal */}
       {replyingMessage && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-6 space-y-4 border border-slate-200 dark:border-slate-800">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/60 backdrop-blur-xs overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 rounded-3xl max-w-lg w-full p-4 sm:p-6 space-y-4 border border-slate-200 dark:border-slate-800 my-auto max-h-[90vh] overflow-y-auto">
             <h3 className="text-base font-black">Répondre à {replyingMessage.name}</h3>
             <p className="text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border">
               "{replyingMessage.message}"

@@ -170,16 +170,16 @@ export const PackFormModal: React.FC<PackFormModalProps> = ({ isOpen, onClose, o
     if (!isOpen) return null;
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md">
-            <div className="relative w-full max-w-6xl bg-[#0b0c10] border border-gray-800 rounded-sm shadow-2xl max-h-[90vh] flex flex-col animate-fadeIn">
-                <div className="flex justify-between items-center p-6 border-b border-gray-800 flex-shrink-0">
-                    <h2 className="text-xl font-black text-white uppercase italic tracking-wider">{pack ? 'MODIFIER PACK' : 'NOUVEAU PACK'}</h2>
-                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors"><XMarkIcon className="w-6 h-6"/></button>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/80 backdrop-blur-md overflow-y-auto">
+            <div className="relative w-full max-w-6xl bg-[#0b0c10] border border-gray-800 rounded-sm sm:rounded-xl shadow-2xl max-h-[92vh] flex flex-col my-auto overflow-hidden animate-fadeIn">
+                <div className="flex justify-between items-center p-4 sm:p-6 border-b border-gray-800 shrink-0">
+                    <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">{pack ? 'MODIFIER PACK' : 'NOUVELLE COMPOSITION'}</h2>
+                    <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-8 overflow-hidden gap-8">
+                <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-4 sm:p-6 md:p-8 overflow-y-auto md:overflow-hidden gap-6 sm:gap-8">
                     {/* Left Side */}
-                    <div className="w-full md:w-2/5 space-y-6 overflow-y-auto pr-2 -mr-2 custom-scrollbar">
+                    <div className="w-full md:w-2/5 space-y-6 md:overflow-y-auto pr-0 md:pr-2 custom-scrollbar">
                         <InputField name="name" label="Nom du pack" value={formData.name} onChange={handleChange} required />
                         <ImageInput label="Image Visuelle" value={formData.imageUrl} onChange={handleImageChange} required />
                         <InputField name="description" label="Description Commerciale" value={formData.description} onChange={handleChange} as="textarea" rows={4} />
