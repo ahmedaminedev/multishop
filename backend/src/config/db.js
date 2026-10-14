@@ -3,6 +3,7 @@ const mongoose = require('mongoose');
 
 const connectDB = async () => {
   try {
+    mongoose.set('bufferCommands', false); // CRITICAL: fail fast, don't hang
     const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/multishop";
     const conn = await mongoose.connect(mongoUri, {
       serverSelectionTimeoutMS: 4000
