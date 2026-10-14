@@ -1,7 +1,13 @@
 
-const dotenv = require('dotenv');
-// Load env vars immediately
-dotenv.config();
+try {
+  require('dotenv').config();
+} catch (e) {
+  try {
+    if (typeof process.loadEnvFile === 'function') {
+      process.loadEnvFile();
+    }
+  } catch {}
+}
 
 const app = require('./app');
 const connectDB = require('./config/db');
