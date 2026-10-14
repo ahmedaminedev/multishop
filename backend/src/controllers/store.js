@@ -1,9 +1,25 @@
 
 const Store = require('../models/Store');
 const catchAsync = require('../utils/catchAsync');
+const initialData = require('../data/initialData');
+const mongoose = require('mongoose');
 
 exports.getStores = catchAsync(async (req, res) => {
-  const stores = await Store.find({});
+  const shop = req.query.shop || req.headers['x-shop-id'];
+  let stores = [];
+  if (mongoose.connection.readyState === 1) {
+    let filter = {};
+    if (shop && shop !== 'all') {
+      filter = { $or: [{ shop }, { filialeKey: shop }] };
+    }
+    stores = await Store.find(filter).lean().catch(() => []);
+  }
+  if (!stores || stores.length === 0) {
+    stores = (initialData.stores || []).filter(s => {
+      if (!shop || shop === 'all') return true;
+      return s.shop === shop || s.filialeKey === shop;
+    });
+  }
   res.json(stores);
 });
 

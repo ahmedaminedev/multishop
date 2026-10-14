@@ -1,9 +1,25 @@
 
 const Category = require('../models/Category');
 const catchAsync = require('../utils/catchAsync');
+const initialData = require('../data/initialData');
+const mongoose = require('mongoose');
 
 exports.getCategories = catchAsync(async (req, res) => {
-  const categories = await Category.find({});
+  const shop = req.query.shop || req.headers['x-shop-id'];
+  let categories = [];
+  if (mongoose.connection.readyState === 1) {
+    let filter = {};
+    if (shop && shop !== 'all') {
+      filter = { $or: [{ shop }, { filialeKey: shop }] };
+    }
+    categories = await Category.find(filter).lean().catch(() => []);
+  }
+  if (!categories || categories.length === 0) {
+    categories = (initialData.categories || []).filter(c => {
+      if (!shop || shop === 'all') return true;
+      return c.shop === shop || c.filialeKey === shop;
+    });
+  }
   res.json(categories);
 });
 

@@ -111,26 +111,9 @@ function checkPortRunning(port) {
         console.log(`\x1b[33m[Backend arrêté (${code || signal})]\x1b[0m`);
       }
     });
-
-    // Attendre que le backend soit prêt
-    let ready = false;
-    for (let i = 0; i < 40; i++) {
-      if (isShuttingDown) break;
-      await new Promise((r) => setTimeout(r, 150));
-      if (await checkPortRunning(BACKEND_PORT)) {
-        ready = true;
-        break;
-      }
-    }
-
-    if (ready) {
-      console.log(`\n\x1b[32m✅ [MultiShop] Backend démarré avec succès sur le port ${BACKEND_PORT} !\x1b[0m`);
-    } else {
-      console.log(`\n\x1b[32m✅ [MultiShop] Backend initialisé. Lancement du Frontend...\x1b[0m`);
-    }
   }
 
-  console.log(`🌐 [2/2] Lancement du Frontend (Vite) sur le port ${FRONTEND_PORT}...\n`);
+  console.log(`🌐 [2/2] Lancement immédiat du Frontend (Vite) sur le port ${FRONTEND_PORT}...\n`);
 
   // Lancement direct de Vite via Node (fiable sur Windows, macOS et Linux sans invite ni wrapper .cmd)
   const viteBin = path.resolve(rootDir, 'node_modules/vite/bin/vite.js');

@@ -3,7 +3,12 @@ const Advertisement = require('../models/Advertisement');
 const catchAsync = require('../utils/catchAsync');
 const { initialAdvertisements } = require('../data/initialData');
 
+const mongoose = require('mongoose');
+
 exports.getAdvertisements = catchAsync(async (req, res) => {
+  if (mongoose.connection.readyState !== 1) {
+    return res.json(initialAdvertisements || {});
+  }
   let ads = await Advertisement.findOne({});
   
   // If no ads config exists in DB, create one from initialData

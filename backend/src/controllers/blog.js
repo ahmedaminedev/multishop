@@ -1,10 +1,25 @@
 
 const BlogPost = require('../models/BlogPost');
 const catchAsync = require('../utils/catchAsync');
+const initialData = require('../data/initialData');
+const mongoose = require('mongoose');
 
 exports.getBlogPosts = catchAsync(async (req, res) => {
-  // Récupère les messages stockés dans MongoDB, triés par date décroissante
-  const posts = await BlogPost.find({}).sort({ createdAt: -1 });
+  const shop = req.query.shop || req.headers['x-shop-id'];
+  let posts = [];
+  if (mongoose.connection.readyState === 1) {
+    let filter = {};
+    if (shop && shop !== 'all') {
+      filter = { $or: [{ shop }, { filialeKey: shop }] };
+    }
+    posts = await BlogPost.find(filter).sort({ createdAt: -1 }).lean().catch(() => []);
+  }
+  if (!posts || posts.length === 0) {
+    posts = (initialData.blogPosts || []).filter(p => {
+      if (!shop || shop === 'all') return true;
+      return p.shop === shop || p.filialeKey === shop;
+    });
+  }
   res.json(posts);
 });
 

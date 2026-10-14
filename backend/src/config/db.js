@@ -6,7 +6,7 @@ const connectDB = async () => {
     mongoose.set('bufferCommands', false); // CRITICAL: fail fast, don't hang
     const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/multishop";
     const conn = await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 4000
+      serverSelectionTimeoutMS: 800
     });
     console.log(`✅ MongoDB Connecté: ${conn.connection.host} / Base: ${conn.connection.name}`);
     return conn;

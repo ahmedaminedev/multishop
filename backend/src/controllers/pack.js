@@ -1,9 +1,25 @@
 
 const Pack = require('../models/Pack');
 const catchAsync = require('../utils/catchAsync');
+const initialData = require('../data/initialData');
+const mongoose = require('mongoose');
 
 exports.getPacks = catchAsync(async (req, res) => {
-  const packs = await Pack.find({});
+  const shop = req.query.shop || req.headers['x-shop-id'];
+  let packs = [];
+  if (mongoose.connection.readyState === 1) {
+    let filter = {};
+    if (shop && shop !== 'all') {
+      filter = { $or: [{ shop }, { filialeKey: shop }] };
+    }
+    packs = await Pack.find(filter).lean().catch(() => []);
+  }
+  if (!packs || packs.length === 0) {
+    packs = (initialData.packs || []).filter(p => {
+      if (!shop || shop === 'all') return true;
+      return p.shop === shop || p.filialeKey === shop;
+    });
+  }
   res.json(packs);
 });
 
