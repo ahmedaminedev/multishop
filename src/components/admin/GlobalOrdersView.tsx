@@ -1342,8 +1342,8 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
 
       {/* --- MODAL 1: BATCH ASSIGN TO DELIVERY COMPANY (Règles 15, 16, 17, 32) --- */}
       {showBatchAssignModal && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
-          <div className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-lg w-full p-4 sm:p-6 text-slate-900 dark:text-white max-h-[90vh] overflow-y-auto space-y-5 border border-slate-100 dark:border-slate-800 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl max-w-lg w-full p-3.5 sm:p-6 text-slate-900 dark:text-white max-h-[92vh] sm:max-h-[90vh] overflow-y-auto space-y-4 sm:space-y-5 border border-slate-100 dark:border-slate-800 my-auto">
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-2xl bg-blue-100 dark:bg-blue-950 text-blue-600 flex items-center justify-center">
@@ -1387,7 +1387,7 @@ export const GlobalOrdersView: React.FC<GlobalOrdersViewProps> = ({
               </div>
 
               {/* Delivery Date */}
-              <div className="grid grid-cols-2 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 <div>
                   <label className="font-bold text-slate-700 dark:text-slate-300 block mb-1.5">
                     Date de Livraison Prévue

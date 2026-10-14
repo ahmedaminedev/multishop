@@ -618,8 +618,8 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
       {/* 🚀 MODAL UNIFIÉE : CRÉATION / ÉDITION PRODUIT AVEC LIAISON FOURNISSEUR    */}
       {/* ========================================================================= */}
       {editingProduct && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto animate-fadeIn">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-4 sm:p-6 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-100 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/50 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-2xl sm:max-w-3xl w-full p-3.5 sm:p-6 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-100 my-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-center pb-4 border-b border-slate-100">
               <div className="flex items-center gap-3">
@@ -648,7 +648,7 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
             </div>
 
             {/* Form Content */}
-            <form onSubmit={handleFormSubmit} className="flex-1 overflow-y-auto py-5 space-y-5 text-xs pr-1">
+            <form onSubmit={handleFormSubmit} className="flex-1 min-h-0 overflow-y-auto py-4 sm:py-5 space-y-4 sm:space-y-5 text-xs pr-1 sm:pr-2">
               {formFeedback && (
                 <div className={`p-3.5 rounded-2xl flex items-center gap-2.5 font-bold text-xs ${
                   formFeedback.type === 'success' 

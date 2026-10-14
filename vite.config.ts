@@ -57,6 +57,12 @@ function multishopProductionPlugin() {
             }
           });
         });
+
+        server.httpServer.on('close', () => {
+          try {
+            io.close();
+          } catch {}
+        });
       }
 
       // High-performance security & API middleware
@@ -144,11 +150,11 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
-    strictPort: true
+    strictPort: false
   },
   preview: {
     host: '0.0.0.0',
     port: 3000,
-    strictPort: true
+    strictPort: false
   }
 });

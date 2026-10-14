@@ -229,9 +229,9 @@ export const ProductFormModal: React.FC<ProductFormModalProps> = ({ isOpen, onCl
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6 sm:w-8 sm:h-8"/></button>
                 </div>
                 
-                <div className="flex flex-col lg:flex-row h-full overflow-hidden">
+                <div className="flex flex-col lg:flex-row flex-1 min-h-0 overflow-hidden">
                     {/* LEFT: FORM */}
-                    <div className="w-full lg:w-1/3 xl:w-1/4 overflow-y-auto border-r border-gray-800 p-6 bg-[#0b0c10] z-10 custom-scrollbar">
+                    <div className="w-full lg:w-1/3 xl:w-1/4 min-h-0 overflow-y-auto border-r border-gray-800 p-4 sm:p-6 bg-[#0b0c10] z-10 custom-scrollbar">
                         <form onSubmit={handleSubmit} className="space-y-6">
                             {/* ÉTAPE 1: Infos de base */}
                             {step === 1 && (

@@ -177,7 +177,7 @@ export const PackFormModal: React.FC<PackFormModalProps> = ({ isOpen, onClose, o
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-4 sm:p-6 md:p-8 overflow-y-auto md:overflow-hidden gap-6 sm:gap-8">
+                <form onSubmit={handleSubmit} className="flex-grow min-h-0 flex flex-col md:flex-row p-4 sm:p-6 md:p-8 overflow-y-auto md:overflow-hidden gap-6 sm:gap-8">
                     {/* Left Side */}
                     <div className="w-full md:w-2/5 space-y-6 md:overflow-y-auto pr-0 md:pr-2 custom-scrollbar">
                         <InputField name="name" label="Nom du pack" value={formData.name} onChange={handleChange} required />

@@ -534,8 +534,8 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
       {/* 🚀 FORMULAIRE COMPLET D'AJOUT FOURNISSEUR AVEC AFFECTATION DE PRODUITS   */}
       {/* ========================================================================= */}
       {editingSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 text-slate-900 max-h-[94vh] flex flex-col overflow-hidden border border-slate-200 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-4xl w-full p-4 sm:p-7 md:p-8 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-200 my-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-start pb-4 border-b border-slate-100 shrink-0">
               <div>
@@ -575,7 +575,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
             )}
 
             {/* Scrollable Form Body */}
-            <form onSubmit={handleSaveSupplierSubmit} className="flex-1 overflow-y-auto space-y-6 pr-1 pt-3">
+            <form onSubmit={handleSaveSupplierSubmit} className="flex-1 min-h-0 overflow-y-auto space-y-5 sm:space-y-6 pr-1 pt-3">
               {/* SECTION 1: INFOS DU FOURNISSEUR */}
               <div className="bg-slate-50/70 border border-slate-200/80 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center gap-2 pb-2 border-b border-slate-200">
@@ -1157,8 +1157,8 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
       {/* 📦 MODAL D'ENTRÉE EN STOCK DIRECTE POUR FOURNISSEUR EXISTANT             */}
       {/* ========================================================================= */}
       {activeRestockSupplier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
-          <div className="bg-white rounded-3xl shadow-2xl max-w-4xl w-full p-6 sm:p-8 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-100 my-auto">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 md:p-5 bg-black/60 backdrop-blur-xs animate-fadeIn overflow-y-auto">
+          <div className="bg-white rounded-2xl sm:rounded-3xl shadow-2xl max-w-4xl w-full p-4 sm:p-7 md:p-8 text-slate-900 max-h-[92vh] flex flex-col overflow-hidden border border-slate-100 my-auto">
             {/* Modal Header */}
             <div className="flex justify-between items-start pb-4 border-b border-slate-100">
               <div>
@@ -1182,7 +1182,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
             </div>
 
             {/* TAB SELECTION : 2 OPTIONS */}
-            <div className="grid grid-cols-2 gap-3 p-1.5 bg-slate-100 rounded-2xl my-4">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3 p-1.5 bg-slate-100 rounded-2xl my-3 sm:my-4">
               <button
                 type="button"
                 onClick={() => setRestockType('produit_existant')}
@@ -1227,7 +1227,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
 
             {/* TAB 1: EXISTING PRODUCTS */}
             {restockType === 'produit_existant' && (
-              <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
                 <div className="bg-blue-50/70 border border-blue-200 p-3 rounded-2xl text-xs text-blue-950">
                   <p className="font-bold">Notice de Gestion de Stock :</p>
                   <p className="text-[11px] text-blue-800 mt-0.5 leading-relaxed">
@@ -1381,7 +1381,7 @@ export const SuppliersView: React.FC<SuppliersViewProps> = ({
 
             {/* TAB 2: FUTURE PRODUCTS CONVERSION (WITH SITE EXISTENCE VALIDATION) */}
             {restockType === 'future_produit' && (
-              <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+              <div className="flex-1 min-h-0 overflow-y-auto space-y-4 pr-1">
                 <div className="bg-purple-50/70 border border-purple-200 p-3.5 rounded-2xl text-xs text-purple-950">
                   <p className="font-bold flex items-center gap-1.5">
                     <Sparkles className="w-4 h-4 text-purple-600" />

@@ -1419,19 +1419,19 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
       {/* PAGE C : MODAL DE CRÉATION D'UNE LIVRAISON EN 4 ÉTAPES GUIDÉES            */}
       {/* ========================================================================= */}
       {showCreateDeliveryModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-xl w-full p-4 sm:p-6 shadow-2xl flex flex-col max-h-[90vh] my-auto animate-scaleUp overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 md:p-6 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-2xl sm:max-w-3xl w-full p-3.5 sm:p-6 shadow-2xl flex flex-col max-h-[92vh] sm:max-h-[90vh] my-auto animate-scaleUp overflow-hidden">
             {/* Header */}
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800 shrink-0">
-              <div className="flex items-center gap-2.5">
-                <span className="w-9 h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 shrink-0">
-                  <Truck className="w-5 h-5" />
+              <div className="flex items-center gap-2 sm:gap-2.5 min-w-0">
+                <span className="w-8 h-8 sm:w-9 sm:h-9 rounded-2xl bg-indigo-50 dark:bg-indigo-950 flex items-center justify-center text-indigo-600 shrink-0">
+                  <Truck className="w-4 h-4 sm:w-5 sm:h-5" />
                 </span>
                 <div className="min-w-0">
                   <h3 className="text-sm sm:text-base font-black text-slate-900 dark:text-white truncate">
                     Création d'un Dossier de Livraison Groupée
                   </h3>
-                  <p className="text-[11px] sm:text-xs text-slate-500 truncate">
+                  <p className="text-[10px] sm:text-xs text-slate-500 truncate">
                     Étape {createStep} sur 4 — Regroupement et affectation au transporteur
                   </p>
                 </div>
@@ -1439,14 +1439,15 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               <button
                 type="button"
                 onClick={() => setShowCreateDeliveryModal(false)}
-                className="p-1 rounded-xl text-slate-400 hover:text-slate-600 cursor-pointer shrink-0 ml-2"
+                className="p-1.5 rounded-xl text-slate-400 hover:text-slate-600 hover:bg-slate-100 dark:hover:bg-slate-800 cursor-pointer shrink-0 ml-2"
+                aria-label="Fermer"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Stepper Progress */}
-            <div className="grid grid-cols-4 gap-1.5 sm:gap-2 shrink-0 py-2.5">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-1.5 sm:gap-2 shrink-0 py-2 sm:py-2.5">
               {[
                 { num: 1, label: 'Vérification' },
                 { num: 2, label: 'Transporteur' },
@@ -1455,9 +1456,9 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
               ].map(st => (
                 <div
                   key={st.num}
-                  className={`py-1.5 px-1 sm:px-2 rounded-xl text-center text-[9px] sm:text-[10px] font-bold transition-all truncate ${
+                  className={`py-1.5 px-1.5 sm:px-2 rounded-xl text-center text-[10px] sm:text-xs font-bold transition-all truncate ${
                     createStep === st.num
-                      ? 'bg-indigo-600 text-white'
+                      ? 'bg-indigo-600 text-white shadow-xs'
                       : createStep > st.num
                       ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300'
                       : 'bg-slate-100 text-slate-400 dark:bg-slate-800'
@@ -1469,11 +1470,11 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
             </div>
 
             {/* Scrollable Body Content */}
-            <div className="flex-1 overflow-y-auto pr-1 -mr-1 space-y-4 py-1">
+            <div className="flex-1 min-h-0 overflow-y-auto pr-1 sm:pr-1.5 -mr-1 space-y-4 py-1">
               {/* ÉTAPE 1 : VÉRIFIER LES COMMANDES SÉLECTIONNÉES */}
               {createStep === 1 && (
                 <div className="space-y-4">
-                  <div className="p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 space-y-2">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-indigo-50 dark:bg-indigo-950/40 border border-indigo-100 dark:border-indigo-900/60 space-y-2">
                     <span className="text-xs font-black text-indigo-900 dark:text-indigo-200 uppercase tracking-wider block">
                       Étape 1 : Vérification du lot sélectionné
                     </span>
@@ -1577,7 +1578,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                     />
                   </div>
 
-                  <div className="flex justify-between pt-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
                     <button
                       type="button"
                       onClick={() => setCreateStep(1)}
@@ -1588,7 +1589,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                     <button
                       type="button"
                       onClick={() => setCreateStep(3)}
-                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95"
+                      className="px-5 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white font-bold text-xs flex items-center gap-1.5 cursor-pointer shadow-xs active:scale-95 ml-auto"
                     >
                       <span>Étape suivante : Récapitulatif</span>
                       <ArrowRight className="w-4 h-4" />
@@ -1604,7 +1605,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                     Étape 3 : Récapitulatif du dossier de livraison
                   </span>
 
-                  <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs">
+                  <div className="p-3.5 sm:p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2.5 text-xs">
                     <div className="flex justify-between">
                       <span className="text-slate-500">Transporteur sélectionné :</span>
                       <strong className="text-slate-900 dark:text-white">
@@ -1633,7 +1634,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                     ℹ️ Une référence unique sera automatiquement générée (ex : <strong>LIV-2026-XXXX</strong>). Les commandes sélectionnées passeront au statut de livraison « En cours » sans altérer leur statut commercial.
                   </div>
 
-                  <div className="flex justify-between pt-2">
+                  <div className="flex flex-wrap items-center justify-between gap-2 pt-2">
                     <button
                       type="button"
                       onClick={() => setCreateStep(2)}
@@ -1645,7 +1646,7 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
                       type="button"
                       disabled={isSubmittingDelivery}
                       onClick={handleConfirmCreateDelivery}
-                      className="px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black text-xs flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95"
+                      className="px-5 sm:px-6 py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white font-black text-xs flex items-center gap-2 cursor-pointer shadow-md shadow-indigo-600/20 active:scale-95 ml-auto"
                     >
                       <CheckCircle2 className="w-4 h-4" />
                       <span>{isSubmittingDelivery ? 'Création en cours...' : 'Confirmer et créer la livraison'}</span>
@@ -1772,8 +1773,8 @@ export const DeliveriesView: React.FC<DeliveriesViewProps> = ({
       {/* MODAL UPLOAD DU REÇU DU TRANSPORTEUR                                      */}
       {/* ========================================================================= */}
       {showReceiptModal && selectedDelivery && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-3 sm:p-4 overflow-y-auto">
-          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl max-w-lg w-full p-4 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[90vh] overflow-y-auto animate-scaleUp">
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-2 sm:p-4 overflow-y-auto">
+          <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl sm:rounded-3xl max-w-lg w-full p-3.5 sm:p-6 shadow-2xl space-y-4 my-auto max-h-[92vh] sm:max-h-[90vh] overflow-y-auto animate-scaleUp">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-2">
                 <Receipt className="w-5 h-5 text-indigo-600 shrink-0" />

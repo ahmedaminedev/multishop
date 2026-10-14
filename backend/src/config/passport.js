@@ -113,34 +113,37 @@ module.exports = function(passport) {
     // --- GOOGLE ---
     const googleCallback = `${BACKEND_URL}/api/auth/google/callback`;
     
-    console.log("--------------------------------------------------");
-    console.log("[GOOGLE AUTH CONFIG]");
-    console.log(`Callback URL Configurée: ${googleCallback}`);
-    console.log("Vérifiez que cette URL est EXACTEMENT celle dans 'Authorized redirect URIs' sur Google Cloud Console.");
-    console.log("--------------------------------------------------");
-    
-    passport.use(new GoogleStrategy({
-        clientID: process.env.GOOGLE_CLIENT_ID ,
-        clientSecret: process.env.GOOGLE_CLIENT_SECRET,        callbackURL: googleCallback,
-        passReqToCallback: true
-    },
-    async (req, accessToken, refreshToken, profile, done) => {
-        await findOrCreateUser(profile, 'google', done);
-    }));
+    if (process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET) {
+        console.log("--------------------------------------------------");
+        console.log("[GOOGLE AUTH CONFIG]");
+        console.log(`Callback URL Configurée: ${googleCallback}`);
+        console.log("--------------------------------------------------");
+        passport.use(new GoogleStrategy({
+            clientID: process.env.GOOGLE_CLIENT_ID,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+            callbackURL: googleCallback,
+            passReqToCallback: true
+        },
+        async (req, accessToken, refreshToken, profile, done) => {
+            await findOrCreateUser(profile, 'google', done);
+        }));
+    } else {
+        console.log("[GOOGLE AUTH CONFIG] Identifiants Google OAuth non configurés. Authentification locale active.");
+    }
 
     // --- FACEBOOK ---
     const facebookCallback = `${BACKEND_URL}/api/auth/facebook/callback`;
-    // console.log(`[FACEBOOK CONFIG] Callback URL: ${facebookCallback}`);
-
-    passport.use(new FacebookStrategy({
-        clientID: process.env.FACEBOOK_APP_ID || "1125464563112537",
-        clientSecret: process.env.FACEBOOK_APP_SECRET || "e9cd0f5243886a9badc6e81eee57449f",
-        callbackURL: facebookCallback,
-        profileFields: ['id', 'emails', 'name', 'photos', 'displayName'],
-        passReqToCallback: true,
-        enableProof: true
-    },
-    async (req, accessToken, refreshToken, profile, done) => {
-        await findOrCreateUser(profile, 'facebook', done);
-    }));
+    if (process.env.FACEBOOK_APP_ID && process.env.FACEBOOK_APP_SECRET) {
+        passport.use(new FacebookStrategy({
+            clientID: process.env.FACEBOOK_APP_ID,
+            clientSecret: process.env.FACEBOOK_APP_SECRET,
+            callbackURL: facebookCallback,
+            profileFields: ['id', 'emails', 'name', 'photos', 'displayName'],
+            passReqToCallback: true,
+            enableProof: true
+        },
+        async (req, accessToken, refreshToken, profile, done) => {
+            await findOrCreateUser(profile, 'facebook', done);
+        }));
+    }
 };

@@ -1,4 +1,5 @@
 
+const mongoose = require('mongoose');
 const User = require('../models/User');
 const Product = require('../models/Product');
 const Category = require('../models/Category');
@@ -12,6 +13,10 @@ const ContactMessage = require('../models/ContactMessage');
 const { allProducts, categories, packs, stores, initialAdvertisements, promotions, sampleOrders, blogPosts, contactMessages } = require('../data/initialData');
 
 const seedData = async () => {
+  if (mongoose.connection.readyState !== 1) {
+    console.log('[SEEDER] MongoDB non connecté, seeding MongoDB ignoré.');
+    return;
+  }
   try {
     // 1. Users (Admin & Client)
     // Force delete admin to ensure clean password hash generation

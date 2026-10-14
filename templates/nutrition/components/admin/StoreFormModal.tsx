@@ -64,14 +64,14 @@ export const StoreFormModal: React.FC<StoreFormModalProps> = ({ isOpen, onClose,
                     <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">{store ? 'MODIFIER' : 'NOUVEAU'} <span className="text-brand-neon">MAGASIN</span></h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 overflow-y-auto space-y-4 custom-scrollbar">
+                <form onSubmit={handleSubmit} className="flex-1 min-h-0 p-4 sm:p-6 md:p-8 overflow-y-auto space-y-4 custom-scrollbar">
                     <InputField name="name" label="Nom du magasin" value={formData.name} onChange={handleChange} required />
                     <InputField name="address" label="Adresse complète" value={formData.address} onChange={handleChange} required />
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <InputField name="city" label="Ville" value={formData.city} onChange={handleChange} required />
                         <InputField name="postalCode" label="Code Postal" value={formData.postalCode} onChange={handleChange} required />
                     </div>
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                         <InputField name="phone" label="Téléphone" value={formData.phone} onChange={handleChange} required />
                         <InputField name="email" label="Email" type="email" value={formData.email} onChange={handleChange} required />
                     </div>

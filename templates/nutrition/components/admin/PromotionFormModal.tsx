@@ -141,12 +141,12 @@ export const PromotionFormModal: React.FC<PromotionFormModalProps> = ({ isOpen, 
                     </div>
                 )}
                 
-                <form onSubmit={handleSubmit} className="flex-grow flex flex-col md:flex-row p-4 sm:p-6 md:p-8 overflow-y-auto md:overflow-hidden gap-6 sm:gap-8">
+                <form onSubmit={handleSubmit} className="flex-grow min-h-0 flex flex-col md:flex-row p-4 sm:p-6 md:p-8 overflow-y-auto md:overflow-hidden gap-6 sm:gap-8">
                     {/* Left */}
                     <div className="w-full md:w-1/2 space-y-4">
                         <InputField name="name" label="Nom de la campagne" value={name} onChange={e => setName(e.target.value)} required />
                         <InputField name="discountPercentage" label="Remise (%)" type="number" value={discountPercentage} onChange={e => setDiscountPercentage(Number(e.target.value))} required />
-                        <div className="grid grid-cols-2 gap-4">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <InputField name="startDate" label="Début" type="date" value={startDate} onChange={e => setStartDate(e.target.value)} required />
                             <InputField name="endDate" label="Fin" type="date" value={endDate} onChange={e => setEndDate(e.target.value)} required />
                         </div>

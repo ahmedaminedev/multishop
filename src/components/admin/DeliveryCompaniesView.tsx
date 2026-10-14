@@ -1812,10 +1812,10 @@ export const DeliveryCompaniesView: React.FC<DeliveryCompaniesViewProps> = ({
       {/* MODAL 3: AJOUTER / MODIFIER UNE SOCIÉTÉ DE LIVRAISON (CRUD)               */}
       {/* ========================================================================= */}
       {carrierModalOpen && editingCarrier && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-black/60 backdrop-blur-xs overflow-y-auto animate-fadeIn">
           <form
             onSubmit={handleSaveCarrier}
-            className="bg-white dark:bg-slate-900 rounded-3xl shadow-2xl max-w-xl w-full max-h-[90vh] overflow-y-auto p-4 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800 my-auto"
+            className="bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl shadow-2xl max-w-xl sm:max-w-2xl w-full max-h-[92vh] sm:max-h-[90vh] overflow-y-auto p-3.5 sm:p-6 text-slate-900 dark:text-white space-y-4 border border-slate-100 dark:border-slate-800 my-auto"
           >
             <div className="flex justify-between items-center pb-3 border-b border-slate-100 dark:border-slate-800 sticky top-0 bg-white dark:bg-slate-900 z-10">
               <div className="flex items-center gap-2.5">

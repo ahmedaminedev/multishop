@@ -66,7 +66,7 @@ export const BrandFormModal: React.FC<BrandFormModalProps> = ({ isOpen, onClose,
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
                 
-                <form onSubmit={handleSubmit} className="flex-grow p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                <form onSubmit={handleSubmit} className="flex-grow min-h-0 p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6 custom-scrollbar">
                     <InputField label="Nom de la marque" value={name} onChange={(e) => setName(e.target.value)} />
                     <ImageInput label="Logo" value={logoUrl} onChange={setLogoUrl} />
 

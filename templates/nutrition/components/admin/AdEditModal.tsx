@@ -161,7 +161,7 @@ export const AdEditModal: React.FC<AdEditModalProps> = ({ isOpen, onClose, onSav
                     <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">EDITER: <span className="text-brand-neon">{slot.name}</span></h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
-                <div className="p-4 sm:p-6 md:p-8 flex-grow overflow-y-auto custom-scrollbar">
+                <div className="p-4 sm:p-6 md:p-8 flex-grow min-h-0 overflow-y-auto custom-scrollbar">
                     {renderForm()}
                 </div>
                 <div className="flex justify-end p-4 sm:p-6 border-t border-gray-800 gap-3 bg-[#0a0a0a] shrink-0">

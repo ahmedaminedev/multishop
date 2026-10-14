@@ -104,7 +104,7 @@ export const CategoryFormModal: React.FC<CategoryFormModalProps> = ({ isOpen, on
                     <h2 className="text-lg sm:text-xl font-black text-white uppercase italic tracking-wider">{category ? 'MODIFIER' : 'AJOUTER'} <span className="text-brand-neon">CATÉGORIE</span></h2>
                     <button onClick={onClose} className="text-gray-500 hover:text-white transition-colors p-1"><XMarkIcon className="w-6 h-6"/></button>
                 </div>
-                <form onSubmit={handleSubmit} className="p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6 custom-scrollbar">
+                <form onSubmit={handleSubmit} className="flex-1 min-h-0 p-4 sm:p-6 md:p-8 overflow-y-auto space-y-6 custom-scrollbar">
                     <InputField name="name" label="Nom" value={name} onChange={e => setName(e.target.value)} required disabled={!!category} />
                     
                     <div className="border-t border-gray-800 pt-6">

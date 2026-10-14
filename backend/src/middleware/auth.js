@@ -45,3 +45,13 @@ exports.admin = (req, res, next) => {
     res.status(403).json({ message: 'Accès refusé : réservé aux administrateurs.' });
   }
 };
+
+exports.restrictTo = (...roles) => {
+  return (req, res, next) => {
+    if (!req.user || !roles.includes(req.user.role)) {
+      return res.status(403).json({ message: 'Accès refusé : permissions insuffisantes.' });
+    }
+    next();
+  };
+};
+

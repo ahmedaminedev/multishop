@@ -13,7 +13,7 @@ const Chat = require('./models/Chat');
 // Connect to Database
 connectDB();
 
-const PORT = process.env.PORT || 8080;
+const PORT = process.env.BACKEND_PORT || (process.env.PORT && process.env.PORT !== '8080' && process.env.PORT !== '3000' ? process.env.PORT : 5000);
 
 const server = http.createServer(app);
 
