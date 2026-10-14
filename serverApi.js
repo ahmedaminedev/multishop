@@ -2484,8 +2484,12 @@ function getAuthenticatedUser(req) {
 }
 
 export function handleApiRequest(req, res, next) {
-  const parsedUrl = url.parse(req.url, true);
-  const pathname = parsedUrl.pathname || '';
+  const fullUrl = new URL(req.url, `http://${req.headers.host || '127.0.0.1'}`);
+  const pathname = fullUrl.pathname || '';
+  const parsedUrl = {
+    pathname,
+    query: Object.fromEntries(fullUrl.searchParams.entries())
+  };
 
   if (!pathname.startsWith('/api')) {
     return next();

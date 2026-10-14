@@ -36,84 +36,84 @@ process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
 process.on('exit', cleanup);
 
-// 1. Démarrage du Backend
-console.log(`📡 [1/2] Lancement du Backend Express sur le port ${BACKEND_PORT}...`);
-
-const backendEnv = {
-  ...process.env,
-  PORT: String(BACKEND_PORT),
-  BACKEND_PORT: String(BACKEND_PORT)
-};
-
-backendProcess = spawn('node', ['backend/src/server.js'], {
-  cwd: rootDir,
-  env: backendEnv,
-  stdio: ['inherit', 'pipe', 'pipe']
-});
-
-backendProcess.stdout.on('data', (data) => {
-  const lines = data.toString().split('\n');
-  for (const line of lines) {
-    if (line.trim()) {
-      console.log(`\x1b[36m[Backend]\x1b[0m ${line}`);
-    }
-  }
-});
-
-backendProcess.stderr.on('data', (data) => {
-  const lines = data.toString().split('\n');
-  for (const line of lines) {
-    if (line.trim()) {
-      console.error(`\x1b[31m[Backend Err]\x1b[0m ${line}`);
-    }
-  }
-});
-
-backendProcess.on('error', (err) => {
-  console.error('\x1b[31m[Backend Error]\x1b[0m', err.message);
-});
-
-backendProcess.on('exit', (code, signal) => {
-  if (!isShuttingDown) {
-    console.log(`\x1b[33m[Backend info: processus arrêté (${code || signal})]\x1b[0m`);
-  }
-});
-
-// 2. Vérification que le backend est prêt ("si c'est bon, le front end se lance")
-async function waitForBackendReady(maxRetries = 25, delayMs = 300) {
-  // Petite pause initiale pour laisser Express créer le socket
-  await new Promise((r) => setTimeout(r, 600));
-
-  for (let i = 0; i < maxRetries; i++) {
-    if (isShuttingDown) return false;
-    const isReady = await new Promise((resolve) => {
-      const req = http.get(`http://127.0.0.1:${BACKEND_PORT}/`, (res) => {
-        resolve(true);
-      });
-      req.on('error', () => {
-        resolve(false);
-      });
-      req.setTimeout(400, () => {
-        req.destroy();
-        resolve(false);
-      });
+function checkPortRunning(port) {
+  return new Promise((resolve) => {
+    const req = http.get(`http://127.0.0.1:${port}/`, (res) => {
+      resolve(true);
     });
-
-    if (isReady) {
-      return true;
-    }
-    await new Promise((r) => setTimeout(r, delayMs));
-  }
-  return false;
+    req.on('error', () => resolve(false));
+    req.setTimeout(400, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
 }
 
-// Lancement séquentiel
 (async () => {
-  const backendReady = await waitForBackendReady();
-  if (backendReady) {
-    console.log(`\n\x1b[32m✅ [MultiShop] Backend démarré avec succès sur le port ${BACKEND_PORT} !\x1b[0m`);
+  const isAlreadyRunning = await checkPortRunning(BACKEND_PORT);
+
+  if (isAlreadyRunning) {
+    console.log(`📡 [1/2] Le Backend Express est déjà actif sur le port ${BACKEND_PORT}.`);
   } else {
-    console.log(`\n\x1b[32m✅ [MultiShop] Backend initialisé. Lancement du Frontend...\x1b[0m`);
+    console.log(`📡 [1/2] Lancement du Backend Express sur le port ${BACKEND_PORT}...`);
+
+    const backendEnv = {
+      ...process.env,
+      PORT: String(BACKEND_PORT),
+      BACKEND_PORT: String(BACKEND_PORT)
+    };
+
+    backendProcess = spawn('node', ['backend/src/server.js'], {
+      cwd: rootDir,
+      env: backendEnv,
+      stdio: ['inherit', 'pipe', 'pipe'],
+      shell: process.platform === 'win32'
+    });
+
+    backendProcess.stdout.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          console.log(`\x1b[36m[Backend]\x1b[0m ${line}`);
+        }
+      }
+    });
+
+    backendProcess.stderr.on('data', (data) => {
+      const lines = data.toString().split('\n');
+      for (const line of lines) {
+        if (line.trim()) {
+          console.error(`\x1b[31m[Backend Err]\x1b[0m ${line}`);
+        }
+      }
+    });
+
+    backendProcess.on('error', (err) => {
+      console.error('\x1b[31m[Backend Error]\x1b[0m', err.message);
+    });
+
+    backendProcess.on('exit', (code, signal) => {
+      if (!isShuttingDown) {
+        console.log(`\x1b[33m[Backend info: processus arrêté (${code || signal})]\x1b[0m`);
+      }
+    });
+
+    // Attendre que le backend soit prêt
+    let ready = false;
+    for (let i = 0; i < 30; i++) {
+      if (isShuttingDown) break;
+      await new Promise((r) => setTimeout(r, 250));
+      if (await checkPortRunning(BACKEND_PORT)) {
+        ready = true;
+        break;
+      }
+    }
+
+    if (ready) {
+      console.log(`\n\x1b[32m✅ [MultiShop] Backend démarré avec succès sur le port ${BACKEND_PORT} !\x1b[0m`);
+    } else {
+      console.log(`\n\x1b[32m✅ [MultiShop] Backend initialisé. Lancement du Frontend...\x1b[0m`);
+    }
   }
 
   console.log(`🌐 [2/2] Lancement du Frontend (Vite) sur le port ${FRONTEND_PORT}...\n`);
@@ -121,7 +121,8 @@ async function waitForBackendReady(maxRetries = 25, delayMs = 300) {
   frontendProcess = spawn('npx', ['vite', '--host', '0.0.0.0', '--port', String(FRONTEND_PORT)], {
     cwd: rootDir,
     env: process.env,
-    stdio: 'inherit'
+    stdio: 'inherit',
+    shell: true
   });
 
   frontendProcess.on('exit', (code, signal) => {

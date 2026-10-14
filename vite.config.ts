@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import http from 'http';
 import { handleApiRequest, initStores, recordChatMessage, attachSocketIO, calculateGlobalStats, calculateShopStats } from './serverApi.js';
 import { Server as SocketIOServer } from 'socket.io';
 
@@ -65,15 +66,64 @@ function multishopProductionPlugin() {
         });
       }
 
+      let isBackendLive = false;
+      let lastCheckTime = 0;
+
+      function checkBackendHealth(): Promise<boolean> {
+        const now = Date.now();
+        if (now - lastCheckTime < 2500) {
+          return Promise.resolve(isBackendLive);
+        }
+        lastCheckTime = now;
+        return new Promise((resolve) => {
+          const r = http.get('http://127.0.0.1:5000/', (res) => {
+            isBackendLive = Boolean(res.statusCode && res.statusCode < 500);
+            resolve(isBackendLive);
+          });
+          r.on('error', () => {
+            isBackendLive = false;
+            resolve(false);
+          });
+          r.setTimeout(350, () => {
+            r.destroy();
+            isBackendLive = false;
+            resolve(false);
+          });
+        });
+      }
+
       // High-performance security & API middleware
-      server.middlewares.use((req, res, next) => {
+      server.middlewares.use(async (req, res, next) => {
         // Enforce safe headers compatible with iframe embedding
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('X-XSS-Protection', '1; mode=block');
         res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         if (req.url && req.url.startsWith('/api')) {
-          handleApiRequest(req, res, next);
+          const backendUp = await checkBackendHealth();
+          if (backendUp) {
+            const proxyReq = http.request({
+              hostname: '127.0.0.1',
+              port: 5000,
+              path: req.url,
+              method: req.method,
+              headers: {
+                ...req.headers,
+                host: '127.0.0.1:5000'
+              }
+            }, (proxyRes) => {
+              res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
+              proxyRes.pipe(res);
+            });
+
+            proxyReq.on('error', () => {
+              handleApiRequest(req, res, next);
+            });
+
+            req.pipe(proxyReq);
+          } else {
+            handleApiRequest(req, res, next);
+          }
         } else {
           next();
         }
