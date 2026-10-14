@@ -10,8 +10,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const Chat = require('./models/Chat');
 
-// Connect to Database
-connectDB();
+// Database connection is awaited in startServer() below
 
 const PORT = process.env.BACKEND_PORT || (process.env.PORT && process.env.PORT !== '8080' && process.env.PORT !== '3000' ? process.env.PORT : 5000);
 
@@ -96,13 +95,30 @@ io.on('connection', (socket) => {
   });
 });
 
-server.listen(PORT, async () => {
-  console.log(`Serveur démarré en mode ${process.env.NODE_ENV || 'development'} sur le port ${PORT}`);
-  
+async function startServer() {
   try {
-      await seedData();
-      console.log('Données initiales chargées.');
-  } catch (error) {
-      console.error("Erreur seeding:", error.message);
+    await connectDB();
+  } catch (err) {
+    console.error('Erreur initialisation DB:', err);
   }
-});
+
+  server.listen(PORT, async () => {
+    console.log(`📡 [Backend Express] Serveur démarré en mode ${process.env.NODE_ENV || 'development'} sur le port ${PORT}`);
+    try {
+      await seedData();
+      console.log('✅ [Backend Express] Données initiales chargées dans MongoDB.');
+    } catch (error) {
+      console.error('❌ Erreur seeding:', error.message);
+    }
+  });
+
+  server.on('error', (err) => {
+    if (err.code === 'EADDRINUSE') {
+      console.log(`⚠️ Port ${PORT} déjà actif, réutilisation du serveur backend en cours.`);
+    } else {
+      console.error('Erreur serveur Express:', err);
+    }
+  });
+}
+
+startServer();

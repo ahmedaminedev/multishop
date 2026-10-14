@@ -11,6 +11,17 @@ function multishopProductionPlugin() {
     async configureServer(server) {
       await initStores();
 
+      // If local MongoDB daemon is running, connect and seed automatically for MongoDB Compass
+      try {
+        const { createRequire } = await import('module');
+        const req = createRequire(import.meta.url);
+        const connectDB = req('./backend/src/config/db.js');
+        const seedData = req('./backend/src/utils/seeder.js');
+        connectDB().then(() => {
+          seedData().catch(() => {});
+        }).catch(() => {});
+      } catch {}
+
       // Attach Socket.IO to dev server http instance with buffer protection
       if (server.httpServer) {
         const io = new SocketIOServer(server.httpServer, {

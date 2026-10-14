@@ -4,12 +4,16 @@ const mongoose = require('mongoose');
 const connectDB = async () => {
   try {
     mongoose.set('bufferCommands', false);
-    const conn = await mongoose.connect(process.env.MONGO_URI || "mongodb://localhost:27017/multishop");
-    console.log(`MongoDB Connecté: ${conn.connection.host}`);
+    const mongoUri = process.env.MONGO_URI || "mongodb://127.0.0.1:27017/multishop";
+    const conn = await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 4000
+    });
+    console.log(`✅ MongoDB Connecté: ${conn.connection.host} / Base: ${conn.connection.name}`);
+    return conn;
   } catch (error) {
-    console.error(`Erreur MongoDB: ${error.message}`);
-    console.warn('Le serveur continue de tourner sans base de données. Certaines fonctionnalités échoueront.');
-    // process.exit(1); // Do not exit to allow debugging of server connectivity
+    console.error(`❌ Erreur MongoDB: ${error.message}`);
+    console.warn('⚠️ Le serveur tourne sans MongoDB. Vérifiez que MongoDB tourne sur 127.0.0.1:27017.');
+    return null;
   }
 };
 
