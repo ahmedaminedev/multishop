@@ -88,47 +88,11 @@ export const MultiShopBackofficeLogin: React.FC<MultiShopBackofficeLoginProps> =
     }
   };
 
-  // Quick fill and auto-connect Super Admin
-  const handleFillAdmin = async () => {
-    const adminEmail = 'admin@multishop.com';
-    const adminPass = 'password123';
-    setIdentifiant(adminEmail);
-    setPassword(adminPass);
+  // Quick fill Super Admin credentials (prefill only without auto-submitting)
+  const handleFillAdmin = () => {
+    setIdentifiant('admin@multishop.com');
+    setPassword('password123');
     setErrorMessage(null);
-    setLoading(true);
-
-    try {
-      const res = await fetch('/api/auth/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          email: adminEmail,
-          password: adminPass,
-          role: 'ADMIN'
-        })
-      });
-
-      const data = await res.json();
-      if (!res.ok) {
-        throw new Error(data.message || 'Identifiants invalides. Veuillez réessayer.');
-      }
-
-      setSuccessMessage('Connexion réussie ! Redirection...');
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
-      }
-      if (data.user) {
-        localStorage.setItem('user', JSON.stringify(data.user));
-      }
-
-      setTimeout(() => {
-        onLoginSuccess(data.user, data.accessToken);
-      }, 200);
-    } catch (err: any) {
-      setErrorMessage(err.message || 'Erreur lors de la connexion.');
-    } finally {
-      setLoading(false);
-    }
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {

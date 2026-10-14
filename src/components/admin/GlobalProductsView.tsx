@@ -66,7 +66,8 @@ export const GlobalProductsView: React.FC<GlobalProductsViewProps> = ({
 
   const filteredProducts = useMemo(() => {
     return products.filter(p => {
-      const matchFiliale = filialeFilter === 'all' || p.filialeKey === filialeFilter;
+      const pShop = p.filialeKey || p.shop || (p.id >= 400 && p.id < 500 ? 'youpi' : p.id >= 500 && p.id < 600 ? 'dari' : 'nutrition');
+      const matchFiliale = filialeFilter === 'all' || pShop === filialeFilter;
       const matchSearch = !searchQuery ||
         p.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.brand?.toLowerCase().includes(searchQuery.toLowerCase()) ||

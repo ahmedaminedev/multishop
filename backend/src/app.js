@@ -22,6 +22,8 @@ const paymentRoutes = require('./routes/payment');
 const reviewRoutes = require('./routes/reviews');
 const brandRoutes = require('./routes/brands');
 const deliveryCompanyRoutes = require('./routes/deliveryCompanies');
+const globalRoutes = require('./routes/global');
+const supplyChainRoutes = require('./routes/supplyChain');
 const errorHandler = require('./middleware/errorHandler'); // Import Handler
 
 require('./config/passport')(passport);
@@ -68,6 +70,8 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/delivery-companies', deliveryCompanyRoutes);
+app.use('/api/global', globalRoutes);
+app.use('/api', supplyChainRoutes);
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../public')));

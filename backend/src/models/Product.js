@@ -12,6 +12,8 @@ const ProductSchema = new mongoose.Schema({
   discount: Number,
   category: { type: String, required: true }, // This will effectively be the Sub-Category
   parentCategory: { type: String }, // New field for Main Category
+  shop: { type: String, default: 'nutrition' },
+  filialeKey: { type: String, default: 'nutrition' },
   promo: { type: Boolean, default: false },
   material: String,
   description: String,

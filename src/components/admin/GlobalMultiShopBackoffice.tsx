@@ -193,7 +193,13 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       ]);
 
       if (statsRes) setStats(statsRes);
-      if (Array.isArray(productsRes)) setAllProducts(productsRes);
+      let productsList = Array.isArray(productsRes) ? productsRes : [];
+      if (productsList.length === 0) {
+        productsList = await fetch('/api/products', { headers }).then(r => r.json()).catch(() => []);
+      }
+      if (Array.isArray(productsList) && productsList.length > 0) {
+        setAllProducts(productsList);
+      }
       if (Array.isArray(ordersRes) && ordersRes.length > 0) {
         setAllOrders(ordersRes);
       } else {

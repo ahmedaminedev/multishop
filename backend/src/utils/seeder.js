@@ -59,32 +59,42 @@ const seedData = async () => {
     });
     console.log('✅ Client créé (Email: client@multishop.com, MDP: password123)');
 
-    // 2. Products
+    // 2. Products - Synchronisation complète des 36 produits de tous les sous-sites
     const productCount = await Product.countDocuments();
-    if (productCount === 0) {
-        await Product.insertMany(allProducts);
-        console.log('Produits importés');
+    if (productCount < allProducts.length) {
+      for (const p of allProducts) {
+        await Product.findOneAndUpdate({ id: p.id }, { $set: p }, { upsert: true, new: true });
+      }
+      console.log(`✅ Produits synchronisés (${allProducts.length} produits de tous les sous-sites dans MongoDB)`);
+    } else {
+      console.log(`✅ Produits vérifiés (${productCount} produits en base)`);
     }
 
     // 3. Categories
     const categoryCount = await Category.countDocuments();
-    if (categoryCount === 0) {
-        await Category.insertMany(categories);
-        console.log('Catégories importées');
+    if (categoryCount < categories.length) {
+      for (const c of categories) {
+        await Category.findOneAndUpdate({ name: c.name, shop: c.shop }, { $set: c }, { upsert: true });
+      }
+      console.log(`✅ Catégories synchronisées (${categories.length} catégories)`);
     }
 
     // 4. Packs
     const packCount = await Pack.countDocuments();
-    if (packCount === 0) {
-        await Pack.insertMany(packs);
-        console.log('Packs importées');
+    if (packCount < packs.length) {
+      for (const pk of packs) {
+        await Pack.findOneAndUpdate({ id: pk.id }, { $set: pk }, { upsert: true });
+      }
+      console.log(`✅ Packs synchronisés (${packs.length} packs)`);
     }
 
     // 5. Stores
     const storeCount = await Store.countDocuments();
-    if (storeCount === 0) {
-        await Store.insertMany(stores);
-        console.log('Magasins importés');
+    if (storeCount < stores.length) {
+      for (const s of stores) {
+        await Store.findOneAndUpdate({ id: s.id }, { $set: s }, { upsert: true });
+      }
+      console.log(`✅ Magasins synchronisés (${stores.length} magasins)`);
     }
 
     // 6. Advertisements (Singleton)
