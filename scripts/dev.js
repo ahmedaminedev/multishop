@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { spawn, execSync } from 'child_process';
+import { spawn } from 'child_process';
 import http from 'http';
 import path from 'path';
 import fs from 'fs';
@@ -16,23 +16,6 @@ console.log('\n======================================================');
 console.log('🚀 [MultiShop] Démarrage du projet MultiShop (Backend + Frontend)');
 console.log('======================================================\n');
 
-// 0. Vérification préalable des dépendances
-const hasRootModules = fs.existsSync(path.resolve(rootDir, 'node_modules/dotenv')) ||
-                       fs.existsSync(path.resolve(rootDir, 'node_modules/express'));
-const hasBackendModules = fs.existsSync(path.resolve(rootDir, 'backend/node_modules/dotenv')) ||
-                          fs.existsSync(path.resolve(rootDir, 'backend/node_modules/express'));
-
-if (!hasRootModules && !hasBackendModules) {
-  console.log('📦 [MultiShop] Dépendances manquantes détectées. Installation automatique (npm install)...');
-  try {
-    const npmCmd = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-    execSync(`${npmCmd} install`, { cwd: rootDir, stdio: 'inherit' });
-    console.log('✅ [MultiShop] Dépendances installées avec succès.\n');
-  } catch (err) {
-    console.warn('⚠️ Avertissement npm install:', err.message);
-  }
-}
-
 let backendProcess = null;
 let frontendProcess = null;
 let isShuttingDown = false;
@@ -41,7 +24,8 @@ function cleanup() {
   if (isShuttingDown) return;
   isShuttingDown = true;
   console.log('\n🛑 [MultiShop] Arrêt des serveurs Backend et Frontend...');
-  if (backendProcess) {
+
+  if (backendProcess && backendProcess.pid) {
     try {
       if (process.platform === 'win32') {
         spawn('taskkill', ['/pid', String(backendProcess.pid), '/f', '/t'], { stdio: 'ignore' });
@@ -50,7 +34,8 @@ function cleanup() {
       }
     } catch {}
   }
-  if (frontendProcess) {
+
+  if (frontendProcess && frontendProcess.pid) {
     try {
       if (process.platform === 'win32') {
         spawn('taskkill', ['/pid', String(frontendProcess.pid), '/f', '/t'], { stdio: 'ignore' });
@@ -59,12 +44,12 @@ function cleanup() {
       }
     } catch {}
   }
-  process.exit(0);
+
+  setTimeout(() => process.exit(0), 400);
 }
 
 process.on('SIGINT', cleanup);
 process.on('SIGTERM', cleanup);
-process.on('exit', cleanup);
 
 function checkPortRunning(port) {
   return new Promise((resolve) => {
@@ -123,13 +108,13 @@ function checkPortRunning(port) {
 
     backendProcess.on('exit', (code, signal) => {
       if (!isShuttingDown) {
-        console.log(`\x1b[33m[Backend info: processus arrêté (${code || signal})]\x1b[0m`);
+        console.log(`\x1b[33m[Backend arrêté (${code || signal})]\x1b[0m`);
       }
     });
 
     // Attendre que le backend soit prêt
     let ready = false;
-    for (let i = 0; i < 35; i++) {
+    for (let i = 0; i < 40; i++) {
       if (isShuttingDown) break;
       await new Promise((r) => setTimeout(r, 150));
       if (await checkPortRunning(BACKEND_PORT)) {
@@ -147,16 +132,22 @@ function checkPortRunning(port) {
 
   console.log(`🌐 [2/2] Lancement du Frontend (Vite) sur le port ${FRONTEND_PORT}...\n`);
 
-  const npmExecutable = process.platform === 'win32' ? 'npm.cmd' : 'npm';
-  frontendProcess = spawn(npmExecutable, ['run', 'dev:frontend'], {
+  // Lancement direct de Vite via Node (fiable sur Windows, macOS et Linux sans invite ni wrapper .cmd)
+  const viteBin = path.resolve(rootDir, 'node_modules/vite/bin/vite.js');
+
+  frontendProcess = spawn(process.execPath, [viteBin, '--host', '0.0.0.0', '--port', String(FRONTEND_PORT)], {
     cwd: rootDir,
     env: process.env,
     stdio: 'inherit'
   });
 
+  frontendProcess.on('error', (err) => {
+    console.error('\x1b[31m[Frontend Error]\x1b[0m', err.message);
+  });
+
   frontendProcess.on('exit', (code, signal) => {
     if (!isShuttingDown) {
-      console.log(`\x1b[33m[Frontend terminé (code ${code || signal})]\x1b[0m`);
+      console.log(`\x1b[33m[Frontend arrêté (${code || signal})]\x1b[0m`);
       cleanup();
     }
   });

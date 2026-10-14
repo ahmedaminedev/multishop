@@ -123,6 +123,7 @@ const seedData = async () => {
         console.log('Messages de contact importés');
     }
 
+    console.log('🎉 [MongoDB] Base de données "multishop" prête et synchronisée avec succès !');
   } catch (error) {
     console.error('Erreur Seeding:', error);
   }
