@@ -2416,11 +2416,31 @@ const users = [
     addresses: [{ type: 'Siège MultiShop', street: 'Les Berges du Lac 2', city: 'Tunis', postalCode: '1053', isDefault: true }]
   },
   {
+    _id: 'usr-admin-2',
+    id: 3,
+    firstName: 'Super',
+    lastName: 'Admin TN',
+    email: 'admin@multishop.tn',
+    role: 'ADMIN',
+    phone: '+216 71 000 000',
+    addresses: [{ type: 'Siège MultiShop', street: 'Les Berges du Lac 2', city: 'Tunis', postalCode: '1053', isDefault: true }]
+  },
+  {
     _id: 'usr-client-1',
     id: 2,
     firstName: 'Ahmed',
     lastName: 'Ben Ali',
     email: 'client@multishop.com',
+    role: 'CUSTOMER',
+    phone: '+216 98 123 456',
+    addresses: [{ type: 'Domicile', street: '12 Avenue Habib Bourguiba', city: 'Tunis', postalCode: '1001', isDefault: true }]
+  },
+  {
+    _id: 'usr-client-2',
+    id: 4,
+    firstName: 'John',
+    lastName: 'Doe',
+    email: 'client@multishop.tn',
     role: 'CUSTOMER',
     phone: '+216 98 123 456',
     addresses: [{ type: 'Domicile', street: '12 Avenue Habib Bourguiba', city: 'Tunis', postalCode: '1001', isDefault: true }]

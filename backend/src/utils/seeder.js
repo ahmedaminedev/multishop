@@ -19,38 +19,45 @@ const seedData = async () => {
   }
   try {
     // 1. Users (Admin & Client)
-    // Force delete admin to ensure clean password hash generation
-    await User.deleteOne({ email: 'admin@multishop.tn' });
+    // Force delete default accounts to ensure clean password hash generation
+    await User.deleteMany({ email: { $in: ['admin@multishop.com', 'admin@multishop.tn', 'client@multishop.com', 'client@multishop.tn'] } });
     
+    await User.create({
+      firstName: 'Super',
+      lastName: 'Admin',
+      email: 'admin@multishop.com',
+      password: 'password123',
+      role: 'ADMIN',
+      phone: '+216 71 000 000'
+    });
+    console.log('✅ Admin créé (Email: admin@multishop.com, MDP: password123)');
+
     await User.create({
       firstName: 'Super',
       lastName: 'Admin',
       email: 'admin@multishop.tn',
       password: 'password123',
       role: 'ADMIN',
-      phone: '00000000'
+      phone: '+216 71 000 000'
     });
-    console.log('Admin recréé (Email: admin@multishop.tn, MDP: password123)');
+    console.log('✅ Admin TN créé (Email: admin@multishop.tn, MDP: password123)');
 
-    let clientUser = await User.findOne({ email: 'client@multishop.tn' });
-    if (!clientUser) {
-      clientUser = await User.create({
-        firstName: 'John',
-        lastName: 'Doe',
-        email: 'client@multishop.tn',
-        password: 'password123',
-        role: 'CUSTOMER',
-        phone: '12345678',
-        addresses: [{
-            type: 'Domicile',
-            street: '123 Rue de la Liberté', 
-            city: 'Tunis', 
-            postalCode: '1002', 
-            isDefault: true
-        }]
-      });
-      console.log('Client créé');
-    }
+    let clientUser = await User.create({
+      firstName: 'John',
+      lastName: 'Doe',
+      email: 'client@multishop.com',
+      password: 'password123',
+      role: 'CUSTOMER',
+      phone: '12345678',
+      addresses: [{
+          type: 'Domicile',
+          street: '123 Rue de la Liberté', 
+          city: 'Tunis', 
+          postalCode: '1002', 
+          isDefault: true
+      }]
+    });
+    console.log('✅ Client créé (Email: client@multishop.com, MDP: password123)');
 
     // 2. Products
     const productCount = await Product.countDocuments();

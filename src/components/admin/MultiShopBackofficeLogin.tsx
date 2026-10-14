@@ -88,11 +88,47 @@ export const MultiShopBackofficeLogin: React.FC<MultiShopBackofficeLoginProps> =
     }
   };
 
-  // Quick fill admin credentials for testing
-  const handleFillAdmin = () => {
-    setIdentifiant('admin@multishop.com');
-    setPassword('password123');
+  // Quick fill and auto-connect Super Admin
+  const handleFillAdmin = async () => {
+    const adminEmail = 'admin@multishop.com';
+    const adminPass = 'password123';
+    setIdentifiant(adminEmail);
+    setPassword(adminPass);
     setErrorMessage(null);
+    setLoading(true);
+
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: adminEmail,
+          password: adminPass,
+          role: 'ADMIN'
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.message || 'Identifiants invalides. Veuillez réessayer.');
+      }
+
+      setSuccessMessage('Connexion réussie ! Redirection...');
+      if (data.accessToken) {
+        localStorage.setItem('token', data.accessToken);
+      }
+      if (data.user) {
+        localStorage.setItem('user', JSON.stringify(data.user));
+      }
+
+      setTimeout(() => {
+        onLoginSuccess(data.user, data.accessToken);
+      }, 200);
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Erreur lors de la connexion.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleForgotPassword = (e: React.FormEvent) => {
@@ -466,10 +502,11 @@ export const MultiShopBackofficeLogin: React.FC<MultiShopBackofficeLoginProps> =
                 <button
                   type="button"
                   onClick={handleFillAdmin}
-                  className="text-xs text-slate-600 hover:text-blue-700 bg-slate-50 hover:bg-blue-50 border border-slate-200/90 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95 font-medium"
+                  disabled={loading}
+                  className="text-xs text-slate-600 hover:text-blue-700 bg-slate-50 hover:bg-blue-50 border border-slate-200/90 rounded-xl px-3 py-1.5 flex items-center gap-1.5 transition-colors cursor-pointer active:scale-95 font-medium disabled:opacity-60"
                 >
                   <Sparkles className="w-3 h-3 text-amber-500 shrink-0" />
-                  <span>Pré-remplir compte Super Admin (démo)</span>
+                  <span>Pré-remplir compte Super Admin</span>
                 </button>
               </div>
 

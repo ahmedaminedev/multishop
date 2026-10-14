@@ -243,7 +243,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
               className="w-full py-2.5 px-3 rounded-xl bg-emerald-500/10 hover:bg-emerald-500/20 border border-emerald-500/30 text-emerald-400 font-semibold text-xs transition-all flex items-center justify-center gap-2 cursor-pointer"
             >
               <UserCheck className="w-3.5 h-3.5" />
-              <span>Connexion Rapide (Admin Démo : admin@multishop.com)</span>
+              <span>Connexion Rapide Super Admin</span>
             </button>
           </div>
 

@@ -74,7 +74,17 @@ exports.login = catchAsync(async (req, res) => {
   const { email, password } = req.body;
   if (!email || !password) return res.status(400).json({ message: 'Email et mot de passe requis.' });
 
-  const user = await User.findOne({ email }).select('+password');
+  const cleanEmail = (email || '').trim().toLowerCase();
+  let user = await User.findOne({ email: cleanEmail }).select('+password');
+
+  // Support case-insensitive & alias fallback for default admin
+  if (!user) {
+    user = await User.findOne({ email: { $regex: new RegExp(`^${cleanEmail}$`, 'i') } }).select('+password');
+  }
+  if (!user && (cleanEmail === 'admin@multishop.com' || cleanEmail === 'admin@multishop.tn')) {
+    user = await User.findOne({ email: { $in: ['admin@multishop.com', 'admin@multishop.tn'] } }).select('+password');
+  }
+
   if (!user) return res.status(404).json({ message: 'Utilisateur non trouvé.' });
 
   // Si c'est un compte OAuth qui tente de se connecter avec mot de passe
