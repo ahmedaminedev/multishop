@@ -1,11 +1,50 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
+import http from 'http';
+import { spawn } from 'child_process';
+
+function checkPortRunning(port: number): Promise<boolean> {
+  return new Promise((resolve) => {
+    const req = http.get(`http://127.0.0.1:${port}/`, () => resolve(true));
+    req.on('error', () => resolve(false));
+    req.setTimeout(250, () => {
+      req.destroy();
+      resolve(false);
+    });
+  });
+}
 
 function multishopPlugin() {
   return {
     name: 'multishop-plugin',
     configureServer(server) {
+      // Auto-start backend Express on port 5000 if not already active
+      checkPortRunning(5000).then((running) => {
+        if (!running) {
+          const backendPath = path.resolve(__dirname, 'backend/src/server.js');
+          const backendProcess = spawn(process.execPath, [backendPath], {
+            cwd: __dirname,
+            env: {
+              ...process.env,
+              PORT: '5000',
+              BACKEND_PORT: '5000'
+            },
+            stdio: 'inherit'
+          });
+
+          backendProcess.on('error', (err) => {
+            console.warn('[Vite AutoBackend] Process notice:', err.message);
+          });
+
+          server.httpServer?.on('close', () => {
+            try {
+              backendProcess.kill('SIGTERM');
+            } catch {}
+          });
+        }
+      }).catch(() => {});
+
       server.middlewares.use((req, res, next) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('X-XSS-Protection', '1; mode=block');
