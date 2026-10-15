@@ -3,8 +3,12 @@ const ContactMessage = require('../models/ContactMessage');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getMessages = catchAsync(async (req, res) => {
-  // Récupère les messages stockés dans MongoDB, triés par date
-  const messages = await ContactMessage.find({}).sort({ date: -1 });
+  const shop = req.query.shop || req.headers['x-shop-id'];
+  let filter = {};
+  if (shop && shop !== 'all') {
+    filter = { $or: [{ shop }, { filialeKey: shop }] };
+  }
+  const messages = await ContactMessage.find(filter).sort({ date: -1 });
   res.json(messages);
 });
 

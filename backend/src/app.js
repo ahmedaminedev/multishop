@@ -72,6 +72,50 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/delivery-companies', deliveryCompanyRoutes);
 app.use('/api/global', globalRoutes);
 app.use('/api', supplyChainRoutes);
+
+// --- Route synchronisation active de boutique ---
+app.post('/api/set-shop', (req, res) => {
+  const shop = req.body?.shop || 'nutrition';
+  res.cookie('shop', shop, { maxAge: 31536000000, path: '/', sameSite: 'lax' });
+  res.json({ success: true, shop });
+});
+
+// --- Route visibilité / maintenance des boutiques ---
+let siteVisibilityState = {
+  nutrition: {
+    siteId: 'nutrition',
+    is_hidden: false,
+    scope: 'frontoffice',
+    mode: 'cacher_tout',
+    maintenance_message: "🏋️‍♂️ Fitness Shop fait l'objet d'une mise à jour de catalogue et réapprovisionnement technique."
+  },
+  youpi: {
+    siteId: 'youpi',
+    is_hidden: false,
+    scope: 'frontoffice',
+    mode: 'cacher_tout',
+    maintenance_message: "🧸 YoupiShop prépare actuellement ses nouveaux jeux et jouets d'enfants. Retour en ligne très vite !"
+  },
+  dari: {
+    siteId: 'dari',
+    is_hidden: false,
+    scope: 'frontoffice',
+    mode: 'cacher_tout',
+    maintenance_message: "🏠 DariShop prépare la nouvelle collection maison & décoration."
+  }
+};
+
+app.get('/api/site-visibility', (req, res) => {
+  res.json(siteVisibilityState);
+});
+
+app.post('/api/site-visibility', (req, res) => {
+  if (req.body && typeof req.body === 'object') {
+    siteVisibilityState = { ...siteVisibilityState, ...req.body };
+  }
+  res.json(siteVisibilityState);
+});
+
 app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 

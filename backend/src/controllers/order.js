@@ -107,7 +107,12 @@ exports.getMyOrders = catchAsync(async (req, res) => {
 });
 
 exports.getOrders = catchAsync(async (req, res) => {
-  const orders = await Order.find({})
+  const shop = req.query.shop || req.headers['x-shop-id'];
+  let filter = {};
+  if (shop && shop !== 'all') {
+    filter = { $or: [{ shop }, { filialeKey: shop }] };
+  }
+  const orders = await Order.find(filter)
     .populate('user', 'id firstName lastName email')
     .sort({ createdAt: -1 });
   res.json(orders);

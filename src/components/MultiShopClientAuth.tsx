@@ -541,6 +541,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
                     <input
                       type="email"
                       required
+                      autoComplete="email"
                       value={email}
                       onChange={(e) => setEmail(e.target.value)}
                       placeholder="exemple@domaine.com"
@@ -559,6 +560,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
                     <input
                       type={showPassword ? 'text' : 'password'}
                       required
+                      autoComplete={tab === 'login' ? 'current-password' : 'new-password'}
                       value={password}
                       onChange={(e) => setPassword(e.target.value)}
                       placeholder="Votre mot de passe"
