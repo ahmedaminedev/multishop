@@ -49,17 +49,23 @@ export const Header: React.FC<HeaderProps> = ({
   const [isAllCategoriesOpen, setIsAllCategoriesOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
-  // Nav categories matching exact capture
-  const navCategories = [
-    { id: 'salon', name: 'Salon', icon: Sofa },
-    { id: 'chambre', name: 'Chambre', icon: Bed },
-    { id: 'salle-a-manger', name: 'Salle à manger', icon: Utensils },
-    { id: 'cuisine', name: 'Cuisine', icon: Coffee },
-    { id: 'decoration', name: 'Décoration', icon: Lamp },
-    { id: 'rangement', name: 'Rangement', icon: Package },
-    { id: 'jardin-exterieur', name: 'Jardin & Extérieur', icon: Sprout },
-    { id: 'bons-plans', name: 'Bons plans', icon: Tag }
-  ];
+  // Dynamic Nav categories from backend categories API
+  const navCategories = propCategories.length > 0
+    ? propCategories.map((c: any) => ({
+        id: String(c.id || c._id || c.name),
+        name: c.name || c.title || String(c),
+        icon: Sofa
+      }))
+    : [
+        { id: 'salon', name: 'Salon', icon: Sofa },
+        { id: 'chambre', name: 'Chambre', icon: Bed },
+        { id: 'salle-a-manger', name: 'Salle à manger', icon: Utensils },
+        { id: 'cuisine', name: 'Cuisine', icon: Coffee },
+        { id: 'decoration', name: 'Décoration', icon: Lamp },
+        { id: 'rangement', name: 'Rangement', icon: Package },
+        { id: 'jardin-exterieur', name: 'Jardin & Extérieur', icon: Sprout },
+        { id: 'bons-plans', name: 'Bons plans', icon: Tag }
+      ];
 
   const handleCategoryClick = (catName: string) => {
     if (onSelectCategory) {

@@ -6,58 +6,30 @@ interface CategoryBarProps {
     onCategoryClick: (categoryName: string) => void;
 }
 
-export const CategoryBar: React.FC<CategoryBarProps> = ({ onCategoryClick }) => {
-    // 7 Category cards matching screenshot exactly
-    const fitnessCategories = [
-        {
-            id: 'halteres',
-            title: 'Haltères & Poids',
-            image: '/src/assets/images/category_halteres_poids_1790951598408.jpg',
-            query: 'Haltères & Poids'
-        },
-        {
-            id: 'bancs',
-            title: 'Bancs de Musculation',
-            image: '/src/assets/images/category_banc_musculation_1790951610418.jpg',
-            query: 'Bancs de Musculation'
-        },
-        {
-            id: 'racks',
-            title: 'Racks & Stations',
-            image: '/src/assets/images/category_rack_station_1790951619589.jpg',
-            query: 'Racks & Stations'
-        },
-        {
-            id: 'cardio',
-            title: 'Cardio',
-            image: '/src/assets/images/category_tapis_cardio_1790951629862.jpg',
-            query: 'Cardio'
-        },
-        {
-            id: 'disques',
-            title: 'Disques & Barres',
-            image: '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg',
-            query: 'Disques & Barres'
-        },
-        {
-            id: 'kettlebells',
-            title: 'Kettlebells',
-            image: '/src/assets/images/category_halteres_poids_1790951598408.jpg',
-            query: 'Cross Training'
-        },
-        {
-            id: 'yoga',
-            title: 'Fitness & Yoga',
-            image: '/src/assets/images/category_banc_musculation_1790951610418.jpg',
-            query: 'Fitness & Yoga'
-        }
-    ];
+export const CategoryBar: React.FC<CategoryBarProps> = ({ categories, onCategoryClick }) => {
+    // Dynamic categories from backend API if available, matching structure
+    const displayCategories = (categories && categories.length > 0)
+        ? categories.map((cat, idx) => ({
+            id: String(cat.id || cat._id || idx),
+            title: cat.name || cat.title || 'Catégorie',
+            image: cat.image || cat.imageUrl || '/src/assets/images/category_halteres_poids_1790951598408.jpg',
+            query: cat.name || cat.title || 'Catégorie'
+        }))
+        : [
+            { id: 'halteres', title: 'Haltères & Poids', image: '/src/assets/images/category_halteres_poids_1790951598408.jpg', query: 'Haltères & Poids' },
+            { id: 'bancs', title: 'Bancs de Musculation', image: '/src/assets/images/category_banc_musculation_1790951610418.jpg', query: 'Bancs de Musculation' },
+            { id: 'racks', title: 'Racks & Stations', image: '/src/assets/images/category_rack_station_1790951619589.jpg', query: 'Racks & Stations' },
+            { id: 'cardio', title: 'Cardio', image: '/src/assets/images/category_tapis_cardio_1790951629862.jpg', query: 'Cardio' },
+            { id: 'disques', title: 'Disques & Barres', image: '/src/assets/images/banner_bumper_plates_promo_1790951639841.jpg', query: 'Disques & Barres' },
+            { id: 'kettlebells', title: 'Kettlebells', image: '/src/assets/images/category_halteres_poids_1790951598408.jpg', query: 'Cross Training' },
+            { id: 'yoga', title: 'Fitness & Yoga', image: '/src/assets/images/category_banc_musculation_1790951610418.jpg', query: 'Fitness & Yoga' }
+        ];
 
     return (
         <section className="w-full bg-slate-50/70 dark:bg-slate-900/50 py-6 sm:py-8 border-b border-slate-200/80 dark:border-slate-800">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3 sm:gap-4">
-                    {fitnessCategories.map((cat) => (
+                    {displayCategories.slice(0, 7).map((cat) => (
                         <div
                             key={cat.id}
                             onClick={() => onCategoryClick(cat.query)}

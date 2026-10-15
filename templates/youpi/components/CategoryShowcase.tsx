@@ -8,46 +8,66 @@ import heroImg from '../../../src/assets/images/hero_youpishop_toys_179124003699
 interface CategoryShowcaseProps {
   onSelectCategory: (categoryName: string) => void;
   selectedCategory: string;
+  categories?: any[];
 }
 
 export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
   onSelectCategory,
-  selectedCategory
+  selectedCategory,
+  categories: propCategories = []
 }) => {
-  const categories = [
-    {
-      id: 'eveil',
-      name: 'Éveil & Bébé',
-      age: '0 à 3 ans',
-      description: 'Montessori, hochets, cubes sensoriels & doudous bio',
-      image: eveilImg,
-      color: 'from-amber-500/80 to-orange-600/90'
-    },
-    {
-      id: 'construction',
-      name: 'Construction & Lego',
-      age: '4 à 12 ans',
-      description: 'Briques créatives, maquettes, stations & fusées',
-      image: legoImg,
-      color: 'from-blue-600/80 to-indigo-700/90'
-    },
-    {
-      id: 'societe',
-      name: 'Jeux de Société',
-      age: 'Dès 5 ans',
-      description: 'Stratégie, coopération, cartes & ambiance familiale',
-      image: societeImg,
-      color: 'from-emerald-600/80 to-teal-700/90'
-    },
-    {
-      id: 'plein-air',
-      name: 'Plein Air & Véhicules',
-      age: '3 à 10 ans',
-      description: 'Trottinettes LED, circuits de course, draisiennes',
-      image: heroImg,
-      color: 'from-rose-500/80 to-purple-600/90'
-    }
-  ];
+  const dynamicCategories = (propCategories && propCategories.length > 0)
+    ? propCategories.slice(0, 4).map((c: any, i: number) => {
+        const colors = [
+          'from-amber-500/80 to-orange-600/90',
+          'from-blue-600/80 to-indigo-700/90',
+          'from-emerald-600/80 to-teal-700/90',
+          'from-rose-500/80 to-purple-600/90'
+        ];
+        const imgs = [eveilImg, legoImg, societeImg, heroImg];
+        return {
+          id: String(c.id || c._id || c.name),
+          name: c.name || c.title || String(c),
+          age: c.trancheAge || 'Tout âge',
+          description: c.description || 'Découvrez nos jeux & jouets d\'éveil',
+          image: c.image || c.imageUrl || imgs[i % imgs.length],
+          color: colors[i % colors.length]
+        };
+      })
+    : [
+        {
+          id: 'eveil',
+          name: 'Éveil & Bébé',
+          age: '0 à 3 ans',
+          description: 'Montessori, hochets, cubes sensoriels & doudous bio',
+          image: eveilImg,
+          color: 'from-amber-500/80 to-orange-600/90'
+        },
+        {
+          id: 'construction',
+          name: 'Construction & Lego',
+          age: '4 à 12 ans',
+          description: 'Briques créatives, maquettes, stations & fusées',
+          image: legoImg,
+          color: 'from-blue-600/80 to-indigo-700/90'
+        },
+        {
+          id: 'societe',
+          name: 'Jeux de Société',
+          age: 'Dès 5 ans',
+          description: 'Stratégie, coopération, cartes & ambiance familiale',
+          image: societeImg,
+          color: 'from-emerald-600/80 to-teal-700/90'
+        },
+        {
+          id: 'plein-air',
+          name: 'Plein Air & Véhicules',
+          age: '3 à 10 ans',
+          description: 'Trottinettes LED, circuits de course, draisiennes',
+          image: heroImg,
+          color: 'from-rose-500/80 to-purple-600/90'
+        }
+      ];
 
   return (
     <section className="py-12 bg-white dark:bg-slate-900 border-b border-slate-100 dark:border-slate-800">
@@ -68,7 +88,7 @@ export const CategoryShowcase: React.FC<CategoryShowcaseProps> = ({
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          {categories.map((cat) => {
+          {dynamicCategories.map((cat) => {
             const isSelected = selectedCategory === cat.name;
             return (
               <div

@@ -200,53 +200,12 @@ export const ManageHomePage: React.FC<ManageHomePageProps> = ({
         }
     };
 
-    // Bestseller mock items for preview
+    // Bestseller items for preview using dynamic backend products
     const bestsellersPreview = useMemo(() => {
-        if (allProducts && allProducts.length >= 4) {
+        if (allProducts && allProducts.length > 0) {
             return allProducts.slice(0, 4);
         }
-        return [
-            {
-                id: 101,
-                name: 'Haltères Hexagonaux 2x10kg',
-                price: 169.000,
-                oldPrice: 199.000,
-                discount: 15,
-                imageUrl: '/src/assets/images/category_halteres_poids_1790951598408.jpg',
-                category: 'Haltères & Poids',
-                quantity: 40
-            },
-            {
-                id: 102,
-                name: 'Banc Ajustable Pro',
-                price: 349.000,
-                oldPrice: 389.000,
-                discount: 10,
-                imageUrl: '/src/assets/images/category_banc_musculation_1790951610418.jpg',
-                category: 'Bancs de Musculation',
-                quantity: 25
-            },
-            {
-                id: 103,
-                name: 'Rack de Musculation Heavy Duty',
-                price: 1249.000,
-                oldPrice: 1429.000,
-                discount: 12,
-                imageUrl: '/src/assets/images/category_rack_station_1790951619589.jpg',
-                category: 'Racks & Stations',
-                quantity: 15
-            },
-            {
-                id: 104,
-                name: 'Tapis de Course 2.5HP Pro',
-                price: 1299.000,
-                oldPrice: 1399.000,
-                discount: 8,
-                imageUrl: '/src/assets/images/category_tapis_cardio_1790951629862.jpg',
-                category: 'Cardio',
-                quantity: 10
-            }
-        ];
+        return [];
     }, [allProducts]);
 
     const fitnessHome = adsConfig.fitnessHome || defaultFitnessHome;

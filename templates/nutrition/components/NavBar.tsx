@@ -9,29 +9,33 @@ interface NavBarProps {
     onNavigateToBlog: () => void;
     onNavigateToNews: () => void;
     onNavigateToContact: () => void;
+    categories?: any[];
 }
 
 export const NavBar: React.FC<NavBarProps> = ({ 
     onNavigateHome, 
     onNavigateToCategory,
-    onNavigateToPromotions
+    onNavigateToPromotions,
+    categories
 }) => {
     const [isCategoriesDropdownOpen, setIsCategoriesDropdownOpen] = useState(false);
     const [activeTab, setActiveTab] = useState('Accueil');
 
-    const categoriesList = [
-        'Musculation',
-        'Cardio',
-        'Cross Training',
-        'Fitness & Yoga',
-        'Haltères & Poids',
-        'Bancs de Musculation',
-        'Racks & Stations',
-        'Disques & Barres',
-        'Kettlebells',
-        'Accessoires',
-        'Nutrition & Protéines'
-    ];
+    const categoriesList = (categories && categories.length > 0)
+        ? categories.map(c => typeof c === 'string' ? c : c.name || c.title || String(c))
+        : [
+            'Musculation',
+            'Cardio',
+            'Cross Training',
+            'Fitness & Yoga',
+            'Haltères & Poids',
+            'Bancs de Musculation',
+            'Racks & Stations',
+            'Disques & Barres',
+            'Kettlebells',
+            'Accessoires',
+            'Nutrition & Protéines'
+        ];
 
     const mainNavItems = [
         { label: 'Accueil', action: () => { setActiveTab('Accueil'); onNavigateHome(); } },

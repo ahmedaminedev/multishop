@@ -36,13 +36,15 @@ interface HeroSectionProps {
     subtitle: string;
     icon?: string;
   }>;
+  categories?: any[];
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onExplore,
   onSelectCategory,
   customHero,
-  customBadges
+  customBadges,
+  categories
 }) => {
   const [activeSlide, setActiveSlide] = useState(0);
 
@@ -96,58 +98,66 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
 
   const badges = customBadges && customBadges.length > 0 ? customBadges : defaultBadges;
 
-  // Exact 7 Main Categories from user's capture
-  const mainCategories = [
-    {
-      id: 'salon',
-      title: 'Salon',
-      subtitle: 'Confort & élégance',
-      icon: Sofa,
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'
-    },
-    {
-      id: 'chambre',
-      title: 'Chambre',
-      subtitle: 'Un espace pour rêver',
-      icon: Bed,
-      image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=800'
-    },
-    {
-      id: 'salle-a-manger',
-      title: 'Salle à manger',
-      subtitle: 'Partagez de bons moments',
-      icon: Utensils,
-      image: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?q=80&w=800'
-    },
-    {
-      id: 'cuisine',
-      title: 'Cuisine',
-      subtitle: 'Pratique & moderne',
-      icon: Coffee,
-      image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800'
-    },
-    {
-      id: 'decoration',
-      title: 'Décoration',
-      subtitle: 'Les détails qui changent tout',
-      icon: Lamp,
-      image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800'
-    },
-    {
-      id: 'rangement',
-      title: 'Rangement',
-      subtitle: 'Tout à sa place',
-      icon: Package,
-      image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=800'
-    },
-    {
-      id: 'jardin-exterieur',
-      title: 'Jardin & Extérieur',
-      subtitle: 'Profitez de chaque instant',
-      icon: Sprout,
-      image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800'
-    }
-  ];
+  // Dynamic Main Categories from backend API
+  const mainCategories = (categories && categories.length > 0)
+    ? categories.slice(0, 7).map((c: any) => ({
+        id: String(c.id || c._id || c.name),
+        title: c.name || c.title || String(c),
+        subtitle: c.description || c.subtitle || 'Collection maison & déco',
+        icon: Sofa,
+        image: c.image || c.imageUrl || 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'
+      }))
+    : [
+        {
+          id: 'salon',
+          title: 'Salon',
+          subtitle: 'Confort & élégance',
+          icon: Sofa,
+          image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?q=80&w=800'
+        },
+        {
+          id: 'chambre',
+          title: 'Chambre',
+          subtitle: 'Un espace pour rêver',
+          icon: Bed,
+          image: 'https://images.unsplash.com/photo-1616046229478-9901c5536a45?q=80&w=800'
+        },
+        {
+          id: 'salle-a-manger',
+          title: 'Salle à manger',
+          subtitle: 'Partagez de bons moments',
+          icon: Utensils,
+          image: 'https://images.unsplash.com/photo-1617806118233-18e1de247200?q=80&w=800'
+        },
+        {
+          id: 'cuisine',
+          title: 'Cuisine',
+          subtitle: 'Pratique & moderne',
+          icon: Coffee,
+          image: 'https://images.unsplash.com/photo-1556911220-e15b29be8c8f?q=80&w=800'
+        },
+        {
+          id: 'decoration',
+          title: 'Décoration',
+          subtitle: 'Les détails qui changent tout',
+          icon: Lamp,
+          image: 'https://images.unsplash.com/photo-1513519245088-0e12902e5a38?q=80&w=800'
+        },
+        {
+          id: 'rangement',
+          title: 'Rangement',
+          subtitle: 'Tout à sa place',
+          icon: Package,
+          image: 'https://images.unsplash.com/photo-1595428774223-ef52624120d2?q=80&w=800'
+        },
+        {
+          id: 'jardin-exterieur',
+          title: 'Jardin & Extérieur',
+          subtitle: 'Profitez de chaque instant',
+          icon: Sprout,
+          image: 'https://images.unsplash.com/photo-1600585154340-be6161a56a0c?q=80&w=800'
+        }
+      ];
 
   const renderBadgeIcon = (iconName?: string) => {
     switch (iconName) {

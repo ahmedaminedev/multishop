@@ -497,6 +497,7 @@ const AppContent: React.FC = () => {
                     onNavigateToBlog={navigateToBlog}
                     onNavigateToNews={() => {}}
                     onNavigateToContact={navigateToContact}
+                    categories={categories}
                 />
                 
                 <main className="flex-grow">

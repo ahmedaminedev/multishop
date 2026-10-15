@@ -146,19 +146,27 @@ export const ProductListPage: React.FC<ProductListPageProps> = ({
         return '/src/assets/images/hero_fitness_athlete_1790951585544.jpg';
     }, [categoryName]);
 
-    // Navbar Category quick tabs for 1-click switching
-    const quickCategories = [
-        { label: 'Tous les produits', target: 'product-list' },
-        { label: 'Musculation', target: 'Musculation' },
-        { label: 'Cardio', target: 'Cardio' },
-        { label: 'Cross Training', target: 'Cross Training' },
-        { label: 'Fitness & Yoga', target: 'Fitness & Yoga' },
-        { label: 'Accessoires', target: 'Accessoires' },
-        { label: 'Marques', target: 'Marques' },
-        { label: 'Haltères & Poids', target: 'Haltères & Poids' },
-        { label: 'Bancs de Musculation', target: 'Bancs de Musculation' },
-        { label: 'Racks & Stations', target: 'Racks & Stations' },
-    ];
+    // Dynamic Category quick tabs for 1-click switching from backend API
+    const quickCategories = useMemo(() => {
+        if (categories && categories.length > 0) {
+            return [
+                { label: 'Tous les produits', target: 'product-list' },
+                ...categories.map(c => ({
+                    label: c.name || c.title || String(c),
+                    target: c.name || c.title || String(c)
+                }))
+            ];
+        }
+        return [
+            { label: 'Tous les produits', target: 'product-list' },
+            { label: 'Musculation', target: 'Musculation' },
+            { label: 'Cardio', target: 'Cardio' },
+            { label: 'Cross Training', target: 'Cross Training' },
+            { label: 'Fitness & Yoga', target: 'Fitness & Yoga' },
+            { label: 'Accessoires', target: 'Accessoires' },
+            { label: 'Marques', target: 'Marques' }
+        ];
+    }, [categories]);
 
     const isBrandView = (categoryName || '').toLowerCase() === 'marques' || (categoryName || '').toLowerCase() === 'brands';
 

@@ -9,6 +9,7 @@ interface ProductGridSectionProps {
   onSelectCategory?: (cat: string) => void;
   onSelectProduct?: (product: Product) => void;
   searchQuery?: string;
+  categories?: any[];
 }
 
 export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
@@ -16,19 +17,31 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
   selectedCategory,
   onSelectCategory = () => {},
   onSelectProduct = () => {},
-  searchQuery = ''
+  searchQuery = '',
+  categories: propCategories = []
 }) => {
   const [sortBy, setSortBy] = useState<'populaire' | 'prix-asc' | 'prix-desc'>('populaire');
 
-  const categories = [
-    { id: 'all', label: 'Toutes les collections' },
-    { id: 'Mobilier & Salons', label: '🛋️ Mobilier & Salons' },
-    { id: 'Luminaires & Éclairage', label: '💡 Luminaires & Éclairage' },
-    { id: 'Décoration & Miroirs', label: '🪞 Décoration & Miroirs' },
-    { id: 'Linge de Maison & Tapis', label: '🧶 Linge & Tapis' },
-    { id: 'Art de la Table & Cuisine', label: '🍽️ Art de la Table' },
-    { id: 'Rangement & Dressings', label: '🗄️ Rangement & Dressings' }
-  ];
+  // Dynamic categories derived from backend API or dynamic product set
+  const categories = useMemo(() => {
+    if (propCategories && propCategories.length > 0) {
+      return [
+        { id: 'all', label: 'Toutes les collections' },
+        ...propCategories.map((c: any) => ({
+          id: c.name || c.id || c.title,
+          label: c.name || c.title || String(c)
+        }))
+      ];
+    }
+    const unique = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+    if (unique.length > 0) {
+      return [
+        { id: 'all', label: 'Toutes les collections' },
+        ...unique.map(cat => ({ id: cat, label: cat }))
+      ];
+    }
+    return [{ id: 'all', label: 'Toutes les collections' }];
+  }, [propCategories, products]);
 
   const filteredProducts = useMemo(() => {
     return products

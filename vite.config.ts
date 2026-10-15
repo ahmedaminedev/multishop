@@ -11,17 +11,6 @@ function multishopProductionPlugin() {
     async configureServer(server) {
       await initStores();
 
-      // If local MongoDB daemon is running, connect and seed automatically for MongoDB Compass
-      try {
-        const { createRequire } = await import('module');
-        const req = createRequire(import.meta.url);
-        const connectDB = req('./backend/src/config/db.js');
-        const seedData = req('./backend/src/utils/seeder.js');
-        connectDB().then(() => {
-          seedData().catch(() => {});
-        }).catch(() => {});
-      } catch {}
-
       // Attach Socket.IO to dev server http instance with buffer protection
       if (server.httpServer) {
         const io = new SocketIOServer(server.httpServer, {
@@ -77,32 +66,6 @@ function multishopProductionPlugin() {
         });
       }
 
-      let isBackendLive = false;
-      let lastCheckTime = 0;
-
-      function checkBackendHealth(): Promise<boolean> {
-        const now = Date.now();
-        if (now - lastCheckTime < 2500) {
-          return Promise.resolve(isBackendLive);
-        }
-        lastCheckTime = now;
-        return new Promise((resolve) => {
-          const r = http.get('http://127.0.0.1:5000/', (res) => {
-            isBackendLive = Boolean(res.statusCode && res.statusCode < 500);
-            resolve(isBackendLive);
-          });
-          r.on('error', () => {
-            isBackendLive = false;
-            resolve(false);
-          });
-          r.setTimeout(350, () => {
-            r.destroy();
-            isBackendLive = false;
-            resolve(false);
-          });
-        });
-      }
-
       // High-performance security & API middleware
       server.middlewares.use(async (req, res, next) => {
         // Enforce safe headers compatible with iframe embedding
@@ -111,30 +74,7 @@ function multishopProductionPlugin() {
         res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
 
         if (req.url && req.url.startsWith('/api')) {
-          const backendUp = await checkBackendHealth();
-          if (backendUp) {
-            const proxyReq = http.request({
-              hostname: '127.0.0.1',
-              port: 5000,
-              path: req.url,
-              method: req.method,
-              headers: {
-                ...req.headers,
-                host: '127.0.0.1:5000'
-              }
-            }, (proxyRes) => {
-              res.writeHead(proxyRes.statusCode || 200, proxyRes.headers);
-              proxyRes.pipe(res);
-            });
-
-            proxyReq.on('error', () => {
-              handleApiRequest(req, res, next);
-            });
-
-            req.pipe(proxyReq);
-          } else {
-            handleApiRequest(req, res, next);
-          }
+          handleApiRequest(req, res, next);
         } else {
           next();
         }
@@ -211,7 +151,8 @@ export default defineConfig({
   server: {
     host: '0.0.0.0',
     port: 3000,
-    strictPort: false
+    strictPort: false,
+    allowedHosts: 'all'
   },
   preview: {
     host: '0.0.0.0',

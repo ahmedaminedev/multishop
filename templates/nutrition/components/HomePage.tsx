@@ -23,7 +23,10 @@ export const HomePage: React.FC<HomePageProps> = ({
     onNavigate, 
     onNavigateToProductDetail,
     products,
-    advertisements
+    advertisements,
+    categories,
+    brands,
+    packs
 }) => {
     const fitnessHome = advertisements?.fitnessHome;
     const heroConfig = fitnessHome?.hero;
@@ -57,61 +60,11 @@ export const HomePage: React.FC<HomePageProps> = ({
             p.name?.toLowerCase().includes('tapis')
         );
 
-        if (fitnessItems.length >= 4) {
+        if (fitnessItems.length > 0) {
             return fitnessItems.slice(0, 4);
         }
 
-        // Default mock matching capture if specific products not yet in state
-        return [
-            {
-                id: 101,
-                name: 'Haltères Hexagonaux 2x10kg',
-                price: 169.000,
-                oldPrice: 199.000,
-                discount: 15,
-                rating: 5,
-                reviewsCount: 124,
-                imageUrl: '/src/assets/images/category_halteres_poids_1790951598408.jpg',
-                category: 'Haltères & Poids',
-                quantity: 40
-            },
-            {
-                id: 102,
-                name: 'Banc Ajustable Pro',
-                price: 349.000,
-                oldPrice: 389.000,
-                discount: 10,
-                rating: 5,
-                reviewsCount: 86,
-                imageUrl: '/src/assets/images/category_banc_musculation_1790951610418.jpg',
-                category: 'Bancs de Musculation',
-                quantity: 25
-            },
-            {
-                id: 103,
-                name: 'Rack de Musculation',
-                price: 1249.000,
-                oldPrice: 1429.000,
-                discount: 12,
-                rating: 5,
-                reviewsCount: 72,
-                imageUrl: '/src/assets/images/category_rack_station_1790951619589.jpg',
-                category: 'Racks & Stations',
-                quantity: 15
-            },
-            {
-                id: 104,
-                name: 'Tapis de Course 2.5HP',
-                price: 1299.000,
-                oldPrice: 1399.000,
-                discount: 8,
-                rating: 5,
-                reviewsCount: 66,
-                imageUrl: '/src/assets/images/category_tapis_cardio_1790951629862.jpg',
-                category: 'Cardio',
-                quantity: 10
-            }
-        ];
+        return products.slice(0, 4);
     }, [products]);
 
     // Secondary collection: cardio & nutrition equipment
@@ -129,7 +82,7 @@ export const HomePage: React.FC<HomePageProps> = ({
             />
 
             {/* 2. Horizontal 7-Category Bar matching screenshot */}
-            <CategoryBar onCategoryClick={onNavigate} />
+            <CategoryBar onCategoryClick={onNavigate} categories={categories} />
 
             {/* 2.1 Tunisia Live Metrics Bar */}
             <div className="bg-slate-900 border-y border-slate-800 py-3.5 px-4">
@@ -284,6 +237,9 @@ export const HomePage: React.FC<HomePageProps> = ({
                     </div>
                 </section>
             )}
+
+            {/* 5. Shop By Goal Section with dynamic category links */}
+            <ShopByGoalSection onSelectGoal={onNavigate} categories={categories} />
 
         </div>
     );

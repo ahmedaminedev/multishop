@@ -9,6 +9,7 @@ interface ProductGridSectionProps {
   onSelectCategory?: (cat: string) => void;
   onSelectProduct?: (product: Product) => void;
   searchQuery?: string;
+  categories?: any[];
 }
 
 export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
@@ -16,22 +17,32 @@ export const ProductGridSection: React.FC<ProductGridSectionProps> = ({
   selectedCategory,
   onSelectCategory = () => {},
   onSelectProduct = () => {},
-  searchQuery = ''
+  searchQuery = '',
+  categories: propCategories = []
 }) => {
   const [selectedAge, setSelectedAge] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'populaire' | 'prix-asc' | 'prix-desc'>('populaire');
 
-  const categories = [
-    { id: 'all', label: 'Tous les jouets' },
-    { id: '0-3', label: '👶 0-3 ans' },
-    { id: '3-6', label: '🧸 3-6 ans' },
-    { id: '6-12', label: '🎮 6-12 ans' },
-    { id: 'Jeux de société', label: '🎲 Jeux de société' },
-    { id: 'Puzzles', label: '🧩 Puzzles' },
-    { id: 'Éducatifs', label: '💡 Éducatifs' },
-    { id: 'Extérieurs', label: '🚲 Extérieurs' },
-    { id: 'Marques', label: '🏷️ Marques' }
-  ];
+  // Dynamic categories derived from backend API or dynamic product set
+  const categories = useMemo(() => {
+    if (propCategories && propCategories.length > 0) {
+      return [
+        { id: 'all', label: 'Tous les jouets' },
+        ...propCategories.map((c: any) => ({
+          id: c.name || c.id || c.title,
+          label: c.name || c.title || String(c)
+        }))
+      ];
+    }
+    const unique = Array.from(new Set(products.map(p => p.category).filter(Boolean)));
+    if (unique.length > 0) {
+      return [
+        { id: 'all', label: 'Tous les jouets' },
+        ...unique.map(cat => ({ id: cat, label: cat }))
+      ];
+    }
+    return [{ id: 'all', label: 'Tous les jouets' }];
+  }, [propCategories, products]);
 
   const filteredProducts = useMemo(() => {
     return products

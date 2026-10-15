@@ -18,19 +18,18 @@ import { StoresPage } from './components/StoresPage';
 import { ProductDetailPage } from './components/ProductDetailPage';
 import { Product, Pack, Store, BlogPost, Category, Advertisements } from './types';
 import { api } from './utils/api';
-import initialData from './data/initialData';
 
 export const DariShopApp: React.FC<{
   onOpenAuthModal?: () => void;
   currentUser?: any;
 }> = ({ onOpenAuthModal, currentUser }) => {
   const [currentView, setCurrentView] = useState<'home' | 'catalog' | 'packs' | 'blog' | 'stores' | 'checkout' | 'product-detail'>('home');
-  const [products, setProducts] = useState<Product[]>(initialData.allProducts as any);
-  const [categories, setCategories] = useState<Category[]>(initialData.categories as any);
-  const [packs, setPacks] = useState<Pack[]>(initialData.packs as any);
-  const [stores, setStores] = useState<Store[]>(initialData.stores as any);
-  const [blogPosts, setBlogPosts] = useState<BlogPost[]>(initialData.blogPosts as any);
-  const [advertisements, setAdvertisements] = useState<Advertisements>(initialData.initialAdvertisements as Advertisements);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [packs, setPacks] = useState<Pack[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [blogPosts, setBlogPosts] = useState<BlogPost[]>([]);
+  const [advertisements, setAdvertisements] = useState<Advertisements | null>(null);
 
   const [selectedCategory, setSelectedCategory] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState<string>('');
@@ -41,27 +40,22 @@ export const DariShopApp: React.FC<{
   const loadData = async () => {
     try {
       const [prodsData, catsData, packsData, adsData, storesData, blogData] = await Promise.all([
-        api.getProducts().catch(() => initialData.allProducts),
-        api.getCategories().catch(() => initialData.categories),
-        api.getPacks().catch(() => initialData.packs),
-        api.getAdvertisements().catch(() => initialData.initialAdvertisements),
-        api.getStores().catch(() => initialData.stores),
-        api.getBlogPosts().catch(() => initialData.blogPosts)
+        api.getProducts().catch(() => []),
+        api.getCategories().catch(() => []),
+        api.getPacks().catch(() => []),
+        api.getAdvertisements().catch(() => null),
+        api.getStores().catch(() => []),
+        api.getBlogPosts().catch(() => [])
       ]);
 
-      if (Array.isArray(prodsData) && prodsData.length > 0) setProducts(prodsData);
-      if (Array.isArray(catsData) && catsData.length > 0) setCategories(catsData);
-      if (Array.isArray(packsData) && packsData.length > 0) setPacks(packsData);
+      if (Array.isArray(prodsData)) setProducts(prodsData);
+      if (Array.isArray(catsData)) setCategories(catsData);
+      if (Array.isArray(packsData)) setPacks(packsData);
       if (adsData && typeof adsData === 'object') {
-        setAdvertisements(prev => ({
-          ...prev,
-          ...adsData,
-          logoConfig: adsData.logoConfig || prev?.logoConfig,
-          dariHome: adsData.dariHome || prev?.dariHome
-        }));
+        setAdvertisements(adsData);
       }
-      if (Array.isArray(storesData) && storesData.length > 0) setStores(storesData);
-      if (Array.isArray(blogData) && blogData.length > 0) setBlogPosts(blogData);
+      if (Array.isArray(storesData)) setStores(storesData);
+      if (Array.isArray(blogData)) setBlogPosts(blogData);
     } catch (e) {
       console.warn('DariShop data loading fallback:', e);
     }
@@ -148,6 +142,7 @@ export const DariShopApp: React.FC<{
                         onSelectCategory={handleCategorySelect}
                         customHero={dariHome?.hero}
                         customBadges={dariHome?.trustBadges}
+                        categories={categories}
                       />
 
                       {/* Configured Bestsellers Header matching Backoffice */}
@@ -162,6 +157,7 @@ export const DariShopApp: React.FC<{
 
                       <ProductGridSection
                         products={products}
+                        categories={categories}
                         selectedCategory={selectedCategory}
                         onSelectCategory={setSelectedCategory}
                         onSelectProduct={handleProductSelect}
@@ -215,6 +211,7 @@ export const DariShopApp: React.FC<{
                   {currentView === 'catalog' && (
                     <ProductGridSection
                       products={products}
+                      categories={categories}
                       selectedCategory={selectedCategory}
                       onSelectCategory={setSelectedCategory}
                       onSelectProduct={handleProductSelect}

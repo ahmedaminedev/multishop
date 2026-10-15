@@ -22,13 +22,15 @@ interface HeroSectionProps {
     subtitle: string;
     icon?: string;
   }>;
+  categories?: any[];
 }
 
 export const HeroSection: React.FC<HeroSectionProps> = ({
   onExplore,
   onSelectCategory,
   customHero,
-  customBadges
+  customBadges,
+  categories
 }) => {
   const handleCardClick = (cat: string) => {
     if (onSelectCategory) {
@@ -38,8 +40,35 @@ export const HeroSection: React.FC<HeroSectionProps> = ({
     }
   };
 
-  // 8 Category cards exactly matching the capture
-  const categoryCards = [
+  const defaultPalette = [
+    { bgColor: 'bg-[#fdf2f4] dark:bg-rose-950/20 border-[#fce7ec] dark:border-rose-900/30', btnColor: 'bg-[#f43f5e] hover:bg-[#e11d48] text-white', emoji: '🧸' },
+    { bgColor: 'bg-[#fefce8] dark:bg-amber-950/20 border-[#fef08a]/60 dark:border-amber-900/30', btnColor: 'bg-[#eab308] hover:bg-[#ca8a04] text-slate-900', emoji: '🚗' },
+    { bgColor: 'bg-[#eff6ff] dark:bg-blue-950/20 border-[#dbeafe] dark:border-blue-900/30', btnColor: 'bg-[#3b82f6] hover:bg-[#2563eb] text-white', emoji: '🎮' },
+    { bgColor: 'bg-[#ecfdf5] dark:bg-emerald-950/20 border-[#d1fae5] dark:border-emerald-900/30', btnColor: 'bg-[#10b981] hover:bg-[#059669] text-white', emoji: '🎲' },
+    { bgColor: 'bg-[#faf5ff] dark:bg-purple-950/20 border-[#f3e8ff] dark:border-purple-900/30', btnColor: 'bg-[#a855f7] hover:bg-[#9333ea] text-white', emoji: '🧩' },
+    { bgColor: 'bg-[#fff7ed] dark:bg-orange-950/20 border-[#ffedd5] dark:border-orange-900/30', btnColor: 'bg-[#f97316] hover:bg-[#ea580c] text-white', emoji: '💡' },
+    { bgColor: 'bg-[#f0fdf4] dark:bg-green-950/20 border-[#dcfce7] dark:border-green-900/30', btnColor: 'bg-[#22c55e] hover:bg-[#16a34a] text-white', emoji: '🛴' },
+    { bgColor: 'bg-[#f8fafc] dark:bg-slate-900/40 border-[#e2e8f0] dark:border-slate-800', btnColor: 'bg-slate-900 hover:bg-slate-800 text-white', emoji: '🏷️' }
+  ];
+
+  // Dynamic category cards from backend API or fallback
+  const categoryCards = (categories && categories.length > 0)
+    ? categories.slice(0, 8).map((cat: any, i: number) => {
+        const theme = defaultPalette[i % defaultPalette.length];
+        return {
+          id: String(cat.name || cat.id || cat.title),
+          name: cat.name || cat.title || String(cat),
+          bgColor: theme.bgColor,
+          btnColor: theme.btnColor,
+          badge: cat.name || '',
+          icon: (
+            <div className="w-16 h-16 flex items-center justify-center text-4xl drop-shadow-md select-none">
+              {theme.emoji}
+            </div>
+          )
+        };
+      })
+    : [
     {
       id: '0-3',
       name: 'Jouets 0-3 ans',

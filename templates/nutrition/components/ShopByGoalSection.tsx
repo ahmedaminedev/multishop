@@ -3,52 +3,60 @@ import { Dumbbell, Flame, Trophy, Home, ArrowRight } from 'lucide-react';
 
 interface ShopByGoalSectionProps {
     onSelectGoal: (category: string) => void;
+    categories?: any[];
 }
 
-const GOALS = [
-    {
-        id: 'powerlifting',
-        title: 'Force & Powerlifting',
-        subtitle: 'Racks lourds, barres 20kg et fonte olympique',
-        category: 'Racks & Stations',
-        metric: 'Charge testée 600kg',
-        accentColor: '#dc2626', // Red
-        icon: <Trophy className="w-5 h-5" />,
-        bgImage: '/src/assets/images/category_rack_station_1790951619589.jpg'
-    },
-    {
-        id: 'hypertrophy',
-        title: 'Hypertrophie & Musculation',
-        subtitle: 'Haltères hexagonaux & bancs ajustables multipostes',
-        category: 'Haltères & Poids',
-        metric: 'Isolation musculaire max',
-        accentColor: '#84cc16', // Neon Green
-        icon: <Dumbbell className="w-5 h-5" />,
-        bgImage: '/src/assets/images/category_halteres_poids_1790951598408.jpg'
-    },
-    {
-        id: 'cardio',
-        title: 'Cardio & Brûle-Graisses',
-        subtitle: 'Tapis de course connectés & rameurs à résistance air',
-        category: 'Cardio',
-        metric: 'Moteur garanti 5 ans',
-        accentColor: '#2563eb', // Blue
-        icon: <Flame className="w-5 h-5" />,
-        bgImage: '/src/assets/images/category_tapis_cardio_1790951629862.jpg'
-    },
-    {
-        id: 'compact',
-        title: 'Home Gym Espace Réduit',
-        subtitle: 'Équipements pliables & rangements compacts d\'appartement',
-        category: 'Bancs de Musculation',
-        metric: '< 1.5 m² au sol',
-        accentColor: '#eab308', // Yellow
-        icon: <Home className="w-5 h-5" />,
-        bgImage: '/src/assets/images/category_banc_musculation_1790951610418.jpg'
-    }
-];
+export const ShopByGoalSection: React.FC<ShopByGoalSectionProps> = ({ onSelectGoal, categories }) => {
+    const goalsList = React.useMemo(() => {
+        const catNames = (categories || []).map(c => typeof c === 'string' ? c : c.name || c.title || '');
+        const findCat = (query: string, fallback: string) => {
+            const found = catNames.find(n => n.toLowerCase().includes(query.toLowerCase()));
+            return found || fallback;
+        };
 
-export const ShopByGoalSection: React.FC<ShopByGoalSectionProps> = ({ onSelectGoal }) => {
+        return [
+            {
+                id: 'powerlifting',
+                title: 'Force & Powerlifting',
+                subtitle: 'Racks lourds, barres 20kg et fonte olympique',
+                category: findCat('rack', 'Racks & Stations'),
+                metric: 'Charge testée 600kg',
+                accentColor: '#dc2626',
+                icon: <Trophy className="w-5 h-5" />,
+                bgImage: '/src/assets/images/category_rack_station_1790951619589.jpg'
+            },
+            {
+                id: 'hypertrophy',
+                title: 'Hypertrophie & Musculation',
+                subtitle: 'Haltères hexagonaux & bancs ajustables multipostes',
+                category: findCat('haltère', 'Haltères & Poids'),
+                metric: 'Isolation musculaire max',
+                accentColor: '#84cc16',
+                icon: <Dumbbell className="w-5 h-5" />,
+                bgImage: '/src/assets/images/category_halteres_poids_1790951598408.jpg'
+            },
+            {
+                id: 'cardio',
+                title: 'Cardio & Brûle-Graisses',
+                subtitle: 'Tapis de course connectés & rameurs à résistance air',
+                category: findCat('cardio', 'Cardio'),
+                metric: 'Moteur garanti 5 ans',
+                accentColor: '#2563eb',
+                icon: <Flame className="w-5 h-5" />,
+                bgImage: '/src/assets/images/category_tapis_cardio_1790951629862.jpg'
+            },
+            {
+                id: 'compact',
+                title: 'Home Gym Espace Réduit',
+                subtitle: 'Équipements pliables & rangements compacts d\'appartement',
+                category: findCat('banc', 'Bancs de Musculation'),
+                metric: '< 1.5 m² au sol',
+                accentColor: '#eab308',
+                icon: <Home className="w-5 h-5" />,
+                bgImage: '/src/assets/images/category_banc_musculation_1790951610418.jpg'
+            }
+        ];
+    }, [categories]);
     return (
         <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 w-full">
             
@@ -72,7 +80,7 @@ export const ShopByGoalSection: React.FC<ShopByGoalSectionProps> = ({ onSelectGo
 
             {/* 4 Cards Grid */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-                {GOALS.map((goal) => (
+                {goalsList.map((goal) => (
                     <div
                         key={goal.id}
                         onClick={() => onSelectGoal(goal.category)}
