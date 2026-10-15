@@ -1,97 +1,24 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import path from 'path';
-import http from 'http';
-import { handleApiRequest, initStores, recordChatMessage, attachSocketIO, calculateGlobalStats, calculateShopStats } from './serverApi.js';
-import { Server as SocketIOServer } from 'socket.io';
 
-function multishopProductionPlugin() {
+function multishopPlugin() {
   return {
-    name: 'multishop-production-plugin',
-    async configureServer(server) {
-      await initStores();
-
-      // Attach Socket.IO to dev server http instance with buffer protection
-      if (server.httpServer) {
-        const io = new SocketIOServer(server.httpServer, {
-          cors: { origin: '*', methods: ['GET', 'POST'] },
-          pingTimeout: 30000,
-          pingInterval: 25000,
-          maxHttpBufferSize: 1e6
-        });
-
-        attachSocketIO(io);
-
-        io.on('connection', (socket) => {
-          socket.on('join_room', (userId) => {
-            if (typeof userId === 'string' && userId.length < 100) {
-              socket.join(userId);
-            }
-          });
-          socket.on('admin_join', () => {
-            socket.join('admin_room');
-            socket.emit('stats_updated', calculateGlobalStats());
-            ['nutrition', 'youpi', 'dari'].forEach(k => {
-              socket.emit(`shop_stats_updated_${k}`, calculateShopStats(k));
-            });
-          });
-          socket.on('check_admin_status', () => socket.emit('admin_status', { online: true }));
-          socket.on('request_global_stats', () => {
-            socket.emit('stats_updated', calculateGlobalStats());
-            ['nutrition', 'youpi', 'dari'].forEach(k => {
-              socket.emit(`shop_stats_updated_${k}`, calculateShopStats(k));
-            });
-          });
-          socket.on('request_shop_stats', (shopKey) => {
-            if (shopKey && typeof shopKey === 'string') {
-              socket.emit(`shop_stats_updated_${shopKey}`, calculateShopStats(shopKey));
-            }
-          });
-          socket.on('send_message', (data) => {
-            if (!data || typeof data !== 'object') return;
-            const shopId = data.shopId || 'youpi';
-            const recorded = recordChatMessage(shopId, data);
-            const newMessage = recorded.message;
-            if (data.userId) {
-              io.to(data.userId).emit('receive_message', newMessage);
-              io.to('admin_room').emit('refresh_chats', { userId: data.userId, lastMessage: newMessage });
-            }
-          });
-        });
-
-        server.httpServer.on('close', () => {
-          try {
-            io.close();
-          } catch {}
-        });
-      }
-
-      // High-performance security & API middleware
-      server.middlewares.use(async (req, res, next) => {
-        // Enforce safe headers compatible with iframe embedding
-        res.setHeader('X-Content-Type-Options', 'nosniff');
-        res.setHeader('X-XSS-Protection', '1; mode=block');
-        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-        if (req.url && req.url.startsWith('/api')) {
-          handleApiRequest(req, res, next);
-        } else {
-          next();
-        }
-      });
-    },
-    async configurePreviewServer(server) {
-      await initStores();
+    name: 'multishop-plugin',
+    configureServer(server) {
       server.middlewares.use((req, res, next) => {
         res.setHeader('X-Content-Type-Options', 'nosniff');
         res.setHeader('X-XSS-Protection', '1; mode=block');
         res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
-
-        if (req.url && req.url.startsWith('/api')) {
-          handleApiRequest(req, res, next);
-        } else {
-          next();
-        }
+        next();
+      });
+    },
+    configurePreviewServer(server) {
+      server.middlewares.use((req, res, next) => {
+        res.setHeader('X-Content-Type-Options', 'nosniff');
+        res.setHeader('X-XSS-Protection', '1; mode=block');
+        res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+        next();
       });
     },
     transformIndexHtml(html, ctx) {
@@ -142,7 +69,7 @@ function multishopProductionPlugin() {
 }
 
 export default defineConfig({
-  plugins: [react(), multishopProductionPlugin()],
+  plugins: [react(), multishopPlugin()],
   resolve: {
     alias: {
       '@': path.resolve(__dirname, './')
@@ -152,11 +79,49 @@ export default defineConfig({
     host: '0.0.0.0',
     port: 3000,
     strictPort: false,
-    allowedHosts: 'all'
+    allowedHosts: 'all',
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
+      '/socket.io': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
+      '/uploads': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   },
   preview: {
     host: '0.0.0.0',
     port: 3000,
-    strictPort: false
+    strictPort: false,
+    proxy: {
+      '/api': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
+      '/socket.io': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false,
+        ws: true
+      },
+      '/uploads': {
+        target: 'http://127.0.0.1:5000',
+        changeOrigin: true,
+        secure: false
+      }
+    }
   }
 });

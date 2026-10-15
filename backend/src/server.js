@@ -102,19 +102,14 @@ io.on('connection', (socket) => {
 });
 
 async function startServer() {
-  try {
-    await connectDB();
-  } catch (err) {
-    console.error('Erreur initialisation DB:', err);
-  }
-
   server.listen(PORT, async () => {
     console.log(`📡 [Backend Express] Serveur démarré en mode ${process.env.NODE_ENV || 'development'} sur le port ${PORT}`);
     try {
+      await connectDB();
       await seedData();
       console.log('✅ [Backend Express] Données initiales chargées dans MongoDB.');
     } catch (error) {
-      console.error('❌ Erreur seeding:', error.message);
+      console.error('❌ Erreur initialisation DB / seeding:', error.message);
     }
   });
 

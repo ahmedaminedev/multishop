@@ -111,9 +111,20 @@ function checkPortRunning(port) {
         console.log(`\x1b[33m[Backend arrêté (${code || signal})]\x1b[0m`);
       }
     });
+
+    // Attente que le backend Express sur le port 5000 soit prêt et accepte les connexions
+    console.log(`⏳ Attente de la disponibilité du Backend Express sur le port ${BACKEND_PORT}...`);
+    for (let i = 0; i < 40; i++) {
+      const ready = await checkPortRunning(BACKEND_PORT);
+      if (ready) {
+        console.log(`✅ [1/2] Le Backend Express est prêt et écoute sur le port ${BACKEND_PORT} !`);
+        break;
+      }
+      await new Promise(r => setTimeout(r, 150));
+    }
   }
 
-  console.log(`🌐 [2/2] Lancement immédiat du Frontend (Vite) sur le port ${FRONTEND_PORT}...\n`);
+  console.log(`🌐 [2/2] Lancement du Frontend (Vite) sur le port ${FRONTEND_PORT}...\n`);
 
   // Lancement direct de Vite via Node (fiable sur Windows, macOS et Linux sans invite ni wrapper .cmd)
   const viteBin = path.resolve(rootDir, 'node_modules/vite/bin/vite.js');

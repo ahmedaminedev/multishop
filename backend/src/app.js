@@ -72,6 +72,8 @@ app.use('/api/brands', brandRoutes);
 app.use('/api/delivery-companies', deliveryCompanyRoutes);
 app.use('/api/global', globalRoutes);
 app.use('/api', supplyChainRoutes);
+app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
 if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../public')));
