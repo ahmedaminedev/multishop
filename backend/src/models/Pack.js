@@ -8,9 +8,11 @@ const PackSchema = new mongoose.Schema({
   oldPrice: { type: Number, required: true },
   imageUrl: String,
   discount: Number,
+  shop: { type: String, default: 'nutrition' },
+  filialeKey: { type: String, default: 'nutrition' },
   includedItems: [String],
   includedProductIds: [Number], // Using number IDs to match frontend logic
   includedPackIds: [Number]
-}, { timestamps: true });
+}, { timestamps: true, strict: false });
 
 module.exports = mongoose.model('Pack', PackSchema);

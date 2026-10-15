@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 
 const BlogPostSchema = new mongoose.Schema({
@@ -10,10 +9,12 @@ const BlogPostSchema = new mongoose.Schema({
   imageUrl: String,
   author: String,
   authorImageUrl: String,
-  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' }, // Référence technique à l'auteur
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   date: String,
   category: String,
+  shop: { type: String, default: 'nutrition' },
+  filialeKey: { type: String, default: 'nutrition' },
   featured: { type: Boolean, default: false }
-}, { timestamps: true });
+}, { timestamps: true, strict: false });
 
 module.exports = mongoose.model('BlogPost', BlogPostSchema);
