@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const PromotionSchema = new mongoose.Schema({
-  id: Number,
+  id: mongoose.Schema.Types.Mixed,
   name: String,
   discountPercentage: Number,
   startDate: String,

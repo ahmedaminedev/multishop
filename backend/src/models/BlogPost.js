@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const BlogPostSchema = new mongoose.Schema({
-  id: { type: Number, unique: true, required: true },
+  id: { type: mongoose.Schema.Types.Mixed, unique: true, required: true },
   slug: { type: String, unique: true, required: true },
   title: { type: String, required: true },
   excerpt: String,

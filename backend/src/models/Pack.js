@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const PackSchema = new mongoose.Schema({
-  id: { type: Number, unique: true, required: true },
+  id: { type: mongoose.Schema.Types.Mixed, unique: true, required: true },
   name: { type: String, required: true },
   description: String,
   price: { type: Number, required: true },

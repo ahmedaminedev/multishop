@@ -1,7 +1,7 @@
 const mongoose = require('mongoose');
 
 const StoreSchema = new mongoose.Schema({
-  id: { type: Number, unique: true },
+  id: { type: mongoose.Schema.Types.Mixed, unique: true },
   name: String,
   address: String,
   city: String,
@@ -9,7 +9,9 @@ const StoreSchema = new mongoose.Schema({
   phone: String,
   email: String,
   openingHours: String,
+  hours: String,
   mapUrl: String,
+  image: String,
   imageUrl: String,
   shop: { type: String, default: 'nutrition' },
   filialeKey: { type: String, default: 'nutrition' },
