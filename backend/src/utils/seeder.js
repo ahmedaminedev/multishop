@@ -115,12 +115,26 @@ const seedData = async () => {
     const orderCount = await Order.countDocuments();
     if (orderCount === 0) {
         if (clientUser) {
-            const ordersWithUser = sampleOrders.map(order => ({
-                ...order,
-                user: clientUser._id
-            }));
+            const ordersWithUser = sampleOrders.map(order => {
+                const customerName = order.customerName || (order.customer ? `${order.customer.firstName || ''} ${order.customer.lastName || ''}`.trim() : 'Client MultiShop');
+                const shippingAddress = order.shippingAddress || (order.customer ? `${order.customer.address || ''}, ${order.customer.city || ''}` : '123 Rue de la Liberté, Tunis');
+                const itemCount = order.itemCount || (Array.isArray(order.items) ? order.items.reduce((sum, item) => sum + (item.quantity || 1), 0) : 1);
+                const paymentMethod = order.paymentMethod || 'Paiement à la livraison';
+                const total = order.total || order.totalAmount || 0;
+
+                return {
+                    ...order,
+                    user: clientUser._id,
+                    customerName,
+                    shippingAddress,
+                    itemCount,
+                    paymentMethod,
+                    total,
+                    status: order.status || 'En attente'
+                };
+            });
             await Order.insertMany(ordersWithUser);
-            console.log('Commandes importées');
+            console.log(`✅ Commandes synchronisées (${ordersWithUser.length} commandes dans MongoDB)`);
         } else {
             console.warn('Ignoré: Commandes non importées (Client introuvable)');
         }
