@@ -1,13 +1,15 @@
 const mongoose = require('mongoose');
 
 const BlogPostSchema = new mongoose.Schema({
-  id: { type: mongoose.Schema.Types.Mixed, unique: true, required: true },
-  slug: { type: String, unique: true, required: true },
+  id: { type: mongoose.Schema.Types.Mixed },
+  slug: { type: String },
   title: { type: String, required: true },
   excerpt: String,
+  summary: String,
   content: String,
+  image: String,
   imageUrl: String,
-  author: String,
+  author: { type: String, default: 'Équipe Rédactionnelle' },
   authorImageUrl: String,
   userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User' },
   date: String,

@@ -1,4 +1,3 @@
-
 const mongoose = require('mongoose');
 const User = require('../models/User');
 const Product = require('../models/Product');
@@ -19,7 +18,6 @@ const seedData = async () => {
   }
   try {
     // 1. Users (Admin & Client)
-    // Force delete default accounts to ensure clean password hash generation
     await User.deleteMany({ email: { $in: ['admin@multishop.com', 'admin@multishop.tn', 'client@multishop.com', 'client@multishop.tn'] } });
     
     await User.create({
@@ -74,7 +72,7 @@ const seedData = async () => {
     const categoryCount = await Category.countDocuments();
     if (categoryCount < categories.length) {
       for (const c of categories) {
-        await Category.findOneAndUpdate({ name: c.name, shop: c.shop }, { $set: c }, { upsert: true });
+        await Category.findOneAndUpdate({ name: c.name, shop: c.shop || c.filialeKey || 'nutrition' }, { $set: c }, { upsert: true });
       }
       console.log(`✅ Catégories synchronisées (${categories.length} catégories)`);
     }
@@ -101,14 +99,27 @@ const seedData = async () => {
     const adCount = await Advertisement.countDocuments();
     if (adCount === 0) {
         await Advertisement.create(initialAdvertisements);
-        console.log('Publicités importées');
+        console.log('✅ Publicités importées');
     }
 
     // 7. Promotions
     const promoCount = await Promotion.countDocuments();
     if (promoCount === 0) {
-        await Promotion.insertMany(promotions);
-        console.log('Promotions importées');
+        const normalizedPromos = promotions.map((p, idx) => {
+            const shopKey = p.shop || p.filialeKey || 'nutrition';
+            const name = p.name || p.title || `Promotion ${idx + 1}`;
+            return {
+                ...p,
+                name,
+                title: p.title || name,
+                discount: p.discount || p.discountPercentage || 0,
+                discountPercentage: p.discountPercentage || p.discount || 0,
+                shop: shopKey,
+                filialeKey: shopKey
+            };
+        });
+        await Promotion.insertMany(normalizedPromos);
+        console.log(`✅ Promotions importées (${normalizedPromos.length} promotions dans MongoDB)`);
     }
 
     // 8. Orders
@@ -143,15 +154,39 @@ const seedData = async () => {
     // 9. Blog Posts
     const blogCount = await BlogPost.countDocuments();
     if (blogCount === 0) {
-        await BlogPost.insertMany(blogPosts);
-        console.log('Articles de blog importés');
+        const normalizedBlogPosts = blogPosts.map((post, idx) => {
+            const shopKey = post.shop || post.filialeKey || 'nutrition';
+            const slug = post.slug || (post.title ? post.title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '') : `post-${shopKey}-${idx + 1}`);
+            return {
+                ...post,
+                id: post.id !== undefined ? `${shopKey}-blog-${post.id}` : `${shopKey}-blog-${idx + 1}`,
+                slug,
+                excerpt: post.excerpt || post.summary || '',
+                summary: post.summary || post.excerpt || '',
+                imageUrl: post.imageUrl || post.image || '',
+                image: post.image || post.imageUrl || '',
+                shop: shopKey,
+                filialeKey: shopKey
+            };
+        });
+        await BlogPost.insertMany(normalizedBlogPosts);
+        console.log(`✅ Articles de blog synchronisés (${normalizedBlogPosts.length} articles dans MongoDB)`);
     }
 
     // 10. Contact Messages
     const msgCount = await ContactMessage.countDocuments();
     if (msgCount === 0) {
-        await ContactMessage.insertMany(contactMessages);
-        console.log('Messages de contact importés');
+        const normalizedMessages = contactMessages.map((msg, idx) => {
+            const shopKey = msg.shop || msg.filialeKey || 'nutrition';
+            return {
+                ...msg,
+                id: msg.id !== undefined ? `${shopKey}-msg-${msg.id}` : `${shopKey}-msg-${idx + 1}`,
+                shop: shopKey,
+                filialeKey: shopKey
+            };
+        });
+        await ContactMessage.insertMany(normalizedMessages);
+        console.log(`✅ Messages de contact synchronisés (${normalizedMessages.length} messages dans MongoDB)`);
     }
 
     console.log('🎉 [MongoDB] Base de données "multishop" prête et synchronisée avec succès !');
