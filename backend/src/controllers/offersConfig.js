@@ -3,6 +3,10 @@ const OffersConfig = require('../models/OffersConfig');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getOffersConfig = catchAsync(async (req, res) => {
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    return res.json({ offers: [] });
+  }
   let config = await OffersConfig.findOne({});
   if (!config) {
     // Create default if not exists

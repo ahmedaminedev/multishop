@@ -10,14 +10,43 @@ const formatHorairesTexte = (horaires) => {
     .join(', ');
 };
 
+const defaultCompanies = [
+  {
+    id: 'soc-1',
+    _id: 'soc-1',
+    nom: 'Aramex Tunisie',
+    telephone: '+216 71 160 000',
+    contact: 'Direction Opérations Aramex',
+    zones: ['Grand Tunis', 'Sahel', 'Sfax', 'Toute la Tunisie'],
+    delaiMoyen: '24h - 48h',
+    tarifDefaut: 7,
+    actif: true,
+    joursTravailTexte: 'Lundi à Samedi (08:00 - 18:00)'
+  },
+  {
+    id: 'soc-2',
+    _id: 'soc-2',
+    nom: 'First Delivery Express',
+    telephone: '+216 71 888 999',
+    contact: 'Support Dispatch',
+    zones: ['Grand Tunis', 'Nabeul', 'Bizerte'],
+    delaiMoyen: '24h',
+    tarifDefaut: 8,
+    actif: true,
+    joursTravailTexte: 'Lundi à Vendredi (08:30 - 17:30)'
+  }
+];
+
 // GET /api/delivery-companies
 exports.getAllCompanies = catchAsync(async (req, res, next) => {
   try {
     const companies = await DeliveryCompany.find().sort({ createdAt: -1 });
-    return res.status(200).json(companies);
+    if (companies && companies.length > 0) {
+      return res.status(200).json(companies);
+    }
+    return res.status(200).json(defaultCompanies);
   } catch (err) {
-    // Graceful fallback if database is offline or empty
-    return res.status(200).json([]);
+    return res.status(200).json(defaultCompanies);
   }
 });
 

@@ -4,6 +4,10 @@ const catchAsync = require('../utils/catchAsync');
 
 exports.getReviews = catchAsync(async (req, res) => {
   const { targetId, targetType } = req.params;
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    return res.json([]);
+  }
   const reviews = await Review.find({ targetId, targetType }).sort({ date: -1 });
   res.json(reviews);
 });

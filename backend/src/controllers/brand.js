@@ -3,6 +3,13 @@ const Brand = require('../models/Brand');
 const catchAsync = require('../utils/catchAsync');
 
 exports.getBrands = catchAsync(async (req, res) => {
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    const initialData = require('../data/initialData');
+    const brandsFromProds = Array.from(new Set((initialData.allProducts || []).map(p => p.brand).filter(Boolean)))
+      .map((name, i) => ({ id: i + 1, name, logoUrl: '' }));
+    return res.json(brandsFromProds);
+  }
   const brands = await Brand.find({});
   res.json(brands);
 });

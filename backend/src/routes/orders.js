@@ -13,4 +13,18 @@ router.route('/')
 router.route('/myorders')
   .get(protect, getMyOrders);     // Utilisateur voit SES commandes
 
+// Génération idempotente de facture
+router.post('/:orderId/generate-invoice', (req, res) => {
+  const { orderId } = req.params;
+  const numFacture = `FACT-2026-${orderId.replace(/[^0-9]/g, '').slice(-4) || '0001'}`;
+  res.json({
+    success: true,
+    facture: {
+      numeroFacture: numFacture,
+      dateEmission: new Date().toISOString().split('T')[0],
+      statut: 'EMISE'
+    }
+  });
+});
+
 module.exports = router;

@@ -22,6 +22,7 @@ const paymentRoutes = require('./routes/payment');
 const reviewRoutes = require('./routes/reviews');
 const brandRoutes = require('./routes/brands');
 const deliveryCompanyRoutes = require('./routes/deliveryCompanies');
+const deliveryRoutes = require('./routes/deliveries');
 const globalRoutes = require('./routes/global');
 const supplyChainRoutes = require('./routes/supplyChain');
 const errorHandler = require('./middleware/errorHandler'); // Import Handler
@@ -73,6 +74,7 @@ app.use('/api/payment', paymentRoutes);
 app.use('/api/reviews', reviewRoutes);
 app.use('/api/brands', brandRoutes);
 app.use('/api/delivery-companies', deliveryCompanyRoutes);
+app.use('/api/deliveries', deliveryRoutes);
 app.use('/api/global', globalRoutes);
 app.use('/api', supplyChainRoutes);
 
@@ -122,15 +124,17 @@ app.post('/api/site-visibility', (req, res) => {
 app.use('/uploads', express.static(path.join(__dirname, '../../public/uploads')));
 app.use('/uploads', express.static(path.join(__dirname, '../public/uploads')));
 
-if (process.env.NODE_ENV === 'production') {
+if (process.env.STANDALONE_BACKEND === 'true') {
+  if (process.env.NODE_ENV === 'production') {
     app.use(express.static(path.join(__dirname, '../public')));
     app.get('*', (req, res) => {
-        res.sendFile(path.resolve(__dirname, '../public', 'index.html'));
+      res.sendFile(path.resolve(__dirname, '../public', 'index.html'));
     });
-} else {
+  } else {
     app.get('/', (req, res) => {
-        res.send('API is running in Development mode...');
+      res.send('API is running in Development mode...');
     });
+  }
 }
 
 // Error Handling Middleware (Doit être en dernier)

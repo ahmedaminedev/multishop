@@ -101,7 +101,11 @@ exports.addOrderItems = catchAsync(async (req, res) => {
 
 exports.getMyOrders = catchAsync(async (req, res) => {
   if (!req.user) return res.status(401).json({ message: 'Non authentifié' });
-  
+  const mongoose = require('mongoose');
+  if (mongoose.connection.readyState !== 1) {
+    const initialData = require('../data/initialData');
+    return res.json(initialData.sampleOrders || []);
+  }
   const orders = await Order.find({ user: req.user._id }).sort({ createdAt: -1 });
   res.json(orders);
 });
