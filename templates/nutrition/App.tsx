@@ -66,7 +66,12 @@ const PageLoader = () => (
     </div>
 );
 
-const AppContent: React.FC = () => {
+interface AppContentProps {
+    currentUser?: any;
+    onOpenAuthModal?: () => void;
+}
+
+const AppContent: React.FC<AppContentProps> = ({ currentUser, onOpenAuthModal }) => {
     const [currentPage, setCurrentPage] = useState('home');
     const [selectedCategory, setSelectedCategory] = useState('');
     const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
@@ -82,7 +87,13 @@ const AppContent: React.FC = () => {
         promo: false
     });
 
-    const [user, setUser] = useState<User | null>(null);
+    const [user, setUser] = useState<User | null>(currentUser || null);
+
+    useEffect(() => {
+        if (currentUser !== undefined) {
+            setUser(currentUser);
+        }
+    }, [currentUser]);
     const [products, setProducts] = useState<Product[]>([]);
     const [packs, setPacks] = useState<Pack[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -275,19 +286,17 @@ const AppContent: React.FC = () => {
                 setBrands(brandsData);
                 if (adsData) setAdvertisements(adsData); 
 
-                const token = localStorage.getItem('token');
-                if (token && token !== 'null' && token !== 'undefined') {
+                if (currentUser) {
+                    setUser(currentUser);
+                } else {
                     try {
                         const userData = await api.getMe();
                         if (userData) {
                             setUser(userData);
                         }
-                    } catch (e) {
-                        localStorage.removeItem('token');
-                        setUser(null);
+                    } catch {
+                        // Utilisateur non connecté en mode public
                     }
-                } else {
-                    setUser(null);
                 }
             } catch (error) {
                 console.error("Error loading initial data:", error);
@@ -667,14 +676,19 @@ const AppContent: React.FC = () => {
     return renderPage();
 };
 
-const App: React.FC = () => {
+interface NutritionAppProps {
+    currentUser?: any;
+    onOpenAuthModal?: () => void;
+}
+
+const App: React.FC<NutritionAppProps> = ({ currentUser, onOpenAuthModal }) => {
     return (
         <ThemeProvider>
             <ToastProvider>
                 <CartProvider>
                     <FavoritesProvider>
                         <CompareProvider>
-                            <AppContent />
+                            <AppContent currentUser={currentUser} onOpenAuthModal={onOpenAuthModal} />
                         </CompareProvider>
                     </FavoritesProvider>
                 </CartProvider>

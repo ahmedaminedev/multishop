@@ -1,7 +1,8 @@
 /**
  * Unified Central MultiShop API Client
- * Centralizes request execution, 401 token refresh queue, error handling,
- * and multi-shop headers across all 4 templates and backoffice.
+ * - 100% Cookie-based HTTPOnly security (No token stored in localStorage)
+ * - Automatic silent token refresh on 401
+ * - Cross-shop headers and event synchronization
  */
 
 const BACKEND_URL = '';
@@ -12,25 +13,25 @@ let failedQueue: Array<{
   reject: (reason?: any) => void;
 }> = [];
 
-const processQueue = (error: any, token: string | null = null) => {
+const processQueue = (error: any) => {
   failedQueue.forEach(prom => {
     if (error) {
       prom.reject(error);
     } else {
-      prom.resolve(token);
+      prom.resolve();
     }
   });
   failedQueue = [];
 };
 
-export const forceLogout = () => {
+export const forceLogout = (reason: 'expired' | 'manual' = 'expired') => {
   if (typeof localStorage !== 'undefined') {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
   }
   if (typeof window !== 'undefined') {
-    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
-    window.location.hash = '#/login?error=session_expired';
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, reason } }));
+    window.dispatchEvent(new CustomEvent('session-expired-event'));
   }
 };
 
@@ -41,7 +42,6 @@ export async function centralApiRequest(
   shopId?: string,
   isRetry: boolean = false
 ): Promise<any> {
-  const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -51,14 +51,10 @@ export async function centralApiRequest(
     headers['x-shop-id'] = shopId;
   }
 
-  if (token && token !== 'undefined' && token !== 'null') {
-    headers['Authorization'] = `Bearer ${token}`;
-  }
-
   const options: RequestInit = {
     method,
     headers,
-    credentials: 'include'
+    credentials: 'include' // Impératif pour l'envoi automatique des cookies HTTPOnly (accessToken & refreshToken)
   };
 
   if (body !== undefined) {
@@ -70,10 +66,14 @@ export async function centralApiRequest(
 
     const isAuthRequest = endpoint.includes('/auth/login') ||
                           endpoint.includes('/auth/refresh') ||
-                          endpoint.includes('/auth/register');
+                          endpoint.includes('/auth/prolong') ||
+                          endpoint.includes('/auth/session-status') ||
+                          endpoint.includes('/auth/register') ||
+                          endpoint.includes('/auth/me');
 
-    // Token Expired / Forbidden on protected routes
-    if ((response.status === 401 || response.status === 403) && !isRetry && !isAuthRequest && token) {
+    // Seul 401 Unauthorized (token expiré) déclenche une tentative silencieuse de refresh.
+    // Un code 403 Forbidden est un refus d'accès (ex: client sur route admin), et ne doit JAMAIS déconnecter la session !
+    if (response.status === 401 && !isRetry && !isAuthRequest) {
       if (isRefreshing) {
         return new Promise((resolve, reject) => {
           failedQueue.push({ resolve, reject });
@@ -94,20 +94,16 @@ export async function centralApiRequest(
         });
 
         if (refreshResponse.ok) {
-          const data = await refreshResponse.json();
-          if (data.accessToken) {
-            localStorage.setItem('token', data.accessToken);
-            processQueue(null, data.accessToken);
-            isRefreshing = false;
-            return centralApiRequest(endpoint, method, body, shopId, true);
-          }
+          processQueue(null);
+          isRefreshing = false;
+          return centralApiRequest(endpoint, method, body, shopId, true);
         }
 
         throw new Error('Session expirée impossible à renouveler');
       } catch (refreshError) {
-        processQueue(refreshError, null);
+        processQueue(refreshError);
         isRefreshing = false;
-        forceLogout();
+        forceLogout('expired');
         throw refreshError;
       }
     }
@@ -139,9 +135,6 @@ export async function centralApiRequest(
 
     return result;
   } catch (error: any) {
-    if (error.message !== 'Session expirée impossible à renouveler' && !(error.status === 401 && endpoint.includes('/auth/login'))) {
-      // Non-fatal or expected errors
-    }
     throw error;
   }
 }
@@ -153,19 +146,15 @@ export function createShopApiClient(shopId?: string) {
   return {
     apiRequest: req,
     api: {
-      // Auth
+      // Auth (100% HTTPOnly cookies & BDD)
       login: (credentials: any) => centralApiRequest('/auth/login', 'POST', credentials, shopId),
       register: (userData: any) => centralApiRequest('/auth/register', 'POST', userData, shopId),
       getMe: () => centralApiRequest('/auth/me', 'GET', undefined, shopId),
+      getSessionStatus: () => centralApiRequest('/auth/session-status', 'GET', undefined, shopId),
+      prolongSession: () => centralApiRequest('/auth/prolong', 'POST', undefined, shopId),
       logout: () => {
         return centralApiRequest('/auth/logout', 'POST', undefined, shopId).finally(() => {
-          if (typeof localStorage !== 'undefined') {
-            localStorage.removeItem('token');
-            localStorage.removeItem('user');
-          }
-          if (typeof window !== 'undefined') {
-            window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
-          }
+          forceLogout('manual');
         });
       },
 

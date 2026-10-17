@@ -35,7 +35,9 @@ const UserSchema = new mongoose.Schema({
   status_validation: { type: String, default: 'validé' },
   isProfileComplete: { type: Boolean, default: true },
 
-  // Security Fields (Tokens)
+  // Security Fields (Tokens in Database)
+  accessToken: { type: String },
+  accessTokenExpiry: { type: Date },
   refreshToken: { type: String }, 
   refreshTokenExpiry: { type: Date },
   derniere_connexion: { type: Date },

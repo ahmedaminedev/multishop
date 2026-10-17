@@ -157,6 +157,8 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   useEffect(() => {
     if (!currentUser || currentUser?.role !== 'ADMIN') {
       setShowLoginView(true);
+    } else {
+      setShowLoginView(false);
     }
   }, [currentUser]);
 
@@ -179,23 +181,22 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
   const fetchGlobalData = async () => {
     setLoading(true);
     try {
-      const token = typeof localStorage !== 'undefined' ? localStorage.getItem('token') : null;
       const headers: Record<string, string> = { 'Accept': 'application/json' };
-      if (token) headers['Authorization'] = `Bearer ${token}`;
+      const opts = { headers, credentials: 'include' as RequestCredentials };
 
       const [statsRes, productsRes, ordersRes, sourcesRes, futureRes, suppliersRes] = await Promise.all([
-        fetch('/api/global/stats', { headers }).then(r => r.json()).catch(() => null),
-        fetch('/api/global/products', { headers }).then(r => r.json()).catch(() => []),
-        fetch('/api/global/orders', { headers }).then(r => r.json()).catch(() => []),
-        fetch('/api/sources', { headers }).then(r => r.json()).catch(() => []),
-        fetch('/api/future-products', { headers }).then(r => r.json()).catch(() => []),
-        fetch('/api/suppliers', { headers }).then(r => r.json()).catch(() => [])
+        fetch('/api/global/stats', opts).then(r => r.json()).catch(() => null),
+        fetch('/api/global/products', opts).then(r => r.json()).catch(() => []),
+        fetch('/api/global/orders', opts).then(r => r.json()).catch(() => []),
+        fetch('/api/sources', opts).then(r => r.json()).catch(() => []),
+        fetch('/api/future-products', opts).then(r => r.json()).catch(() => []),
+        fetch('/api/suppliers', opts).then(r => r.json()).catch(() => [])
       ]);
 
       if (statsRes) setStats(statsRes);
       let productsList = Array.isArray(productsRes) ? productsRes : [];
       if (productsList.length === 0) {
-        productsList = await fetch('/api/products', { headers }).then(r => r.json()).catch(() => []);
+        productsList = await fetch('/api/products', opts).then(r => r.json()).catch(() => []);
       }
       if (Array.isArray(productsList) && productsList.length > 0) {
         setAllProducts(productsList);
@@ -205,9 +206,9 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       } else {
         // Robust fallback: fetch orders from all filiales if global orders returned empty
         const [oNutr, oYoupi, oDari] = await Promise.all([
-          fetch('/api/orders?shop=nutrition', { headers }).then(r => r.json()).catch(() => []),
-          fetch('/api/orders?shop=youpi', { headers }).then(r => r.json()).catch(() => []),
-          fetch('/api/orders?shop=dari', { headers }).then(r => r.json()).catch(() => [])
+          fetch('/api/orders?shop=nutrition', opts).then(r => r.json()).catch(() => []),
+          fetch('/api/orders?shop=youpi', opts).then(r => r.json()).catch(() => []),
+          fetch('/api/orders?shop=dari', opts).then(r => r.json()).catch(() => [])
         ]);
         const combined = [
           ...(Array.isArray(oNutr) ? oNutr : []),
@@ -229,17 +230,18 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
   const loadFilialeData = async (fKey: string) => {
     try {
-      const headers = { 'x-shop-id': fKey };
+      const headers = { 'x-shop-id': fKey, 'Accept': 'application/json' };
+      const opts = { headers, credentials: 'include' as RequestCredentials };
       const [prods, cats, pks, ords, msgs, ads, prms, strs, brnds] = await Promise.all([
-        fetch(`/api/products?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/categories?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/packs?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/orders?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/contact?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/advertisements?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => ({})),
-        fetch(`/api/promotions?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/stores?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
-        fetch(`/api/brands?shop=${fKey}`, { headers }).then(r => r.json()).catch(() => []),
+        fetch(`/api/products?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/categories?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/packs?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/orders?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/contact?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/advertisements?shop=${fKey}`, opts).then(r => r.json()).catch(() => ({})),
+        fetch(`/api/promotions?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/stores?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
+        fetch(`/api/brands?shop=${fKey}`, opts).then(r => r.json()).catch(() => []),
       ]);
 
       setFilialeData(prev => ({
@@ -329,6 +331,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       const res = await fetch(`/api/global/orders/${orderId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ status: newStatus })
       });
       if (res.ok) {
@@ -350,6 +353,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             'Content-Type': 'application/json',
             'x-shop-id': product.filialeKey || 'nutrition'
           },
+          credentials: 'include',
           body: JSON.stringify(product)
         });
       } else {
@@ -359,6 +363,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
             'Content-Type': 'application/json',
             'x-shop-id': product.filialeKey || 'nutrition'
           },
+          credentials: 'include',
           body: JSON.stringify(product)
         });
       }
@@ -389,6 +394,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(source)
       });
       if (res.ok) {
@@ -402,7 +408,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
   const handleDeleteSource = async (id: string) => {
     try {
-      const res = await fetch(`/api/sources/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/sources/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         setSources(prev => prev.filter(s => s.id !== id));
       }
@@ -415,6 +421,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     const res = await fetch('/api/sources', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(source)
     });
     const saved = await res.json();
@@ -430,6 +437,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(fp)
       });
       if (res.ok) {
@@ -443,7 +451,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
   const handleDeleteFutureProduct = async (id: string) => {
     try {
-      const res = await fetch(`/api/future-products/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/future-products/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         setFutureProducts(prev => prev.filter(f => f.id !== id));
       }
@@ -460,6 +468,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(supplier)
       });
       const data = await res.json();
@@ -479,7 +488,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
 
   const handleDeleteSupplier = async (id: string) => {
     try {
-      const res = await fetch(`/api/suppliers/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/suppliers/${id}`, { method: 'DELETE', credentials: 'include' });
       if (res.ok) {
         setSuppliers(prev => prev.filter(s => s.id !== id));
       }
@@ -492,6 +501,7 @@ export const GlobalMultiShopBackoffice: React.FC<GlobalBackofficeProps> = ({
     const res = await fetch(`/api/suppliers/${supplierId}/receptions`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
+      credentials: 'include',
       body: JSON.stringify(payload)
     });
     const data = await res.json();

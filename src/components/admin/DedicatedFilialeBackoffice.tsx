@@ -120,19 +120,20 @@ export const DedicatedFilialeBackoffice: React.FC<DedicatedFilialeBackofficeProp
           body: JSON.stringify({ shop: safeShopId })
         }).catch(() => {});
 
-        const headers = { 'x-shop-id': safeShopId };
+        const headers = { 'x-shop-id': safeShopId, 'Accept': 'application/json' };
+        const opts = { headers, credentials: 'include' as RequestCredentials };
         const [
           prodsRes, catsRes, packsRes, ordersRes, msgsRes, adsRes, promosRes, storesRes, brandsRes
         ] = await Promise.all([
-          fetch(`/api/products?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/categories?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/packs?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/orders?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/contact?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/advertisements?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : {}).catch(() => ({})),
-          fetch(`/api/promotions?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/stores?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => []),
-          fetch(`/api/brands?shop=${safeShopId}`, { headers }).then(r => r.ok ? r.json() : []).catch(() => [])
+          fetch(`/api/products?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/categories?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/packs?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/orders?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/contact?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/advertisements?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : {}).catch(() => ({})),
+          fetch(`/api/promotions?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/stores?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => []),
+          fetch(`/api/brands?shop=${safeShopId}`, opts).then(r => r.ok ? r.json() : []).catch(() => [])
         ]);
 
         if (!isCancelled) {

@@ -22,7 +22,7 @@ import login3dImage from '../../assets/images/multishop_login_3d_1790625541827.j
 import loginBgImage from '../../assets/images/multishop_login_bg_1790625831978.jpg';
 
 interface MultiShopBackofficeLoginProps {
-  onLoginSuccess: (user: any, token: string) => void;
+  onLoginSuccess: (user: any, token?: string) => void;
   onGoToStorefront?: () => void;
   initialEmail?: string;
 }
@@ -61,6 +61,7 @@ export const MultiShopBackofficeLogin: React.FC<MultiShopBackofficeLoginProps> =
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           email: emailToUse,
           password: passwordToUse,
@@ -74,12 +75,10 @@ export const MultiShopBackofficeLogin: React.FC<MultiShopBackofficeLoginProps> =
       }
 
       setSuccessMessage('Connexion réussie ! Redirection...');
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
-      }
+      // Tokens stockés dans les cookies HTTPOnly sécurisés
 
       setTimeout(() => {
-        onLoginSuccess(data.user, data.accessToken);
+        onLoginSuccess(data.user);
       }, 300);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erreur lors de la connexion.');

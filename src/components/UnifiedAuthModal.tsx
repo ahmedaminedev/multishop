@@ -6,7 +6,7 @@ interface UnifiedAuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   currentUser: any;
-  onLoginSuccess: (user: any, token: string) => void;
+  onLoginSuccess: (user: any, token?: string) => void;
   onLogout: () => void;
   currentShop?: FilialeId;
   onSwitchShop?: (shopId: FilialeId) => void;

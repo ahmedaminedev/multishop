@@ -29,6 +29,7 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email, password, role: 'ADMIN' })
       });
 
@@ -39,10 +40,6 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
 
       if (data.user?.role !== 'ADMIN' && data.user?.role !== 'SUPER_ADMIN') {
         throw new Error('Ce compte ne dispose pas des privilèges administrateur.');
-      }
-
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
       }
 
       onLoginSuccess(data.user, data.accessToken);
@@ -62,12 +59,10 @@ export const AdminLoginGate: React.FC<AdminLoginGateProps> = ({
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ email: 'admin@multishop.com', password: 'password123' })
       });
       const data = await res.json();
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
-      }
       onLoginSuccess(data.user, data.accessToken);
     } catch (err: any) {
       setError(err.message || 'Erreur lors de la connexion rapide.');

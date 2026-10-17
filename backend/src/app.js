@@ -30,6 +30,9 @@ require('./config/passport')(passport);
 
 const app = express();
 
+// Important pour la gestion des cookies sécurisés (SameSite=None, Secure=True) derrière proxy / Cloud Run
+app.set('trust proxy', 1);
+
 app.use(express.json({ limit: '50mb' }));
 app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 

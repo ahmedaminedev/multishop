@@ -1,8 +1,19 @@
 
 const express = require('express');
 const router = express.Router();
-const passport = require('passport');
-const { register, login, logout, getMe, forgotPassword, resetPassword, refreshToken, googleAuthHandler, facebookAuthHandler } = require('../controllers/auth');
+const { 
+  register, 
+  login, 
+  logout, 
+  getMe, 
+  forgotPassword, 
+  resetPassword, 
+  refreshToken, 
+  prolongSession,
+  getSessionStatus,
+  googleAuthHandler, 
+  facebookAuthHandler 
+} = require('../controllers/auth');
 const { protect } = require('../middleware/auth');
 
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
@@ -10,8 +21,11 @@ const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:3000';
 // Auth Classique
 router.post('/register', register);
 router.post('/login', login);
+router.post('/logout', logout);
 router.get('/logout', logout);
 router.post('/refresh', refreshToken);
+router.post('/prolong', prolongSession);
+router.get('/session-status', getSessionStatus);
 router.get('/me', protect, getMe);
 
 // Mot de passe oublié

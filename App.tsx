@@ -2,6 +2,7 @@ import React, { useState, useEffect, Suspense, useMemo } from 'react';
 import { FilialeId } from './src/models/ProductFiliale';
 import { MultiShopGlobalNav } from './src/components/MultiShopGlobalNav';
 import { UnifiedAuthModal } from './src/components/UnifiedAuthModal';
+import { SessionExpiryModal } from './src/components/SessionExpiryModal';
 import { MultiShopClientAuth } from './src/components/MultiShopClientAuth';
 import { GlobalMultiShopBackoffice } from './src/components/admin/GlobalMultiShopBackoffice';
 import { DedicatedFilialeBackoffice } from './src/components/admin/DedicatedFilialeBackoffice';
@@ -93,69 +94,41 @@ export const App: React.FC = () => {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
-  // Initialize and load current user dynamically from backend API
+  // Initialize and load current user dynamically from backend API via HTTPOnly cookies
   const fetchUser = async () => {
+    const wasManualLogout = typeof sessionStorage !== 'undefined' && sessionStorage.getItem('multishop_logged_out') === 'true';
+
     try {
-      let token = localStorage.getItem('token');
-      // On startup in backoffice mode, pre-seed default admin credentials if none exist
-      if (!token || token === 'null' || token === 'undefined') {
-        const cachedUserStr = localStorage.getItem('user');
-        if (cachedUserStr) {
-          try {
-            setCurrentUser(JSON.parse(cachedUserStr));
-          } catch {
-            setCurrentUser(null);
-          }
-        } else if (appMode === 'backoffice') {
-          token = 'jwt-admin-token-super';
-          localStorage.setItem('token', token);
-          const defaultAdmin = {
-            _id: 'usr-admin-1',
-            id: 1,
-            firstName: 'Super',
-            lastName: 'Admin',
-            email: 'admin@multishop.com',
-            role: 'ADMIN',
-            phone: '+216 71 000 000'
-          };
-          localStorage.setItem('user', JSON.stringify(defaultAdmin));
-          setCurrentUser(defaultAdmin);
-        } else {
-          setCurrentUser(null);
-          return;
-        }
-      }
-
-      if (!token) return;
-
-      const headers: Record<string, string> = {
-        'Accept': 'application/json',
-        'Authorization': `Bearer ${token}`
-      };
-
-      const res = await fetch('/api/auth/me', { headers, credentials: 'include' });
+      const res = await fetch('/api/auth/me', {
+        headers: { 'Accept': 'application/json' },
+        credentials: 'include'
+      });
       if (res.ok) {
         const user = await res.json();
         setCurrentUser(user);
-        localStorage.setItem('user', JSON.stringify(user));
-      } else {
-        setCurrentUser(null);
-        localStorage.removeItem('user');
-        if (res.status === 401) {
-          localStorage.removeItem('token');
+        if (typeof sessionStorage !== 'undefined') {
+          sessionStorage.removeItem('multishop_logged_out');
         }
+        return;
       }
-    } catch {
-      // Graceful offline/network recovery without throwing console.error
-      try {
-        const cached = localStorage.getItem('user');
-        if (cached) {
-          setCurrentUser(JSON.parse(cached));
+
+      // Initial bootstrap fallback if opening directly in backoffice and not manually logged out
+      if (appMode === 'backoffice' && !wasManualLogout) {
+        const resAdmin = await fetch('/api/auth/me', {
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': 'Bearer jwt-admin-token-super'
+          },
+          credentials: 'include'
+        });
+        if (resAdmin.ok) {
+          const adminUser = await resAdmin.json();
+          setCurrentUser(adminUser);
           return;
         }
-      } catch {
-        // ignore JSON parse error
       }
+      setCurrentUser(null);
+    } catch {
       setCurrentUser(null);
     }
   };
@@ -254,24 +227,28 @@ export const App: React.FC = () => {
     }
   };
 
-  const handleLoginSuccess = (user: any, token: string) => {
-    localStorage.setItem('token', token);
+  const handleLoginSuccess = (user: any) => {
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.removeItem('multishop_logged_out');
+    }
     setCurrentUser(user);
-    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user, token } }));
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user } }));
   };
 
   const handleLogout = async () => {
-    const token = localStorage.getItem('token');
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('multishop_logged_out', 'true');
+    }
     try {
       await fetch('/api/auth/logout', {
         method: 'POST',
-        headers: token ? { 'Authorization': `Bearer ${token}` } : {},
         credentials: 'include'
       });
     } catch {}
     localStorage.removeItem('token');
+    localStorage.removeItem('user');
     setCurrentUser(null);
-    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null, token: null } }));
+    window.dispatchEvent(new CustomEvent('auth-changed', { detail: { user: null } }));
   };
 
   return (
@@ -352,13 +329,25 @@ export const App: React.FC = () => {
                       </div>
                     }
                   >
-                    {currentShop === 'nutrition' && <NutritionShopApp key="nutrition-app" />}
-                    {currentShop === 'youpi' && <YoupiShopApp key="youpi-app" />}
+                    {currentShop === 'nutrition' && (
+                      <NutritionShopApp
+                        key="nutrition-app"
+                        currentUser={currentUser}
+                        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                      />
+                    )}
+                    {currentShop === 'youpi' && (
+                      <YoupiShopApp
+                        key="youpi-app"
+                        currentUser={currentUser}
+                        onOpenAuthModal={() => setIsAuthModalOpen(true)}
+                      />
+                    )}
                     {currentShop === 'dari' && (
                       <DariShopApp
                         key="dari-app"
-                        onOpenAuthModal={() => setIsAuthModalOpen(true)}
                         currentUser={currentUser}
+                        onOpenAuthModal={() => setIsAuthModalOpen(true)}
                       />
                     )}
                   </Suspense>
@@ -368,6 +357,21 @@ export const App: React.FC = () => {
           )}
         </div>
       )}
+
+      {/* Global SSO Session Expiry Management & Auto-Prolongation Modal */}
+      <SessionExpiryModal
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onGoToLogin={() => {
+          setCurrentUser(null);
+          if (appMode === 'backoffice') {
+            window.location.hash = '#/login';
+          } else {
+            setAppMode('frontoffice');
+            window.location.hash = '#/login';
+          }
+        }}
+      />
 
       {/* Global SSO Authentication Modal (Shared for all 4 stores & Backoffice) */}
       <UnifiedAuthModal

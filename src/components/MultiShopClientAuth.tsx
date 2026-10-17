@@ -26,7 +26,7 @@ interface MultiShopClientAuthProps {
   onClose?: () => void;
   onNavigateHome?: () => void;
   currentUser?: any;
-  onLoginSuccess: (user: any, token: string) => void;
+  onLoginSuccess: (user: any, token?: string) => void;
   onLogout?: () => void;
   currentShop?: FilialeId;
   onSwitchShop?: (shopId: FilialeId) => void;
@@ -97,27 +97,39 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload)
       });
 
       const data = await res.json();
+
       if (!res.ok) {
-        throw new Error(data.message || 'Une erreur est survenue lors de la connexion.');
+        throw new Error(data.message || data.error || (tab === 'login' ? 'Identifiants incorrects' : "Erreur lors de l'inscription"));
       }
 
-      setSuccessMessage(tab === 'login' ? 'Connexion réussie !' : 'Compte créé avec succès !');
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
+      if (tab === 'register') {
+        // Exigence utilisateur: rediriger vers le login après inscription réussie
+        setSuccessMessage('Compte créé avec succès ! Veuillez vous connecter avec vos identifiants.');
+        setPassword('');
+        setTimeout(() => {
+          setTab('login');
+          setLoading(false);
+        }, 1200);
+        return;
       }
 
+      setSuccessMessage('Connexion réussie !');
+      // Sécurité 100% Cookies HTTPOnly (zéro token dans localStorage)
       setTimeout(() => {
-        onLoginSuccess(data.user, data.accessToken);
+        onLoginSuccess(data.user);
         handleClose();
       }, 350);
     } catch (err: any) {
       setErrorMessage(err.message || 'Erreur lors de la connexion.');
     } finally {
-      setLoading(false);
+      if (tab !== 'register') {
+        setLoading(false);
+      }
     }
   };
 
@@ -128,6 +140,7 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
       const res = await fetch('/api/auth/login', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({
           email: `${provider.toLowerCase()}.user@multishop.com`,
           password: 'password123',
@@ -136,16 +149,16 @@ export const MultiShopClientAuth: React.FC<MultiShopClientAuthProps> = ({
         })
       });
       const data = await res.json();
-      if (data.accessToken) {
-        localStorage.setItem('token', data.accessToken);
+      if (!res.ok) {
+        throw new Error(data.message || `Erreur de connexion via ${provider}`);
       }
       setSuccessMessage(`Connecté avec succès via ${provider} !`);
       setTimeout(() => {
-        onLoginSuccess(data.user, data.accessToken);
+        onLoginSuccess(data.user);
         handleClose();
       }, 350);
-    } catch {
-      setErrorMessage(`Erreur de connexion via ${provider}`);
+    } catch (err: any) {
+      setErrorMessage(err.message || `Erreur de connexion via ${provider}`);
     } finally {
       setLoading(false);
     }

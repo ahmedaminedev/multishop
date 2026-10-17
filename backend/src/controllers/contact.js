@@ -8,7 +8,21 @@ exports.getMessages = catchAsync(async (req, res) => {
   if (shop && shop !== 'all') {
     filter = { $or: [{ shop }, { filialeKey: shop }] };
   }
-  const messages = await ContactMessage.find(filter).sort({ date: -1 });
+  let messages = [];
+  try {
+    const mongoose = require('mongoose');
+    if (mongoose.connection.readyState === 1) {
+      messages = await ContactMessage.find(filter).sort({ date: -1 });
+    }
+  } catch {}
+
+  if (!messages || messages.length === 0) {
+    const initialData = require('../data/initialData');
+    messages = (initialData.contactMessages || []).filter(m => {
+      if (!shop || shop === 'all') return true;
+      return m.shop === shop || m.filialeKey === shop;
+    });
+  }
   res.json(messages);
 });
 
